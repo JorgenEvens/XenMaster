@@ -1,0 +1,58 @@
+@CHARSET "US-ASCII";
+
+body, html, ul, li, div {
+	margin: 0;
+	padding: 0;
+}
+
+ul, ol{
+	list-style: none;
+}
+
+body {
+	background: #F2F2F2;
+}
+
+#loading {
+	-webkit-transition: opacity 0.25s linear;
+	-moz-transition: opacity 0.25s linear;
+	-o-transition: opacity 0.25s linear;
+	
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	
+	border: 1px solid #DEDEDE;
+	background: white;
+	padding: 5px 10px;
+	
+	font-family: verdana;
+	font-size: 11px;
+}
+
+.corner:before {
+	content: '';
+	width: 15px;
+	height: 15px;
+	position: absolute;
+}
+
+.corner.left:before {
+	border-left: 1px solid black;
+	left: 0;
+}
+
+.corner.top:before {
+	border-top: 1px solid black;
+	top: 0;
+}
+
+.corner.bottom:before {
+	border-bottom: 1px solid black;
+	bottom: 0;
+}
+
+.corner.right:before {
+	border-right: 1px solid black;
+	right: 0;
+}

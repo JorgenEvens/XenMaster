@@ -6,9 +6,6 @@
 	 * Loads additional code and components.
 	 */
 	Application = function( options ){
-		var	me = this,
-			buffer = {};
-		
 		options = options || {};
 		
 		this.proxy = options.proxy || '/resources';
@@ -23,45 +20,21 @@
 		};
 		
 		/*
+		 * Resources we are waiting for to return
+		 */
+		this.queue = {};
+		
+		/*
 		 * Resource request buffer
 		 * We are ging to try and bundle resource requests.
 		 */
-		this.buffer = buffer;
-		buffer.content = {};
-		buffer.timeout = options.buffer_timeout || 250;
-		buffer.timeout_id = null;
-		buffer.flush = function( callback ) {
-			var content = this.content,
-				resources = [],
-				uri;
-			
-			// Load uri's into the to-load resources collection.
-			for( uri in content ) {
-				resources.push( uri );
-			}
-			
-			// Perform call
-			$.getJSON( me.proxy, resources, function( data ){
-				// Call the callbacks
-				for( uri in data ) {
-					content[uri]( data[uri] );
-				}
-			});
-			
-			// Clear buffer
-			buffer.content = {};
-			
-			// Reset timer.
-			if( buffer.timeout_id ) {
-				window.clearTimeout( buffer.timeout_id );
-			}
-			this.timeout_id = window.setTimeout( function(){
-				buffer.flush();
-			}, this.timeout );
-		};
+		this.buffer = new Buffer({
+			timeout: 250,
+			proxy: this.proxy
+		});
 		
 		// Start the loop.
-		buffer.flush();
+		this.buffer.flush();
 		
 	};
 	
@@ -72,7 +45,8 @@
 	Application.prototype.load = function() {
 		
 		var args = Util.argumentsToArray( arguments ),
-			arg_count = args.length,
+		
+			me = this,
 		
 			/*
 			 * The amount of resources still being loaded over the network.
@@ -84,18 +58,20 @@
 			 */
 			callback = args.pop(),
 			
+			
+			arg_count = args.length,
+			
 			/*
 			 * Selected resources
 			 */
-			resources = {},
+			resources = [],
 			
 			/*
 			 * Add resource to the stack
 			 */
 			addResource = function( uri ) {
-				// Split on the directory separator ( e.g. \ and / ) to find the basename
-				name = uri[1].replace( '\\', '/' ).split('/').pop();
-				resources[name] = this.cache[ uri[0] ][ uri[1] ];
+				uri = uri.split( '://' );
+				resources.push( me.cache[ uri[0] ][ uri[1] ] );
 			},
 			
 			/*
@@ -103,7 +79,7 @@
 			 */
 			checkReady = function() {
 				if( !wait_for ){
-					callback( resources );
+					callback.apply( window, resources.reverse() );
 				}
 			},
 
@@ -111,14 +87,12 @@
 			 * Used for looping over arguments
 			 */
 			i,
-			uri,
-			name;
+			uri;
 			
 		
 		if( arg_count == 1 && Util.isArray( args[0] ) ) {
 			args = args[0];
 		}
-		
 		for( i=arg_count; i--; ) {
 			uri = args[i];
 			
@@ -156,7 +130,118 @@
 	};
 	
 	Application.prototype.import = function( uri, callback ){
-		this.buffer.content[ uri ] = callback;
+		var me = this;
+		
+		if( !Util.isArray( this.queue[ uri ] ) ) {
+			this.queue[ uri ] = [];
+		};
+		
+		this.queue[ uri ].push( callback );
+		
+		this.buffer.request( uri, function( data ){
+			/*
+			 * Initialise plugin with a reference to the application that loaded it.
+			 */
+			if( uri.substring( 0, 5 ) == 'js://' ) {
+				data = eval( data );
+				
+				data( function( value ){
+					me.ready( uri, value );
+				}, me );
+			} else {
+				me.ready( uri, data );
+			}
+		});
+	};
+	
+	Application.prototype.ready = function( uri, value ) {
+		var callbacks = this.queue[ uri ],
+			i = 0,
+			uri_parts = uri.split( '://' );
+		
+		this.cache[ uri_parts[0] ][ uri_parts[1] ] = value;
+		
+		if( !callbacks ) {
+			return;
+		}
+		
+		for( i=callbacks.length; i--; ) {
+			if( typeof callbacks[i] === 'function' ) {
+				callbacks[i]( uri, value );
+			}
+		}
+		
+		delete this.queue[ uri ];
+	};
+	
+	var Buffer = function( options ) {
+		options = options || {};
+		
+		this.content = {};
+		this.timeout = options.timeout || 250;
+		this.timeout_id = null;
+		this.proxy = options.proxy || '/';
+		this.notification = options.notification || Util.byId( 'loading' );
+	};
+	
+	Buffer.prototype.updateUI = function() {
+		var i = null;
+		
+		if( this.notification ) {
+			for( i in this.content ) {
+				break;
+			}
+			this.notification.style.opacity = i != null ? '1' : '0';
+		}
+	};
+	
+	Buffer.prototype.request = function( uri, callback ) {
+		this.content[uri] = callback;
+		this.updateUI();
+	};
+
+	Buffer.prototype.flush = function() {
+		var content = this.content,
+			resources = [],
+			uri = null,
+			me = this;
+	
+		// Load uri's into the to-load resources collection.
+		for( uri in content ) {
+			resources.push( uri );
+		}
+		
+		if( resources.length > 0 ) {
+			// Clear buffer
+			this.content = {};
+			
+			// Perform call
+			$.ajax({
+				url: this.proxy,
+				data: {
+					resources: resources
+				},
+				dataType: 'text',
+				success: function( data ){
+					data = JSON ? JSON.parse( data ) : eval( '(' + data + ')' );
+					
+					// Call the callbacks
+					for( uri in data ) {
+						content[uri]( data[uri] );
+					}
+					me.updateUI();
+				}
+			});
+		}
+		
+		// Reset timer.
+		if( this.timeout_id ) {
+			window.clearTimeout( this.timeout_id );
+		}
+		
+		this.timeout_id = window.setTimeout( function(){
+			me.flush();
+		}, this.timeout );
 	};
 	
 }( jQuery ));
