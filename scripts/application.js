@@ -221,13 +221,11 @@
 				data: {
 					resources: resources
 				},
-				dataType: 'text',
+				dataType: 'json',
 				success: function( data ){
-					data = JSON ? JSON.parse( data ) : eval( '(' + data + ')' );
-					
 					// Call the callbacks
 					for( uri in data ) {
-						content[uri]( data[uri] );
+						me.retrieve( data[ uri ], content[ uri ] );
 					}
 					me.updateUI();
 				}
@@ -242,6 +240,14 @@
 		this.timeout_id = window.setTimeout( function(){
 			me.flush();
 		}, this.timeout );
+	};
+	
+	Buffer.prototype.retrieve = function( resource, callback ) {
+		$.ajax({
+			url: resource,
+			dataType: 'text',
+			success: callback
+		});
 	};
 	
 }( jQuery ));

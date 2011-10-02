@@ -5,9 +5,12 @@
 	
 	$output = array();
 	
+	// Create artificial latency
 	sleep( 1 );
 	
 	foreach( $resources as $resource ) {
+		// $resource = js://relative/path/to/resource
+		
 		$name = explode( '://', $resource );
 		$path = '';
 		
@@ -17,8 +20,8 @@
 		
 		$path .= $name[1] . '.' . $name[0];
 		
-		$content = file_get_contents( $path );
-		$output[$resource] = $content;
+		// Return real directory to frontend
+		$output[$resource] = $path;
 	}
 	
 	echo json_encode( $output );
