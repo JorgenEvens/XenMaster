@@ -20,7 +20,7 @@ public class Oracle {
     protected TimeSpan timeSpan;
     
     public List<LoadSlice> predict(Period p) {
-        ArrayList<LoadSlice> slices = new ArrayList<LoadSlice>();
+        ArrayList<LoadSlice> slices = new ArrayList<>();
         return slices;
     }
     

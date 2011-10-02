@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map>
+    <entry>
+        <string>Xen</string>
+        <map>
+            <entry>
+                <string>URL</string>
+                <string>http://butters.w-gr.net:9363</string>
+            </entry>
+        </map>
+    </entry>
+    <entry>
+        <string>WebApplicationPort</string>
+        <int>12345</int>
+    </entry>
+</map>

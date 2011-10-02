@@ -1,0 +1,68 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package net.wgr.xenmaster.web;
+
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.TTCCLayout;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import net.wgr.wcp.Command;
+import net.wgr.xenmaster.entities.Session;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import static org.junit.Assert.*;
+
+/**
+ *
+ * @author double-u
+ */
+public class HookTest {
+    
+    protected Hook hook;
+
+    public HookTest() {
+    }
+
+    @BeforeClass
+    public static void setUpClass() throws Exception {
+        Logger root = Logger.getRootLogger();
+        root.setLevel(Level.INFO);
+        root.addAppender(new ConsoleAppender(new TTCCLayout()));
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws Exception {
+    }
+
+    @Before
+    public void setUp() {
+        hook = new Hook();
+    }
+
+    @After
+    public void tearDown() {
+    }
+
+    /**
+     * Test of execute method, of class Hook.
+     */
+    @Test
+    public void testExecute() {
+        Hook.APICall apic = new Hook.APICall();
+        apic.args = new String[]{"", ""};
+        Gson gson = new Gson();
+        JsonElement json = gson.toJsonTree(apic);
+        Command cmd = new Command("xen", "Session.loginWithPassword", apic);
+        Object o = hook.execute(cmd);
+        assertNotNull(o);
+        Session s = (Session) o;
+        System.out.println("Your personalized session id: " + s.getUUID().toString());
+    }
+}
