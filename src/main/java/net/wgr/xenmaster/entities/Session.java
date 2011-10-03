@@ -6,7 +6,6 @@
  */
 package net.wgr.xenmaster.entities;
 
-import java.util.UUID;
 import net.wgr.xenmaster.controller.Controller;
 
 /**
@@ -17,15 +16,19 @@ import net.wgr.xenmaster.controller.Controller;
 public class Session extends XenApiEntity {
     
     protected String thisHost, thisUser;
-
+    
     public Session(String ref) {
         super(ref);
-        fillOut();
     }
 
     public static Session loginWithPassword(String userName, String password) {
-        String ref = (String) Controller.dispatch("session.login_with_password", userName, password);
-        return new Session(ref);
+        String ref = (String) Controller.get().getDispatcher().dispatch("session.login_with_password", new Object[]{userName, password});
+        Session s = new Session(ref);
+        return s;
+    }
+    
+    public void fill() {
+        this.fillOut();
     }
     
     public Host getThisHost() {

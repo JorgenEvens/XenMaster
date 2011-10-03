@@ -12,9 +12,16 @@ package net.wgr.xenmaster.entities;
  * @author double-u
  */
 public class Host extends XenApiEntity {
+    
+    protected boolean enabled;
+    
+    protected String apiVersionMajor, apiVersionMinor;
+    protected String apiVersionVendor;
+    protected String nameLabel, schedPolicy, nameDescription;
 
     public Host(String ref) {
         super(ref);
+        fillOut();
     }
    
 }

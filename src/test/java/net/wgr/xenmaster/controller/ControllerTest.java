@@ -5,6 +5,7 @@
 package net.wgr.xenmaster.controller;
 
 import junit.framework.TestCase;
+import net.wgr.xenmaster.entities.Host;
 import net.wgr.xenmaster.entities.Session;
 import org.junit.Test;
 
@@ -30,7 +31,6 @@ public class ControllerTest extends TestCase {
     
     @Test
     public void test() {
-        Controller c = Controller.get();
-        Session session = Session.loginWithPassword("", "");
+        Host thisHost = Controller.getSession().getThisHost();
     }
 }

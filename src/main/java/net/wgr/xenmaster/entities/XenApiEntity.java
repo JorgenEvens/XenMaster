@@ -23,41 +23,43 @@ public class XenApiEntity {
 
     protected String reference;
     protected String uuid;
-    
+
     public XenApiEntity(String ref) {
         this.reference = ref;
     }
-    
+
     public String getReference() {
         return reference;
     }
-    
+
     public UUID getUUID() {
         return UUID.fromString(uuid);
     }
-    
+
     public void setUUID(UUID uuid) {
         this.uuid = uuid.toString();
     }
-    
+
     protected void fillOut() {
-        Map result = (Map) Controller.dispatch(getClass().getSimpleName().toLowerCase() + ".get_record", this.reference, this.reference);
-        
+        Map<String, Object> result = (Map<String, Object>) Controller.dispatch(getClass().getSimpleName().toLowerCase() + ".get_record", this.reference);
+
         for (Field f : ReflectionUtils.getAllFields(getClass())) {
             // MyNameIsHans -> my_name_is_hans
             String processedName = f.getName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase();
-            if (!result.containsKey(processedName)) {
-                continue;
+            Object value = null;
+            for (String key : result.keySet()) {
+                if (key.toLowerCase().equals(processedName)) value = result.get(key);
             }
-            
+            if (value == null) continue;
+
             if (Modifier.isProtected(f.getModifiers()) || Modifier.isPrivate(f.getModifiers())) {
                 f.setAccessible(true);
             }
-            
+
             try {
                 switch (f.getType().getName()) {
                     case "java.lang.String":
-                        f.set(this, result.get(processedName));
+                        f.set(this, value);
                         break;
                 }
             } catch (IllegalAccessException | IllegalArgumentException ex) {

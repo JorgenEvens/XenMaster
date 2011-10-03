@@ -7,6 +7,7 @@
 package net.wgr.xenmaster.controller;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.connectivity.Connection;
 import org.apache.commons.collections.CollectionUtils;
@@ -26,12 +27,27 @@ public class Dispatcher {
     public Object dispatch(String methodName, Object[] params) {
         ArrayList list = new ArrayList();
         CollectionUtils.addAll(list, params);
-        Map result = this.conn.executeCommand(methodName, list);
+        return execute(methodName, list);
+    }
+    
+    protected Object execute(String methodName, List params) {
+        Map result = this.conn.executeCommand(methodName, params);
         
         if (result.get("Status").equals("Success")) {
             return result.get("Value");
         } else {
             return null;
         }
-    } 
+    }
+
+    public Object dispatchWithSession(String methodName, Object[] params) {
+        ArrayList list = new ArrayList();
+        list.add(conn.getSession().getReference());
+        CollectionUtils.addAll(list, params);
+        return execute(methodName, list);
+    }
+
+    public Connection getConnection() {
+        return conn;
+    }
 }

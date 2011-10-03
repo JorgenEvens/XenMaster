@@ -9,6 +9,7 @@ package net.wgr.xenmaster.connectivity;
 import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Map;
+import net.wgr.xenmaster.entities.Session;
 import org.apache.log4j.Logger;
 
 /**
@@ -18,6 +19,7 @@ import org.apache.log4j.Logger;
  */
 public class Connection {
     protected XMLRPC x;
+    protected Session s;
     
     public Connection() {
         try {
@@ -29,5 +31,16 @@ public class Connection {
     
     public Map executeCommand(String commandName, List params) {
         return x.execute(commandName, params);
+    }
+
+    public Session getSession() {
+        if (s == null) authenticate();
+        return s;
+    }
+    
+    public void authenticate() {
+        // TODO
+        s = Session.loginWithPassword("", "");
+        s.fill();
     }
 }
