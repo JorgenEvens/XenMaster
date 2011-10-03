@@ -1,5 +1,6 @@
 package net.wgr.xenmaster;
 
+import net.wgr.core.access.Authorize;
 import net.wgr.server.http.Server;
 import net.wgr.server.web.handling.ServerHook;
 import net.wgr.services.discovery.BasicDiscoverableService;
@@ -55,6 +56,8 @@ public class App implements Daemon {
         
         ServerHook sh = new ServerHook();
         sh.addPandaHook(new Hook());
+        
+        Authorize.disable();
         
         server.addServlet(sh.getHttpHandler());
         server.addServlet(sh.getWebSocketHandler());
