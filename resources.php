@@ -6,7 +6,7 @@
 	$output = array();
 	
 	// Create artificial latency
-	sleep( 1 );
+	//sleep( 1 );
 	
 	foreach( $resources as $resource ) {
 		// $resource = js://relative/path/to/resource

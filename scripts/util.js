@@ -16,6 +16,10 @@
 		return document.getElementById( id );
 	};
 	
+	Util.create = function( type ) {
+		return document.createElement( type );
+	};
+	
 	Util.on = function( event, target, listener ) {
 		if( target.addEventListener ) {
 			target.addEventListener( event, listener, true );

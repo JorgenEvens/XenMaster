@@ -20,6 +20,7 @@
 		this.address = options.address;
 		this.secure = options.secure ? options.secure : false;
 		this.connected = false;
+		this.protocol = options.protocol;
 		
 		/*
 		 * Commands that have been sent and are waiting for the result.
@@ -62,12 +63,16 @@
 			return true;
 		}
 		
+		var me = this;
+		
 		try {
-			this.socket = new WebSocket( ( this.secure ? 'wss' : 'ws' ) + '://' + this.address );
-			this.socket.onopen = this.onopen;
-			this.socket.onerror = this.onerror;
-			this.socket.onclose = this.onclose;
-			this.socket.onmessage = this.onmessage;
+			this.socket = new WebSocket( ( this.secure ? 'wss' : 'ws' ) + '://' + this.address, this.protocol );
+			this.socket.onopen = function() {
+				me.connected = true; me.onopen();
+			};
+			this.socket.onerror = function(e) { me.onerror(e); };
+			this.socket.onclose = function() { me.onclose(); };
+			this.socket.onmessage = function(e) { me.onmessage(e); };
 			
 			Socket.sockets[ this.address ] = this;
 		} catch( e ) {
@@ -79,11 +84,10 @@
 	/*
 	 * Basic handlers
 	 */
-	Socket.prototype.onopen = function() {
-		this.connected = true;
-	};
+	Socket.prototype.onopen = function() {};
 	
 	Socket.prototype.onerror = function( e ) {
+		alert( e );
 		throw 'Error on websocket (' + this.address + '): ' + e.data;
 	};
 	
@@ -95,13 +99,13 @@
 	 * Handle messages that come in over the socket.
 	 */
 	Socket.prototype.onmessage = function( e ) {
-		var data = e.data,
+		var data = window.JSON ? JSON.parse( e.data ) : eval( '(' + e.data + ')' ),
 			callback = this.sent[ data.tag ],
 			hook_list = this.hooks[ data.handler ],
 			i = null;
-		
+		console.log( data );
 		if( callback ) {
-			callback( data.data );
+			callback( data );
 		};
 		
 		for( i in hook_list ) {
@@ -159,7 +163,7 @@
 			throw 'The connection is not open. Could not transmit.';
 		}
 		
-		if( !options || !options.cmd || !options.handler ) {
+		if( !options || !options.name || !options.handler ) {
 			throw 'Invalid request packet';
 		};
 		
@@ -170,7 +174,7 @@
 			delete options.callback;
 		}
 		
-		this.socket.send( options );
+		this.socket.send( window.JSON ? JSON.stringify( options ) : options.toSource() );
 	};
 	
 	Socket.sockets = {};

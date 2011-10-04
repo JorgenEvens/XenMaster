@@ -1,9 +1,9 @@
-(function( ready ){
+(function( ready, app ){
 	
-	M.load( 'js://lib/modernizr', function( Modernizr ) {
+	app.load( 'js://lib/modernizr', function( Modernizr ) {
 		var socketType = 'websocket';
-		
-		if( !Modernizr.websocket ) {
+
+		if( !Modernizr.websockets ) {
 			socketType = 'restsocket';
 		}
 		

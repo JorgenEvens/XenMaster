@@ -70,8 +70,11 @@
 			 * Add resource to the stack
 			 */
 			addResource = function( uri ) {
+				var index = args.indexOf( uri );
+				
 				uri = uri.split( '://' );
-				resources.push( me.cache[ uri[0] ][ uri[1] ] );
+				
+				resources[index] = me.cache[ uri[0] ][ uri[1] ];
 			},
 			
 			/*
@@ -79,7 +82,7 @@
 			 */
 			checkReady = function() {
 				if( !wait_for ){
-					callback.apply( window, resources.reverse() );
+					callback.apply( window, resources );
 				}
 			},
 
@@ -144,7 +147,7 @@
 			 */
 			if( uri.substring( 0, 5 ) == 'js://' ) {
 				data = eval( data );
-				
+
 				data( function( value ){
 					me.ready( uri, value );
 				}, me );
