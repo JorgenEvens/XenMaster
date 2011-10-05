@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import net.wgr.server.web.handling.WebHook;
 import net.wgr.settings.Settings;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -59,7 +60,7 @@ public class TemplateHook extends WebHook {
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(p)) {
                 for (Path file : stream) {
                     if (file.toFile().isFile() && !file.startsWith(".")) {
-                        contentTree.addProperty(file.toFile().getName(), IOUtils.toString(new FileInputStream(file.toFile())));
+                        contentTree.addProperty(FilenameUtils.getBaseName(file.toString()), IOUtils.toString(new FileInputStream(file.toFile())));
                     }
                 }
             }
