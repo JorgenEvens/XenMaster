@@ -18,7 +18,11 @@
 			$path = 'scripts/';
 		}
 		
-		$path .= $name[1] . '.' . $name[0];
+		if( $name[0] == 'tpl' ) {
+			$path = 'template.php?tpl_name=' . urlencode( $name[1] );
+		} else {
+			$path .= $name[1] . '.' . $name[0];
+		}
 		
 		// Return real directory to frontend
 		$output[$resource] = $path;

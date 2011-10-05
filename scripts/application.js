@@ -105,11 +105,15 @@
 				continue;
 			}
 			
+			if( !this.cache[ uri[0] ] ) {
+				this.cache[ uri[0] ] = {};
+			}
+			
 			if( this.cache[ uri[0] ][ uri[1] ] ) {
 				/*
 				 * The requested resource is available from cache.
 				 */
-				addResource( uri );
+				addResource( args[i] );
 			} else {
 				/*
 				 * The requested resource is not present in the cache.
@@ -142,25 +146,52 @@
 		this.queue[ uri ].push( callback );
 		
 		this.buffer.request( uri, function( data ){
+			me.parseResource( uri, data );
+		});
+	};
+	
+	Application.prototype.parseResource = function( uri, data ) {
+		var parts = uri.split('://'),
+			type = parts[0],
+			me = this;
+		
+		if( type == 'js' ) {
 			/*
 			 * Initialise plugin with a reference to the application that loaded it.
 			 */
-			if( uri.substring( 0, 5 ) == 'js://' ) {
-				data = eval( data );
-
-				data( function( value ){
-					me.ready( uri, value );
-				}, me );
-			} else {
-				me.ready( uri, data );
-			}
-		});
+			data = eval( data );
+	
+			data( function( value ){
+				me.ready( uri, value );
+			}, this );
+		} else if( type == 'tpl' ) {
+			/*
+			 * Templates come in a JSON container.
+			 * {
+			 * 		view: '<html>',
+			 * 		code: '<javascript>'
+			 * }
+			 */
+			data = JSON ? JSON.parse( data ) : eval( '(' + data + ')' );
+			data.code = eval( data.code );
+			
+			this.ready( uri, data );
+		} else {
+			/*
+			 * Simply safe the data as plain text
+			 */
+			this.ready( uri, data );
+		}
 	};
 	
 	Application.prototype.ready = function( uri, value ) {
 		var callbacks = this.queue[ uri ],
 			i = 0,
 			uri_parts = uri.split( '://' );
+		
+		if( !this.cache[ uri_parts[0] ] ) {
+			this.cache[ uri_parts[ 0 ] ] = {};
+		}
 		
 		this.cache[ uri_parts[0] ][ uri_parts[1] ] = value;
 		

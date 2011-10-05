@@ -9,6 +9,10 @@
 		
 		M = MASTER;
 		
+		/*
+		 * Graphics test
+		 ********************************************************************************************
+		 */
 		M.load( 'js://graphics/graph/linechart', 'js://graphics/load_indicator', function( Chart, LI ){
 			/* 
 			 * Draw my chart
@@ -59,7 +63,30 @@
 			
 		});
 		
+		/*
+		 * Backend test
+		 ********************************************************************************************
+		 */
 		M.load( 'js://net/socket', 'js://lib/jquery', function( WS, $ ){
+			var login = function(){
+						socket.send('Session.loginWithPassword', 'xen',
+								{ args: ['',''] }, getHost );
+					},
+				getHost = function( data ) {
+						socket.send( 'Session.getThisHost', 'xen',
+								{ args: [] }, getVMs );
+					},
+				getVMs = function( data ) {
+						socket.send( 'Host.getResidentVMs', 'xen', 
+								{
+									args: [],
+									ref: data.result.reference
+								}, function( data ){
+									console.log( data );
+								});
+					},
+				socket = null;
+					
 			$.ajax({
 				url: 'target.php?get_target=1',
 				dataType: 'text',
@@ -67,27 +94,8 @@
 					/*
 					 * Connect backend.
 					 */
-					var socket = new WS({ address: data, protocol: 'WWSCP' });
-					socket.onopen = function(){
-						socket.send({
-							name: 'Session.loginWithPassword',
-							handler: 'xen',
-							data : {
-								args: ['','']
-							},
-							callback: function( data ) {
-								socket.send({
-									name: 'Session.getThisHost',
-									handler: 'xen',
-									data: { args: [] },
-									callback: function( data ){
-										console.log( data );
-									}
-								});
-								console.log( data );
-							}
-						});
-					};
+					socket = new WS({ address: data, protocol: 'WWSCP' });
+					socket.onopen = login;
 					
 					if(!socket.open()){
 						alert( 'auwch' );
@@ -97,6 +105,23 @@
 					 */
 				}
 			});
+		});
+		
+		/*
+		 * Template test
+		 ********************************************************************************************
+		 */
+		M.load( 'js://ui/template', 'tpl://user_interface', function( Template, user_interface ) {
+			var t = new Template({
+				resource: user_interface,
+				events: ['click']
+			});
+			
+			t.bind( 'hello_world', function( e ) {
+				console.log( e );
+			});
+			
+			$('body').append( t.dom );
 		});
 	});
 	
