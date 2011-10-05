@@ -13,12 +13,13 @@
 			this.capture( options.events );
 			
 			if( typeof res.code === 'function' ) {
-				res.code.call( this, $ );
+				res.code.call( this, $, app );
 			}
 		},
-		defaultHandler = function( action, target, source ) {
+		defaultHandler = function( action, data, target, source ) {
 			$(this).trigger({
 					type: action,
+					data: data,
 					action: action,
 					bindTo: target,
 					source: source
@@ -58,7 +59,7 @@
 				return;
 			}
 			
-			this.action( action, target, source );
+			this.action( action, target.dataset, target, source );
 			
 		};
 		

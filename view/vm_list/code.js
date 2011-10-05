@@ -1,4 +1,4 @@
-(function(){
+(function( $, app ){
 	
 	this.addVMs = function( vms ) {
 		console.log( vms );
@@ -7,14 +7,13 @@
 		
 		for( i in vms ) {
 			(function(vm){
-				console.log( vm );
-				$(me.dom).find( 'ul' ).append( $('<li></li>').html( vm['nameLabel'] ).click(function(){
-					me.vmClick( vm );
-				}));
+				var item = $('<li></li>').html( vm['nameLabel'] ).get(0);
+				item.dataset.reference = vm.reference;
+				item.dataset.action = 'vm_clicked';
+				item.dataset.entity = vm;
+				$(me.dom).find( 'ul' ).append( item );
 			}(vms[i]));
 		}
 	};
-	
-	this.vmClick = function(){};
 	
 });

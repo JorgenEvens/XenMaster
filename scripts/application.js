@@ -258,7 +258,11 @@
 				path = '';
 			}
 			
-			path +=  parts[1] + '.' + parts[0];
+			if( parts[0] == 'tpl' ) {
+				path += parts[1];
+			} else {
+				path +=  parts[1] + '.' + parts[0];
+			}
 			
 			this.retrieve( path, content[ uri ] );
 		}
