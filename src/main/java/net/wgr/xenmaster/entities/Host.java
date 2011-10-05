@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
+import org.apache.log4j.Logger;
 
 /**
  * 
@@ -18,12 +20,13 @@ import net.wgr.xenmaster.controller.Controller;
  * @author double-u
  */
 public class Host extends XenApiEntity {
-    
+
     protected boolean enabled;
-    
     protected String apiMajorVersion, apiMinorVersion;
     protected String apiVendor;
     protected String nameLabel, schedulingPolicy, nameDescription;
+    @Fill
+    protected Map<String, String> softwareVersion;
 
     public Host(String ref) {
         super(ref);
@@ -60,21 +63,23 @@ public class Host extends XenApiEntity {
     public String getSchedulingPolicy() {
         return schedulingPolicy;
     }
-    
+
     public List<VM> getResidentVMs() {
-        Object[] refs = (Object[]) Controller.dispatch("host.get_resident_VMs", this.reference);
+        Object[] refs = (Object[]) safeDispatch("host.get_resident_VMs");
         ArrayList<VM> vms = new ArrayList<>();
         for (Object obj : refs) {
             // Lame
             String ref = (String) obj;
-            if (ref.equals("00000000-0000-0000-0000-000000000000")) continue;
+            if (ref.equals("00000000-0000-0000-0000-000000000000")) {
+                continue;
+            }
             vms.add(new VM(ref, true));
         }
         return vms;
     }
-    
+
     public List<PIF> getPhysicalInterfaces() {
-        Object[] refs = (Object[]) Controller.dispatch("host.get_PIFs", this.reference);
+        Object[] refs = (Object[]) safeDispatch("host.get_PIFs");
         ArrayList<PIF> pifs = new ArrayList<>();
         for (Object obj : refs) {
             String ref = (String) obj;
@@ -82,7 +87,7 @@ public class Host extends XenApiEntity {
         }
         return pifs;
     }
-    
+
     protected Map<String, String> interpretation() {
         HashMap<String, String> i = new HashMap<>();
         i.put("majorApiVersion", "api_version_major");
@@ -91,5 +96,4 @@ public class Host extends XenApiEntity {
         i.put("schedulingPolicy", "sched_policy");
         return i;
     }
-   
 }

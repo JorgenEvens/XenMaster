@@ -11,7 +11,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import javax.swing.text.StyledEditorKit.BoldAction;
 import net.wgr.server.web.handling.WebCommandHandler;
 import net.wgr.wcp.Command;
 import org.apache.commons.lang.StringUtils;
@@ -31,6 +30,7 @@ public class Hook extends WebCommandHandler {
     public Object execute(Command cmd) {
         Gson gson = new Gson();
         APICall apic = gson.fromJson(cmd.getData(), APICall.class);
+        if (apic.args == null) apic.args = new Object[0];
         String[] splitsies = StringUtils.split(cmd.getName(), '.');
         return invoke(splitsies[0], splitsies[1], apic.args, apic.ref);
     }

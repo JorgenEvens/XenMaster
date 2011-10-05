@@ -14,12 +14,19 @@ import java.util.List;
  * @author double-u
  */
 public class BadAPICallException extends Exception {
+
     protected String methodName;
     protected List args;
+    protected String errorDescription;
 
     public BadAPICallException(String methodName, List args) {
+        this(methodName, args, null);
+    }
+
+    public BadAPICallException(String methodName, List params, String errorDescription) {
         this.methodName = methodName;
-        this.args = args;
+        this.args = params;
+        this.errorDescription = errorDescription;
     }
 
     public List getArgs() {
@@ -29,4 +36,13 @@ public class BadAPICallException extends Exception {
     public String getMethodName() {
         return methodName;
     }
+
+    public String getErrorDescription() {
+        return errorDescription;
+    }
+
+    public String toString() {
+        return "The method " + methodName + " returned following error " + errorDescription;
+    }
+
 }

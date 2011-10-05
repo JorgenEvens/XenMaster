@@ -6,7 +6,9 @@
  */
 package net.wgr.xenmaster.entities;
 
+import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
+import org.apache.log4j.Logger;
 
 /**
  * 
@@ -26,9 +28,14 @@ public class Session extends XenApiEntity {
     }
 
     public static Session loginWithPassword(String userName, String password) {
-        String ref = (String) Controller.get().getDispatcher().dispatch("session.login_with_password", new Object[]{userName, password});
-        Session s = new Session(ref, false);
-        return s;
+        try {
+            String ref = (String) Controller.get().getDispatcher().dispatch("session.login_with_password", new Object[]{userName, password});
+            Session s = new Session(ref, false);
+            return s;
+        } catch (BadAPICallException ex) {
+            Logger.getLogger(Session.class).error("Failed to log in", ex);
+            return null;
+        }
     }
 
     public void fill() {

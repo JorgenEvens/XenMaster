@@ -41,7 +41,7 @@ public class Controller {
         return get().getDispatcher().getConnection().getSession();
     }
     
-    public static Object dispatch(String methodName, Object ... params) {
+    public static Object dispatch(String methodName, Object ... params) throws BadAPICallException {
         return get().getDispatcher().dispatchWithSession(methodName, params);
     }
 

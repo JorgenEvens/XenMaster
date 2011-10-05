@@ -6,13 +6,18 @@
  */
 package net.wgr.xenmaster.entities;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import net.wgr.core.ReflectionUtils;
+import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -66,17 +71,70 @@ public class XenApiEntity {
     protected final void fillOut() {
         fillOut(null);
     }
-    
+
     protected void notNull(Object obj) {
-        
+    }
+
+    /**
+     * Useful when a more detailed error message cannot be provided
+     * @param methodName the method name
+     * @param params method parameters
+     * @return result
+     */
+    protected Object safeDispatch(String methodName, Object... params) {
+        try {
+            return dispatch(methodName, params);
+        } catch (BadAPICallException ex) {
+            Logger.getLogger(getClass()).error(ex);
+            return null;
+        }
+    }
+
+    protected Object dispatch(String methodName, Object... params) throws BadAPICallException {
+        ArrayList arr = new ArrayList();
+        arr.add(this.reference);
+        CollectionUtils.addAll(arr, params);
+        try {
+            return Controller.dispatch(methodName, arr.toArray());
+        } catch (BadAPICallException ex) {
+            String errMsg = "";
+
+            // Check if we can handle it
+            switch (ex.getMessage()) {
+                case "OPERATION_NOT_ALLOWED":
+                    errMsg = "Tried to perform an unallowed operation";
+                    break;
+                case "OTHER_OPERATION_IN_PROGRESS":
+                    errMsg = "Another operation is in progress";
+                    break;
+                default:
+                    throw ex;
+            }
+
+            Logger.getLogger(getClass()).error(errMsg, ex);
+        }
+        return null;
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface Fill {
+
+        boolean fillAPIObject() default false;
     }
 
     protected final void fillOut(String className) {
-        Map<String, Object> result = (Map<String, Object>) Controller.dispatch((className == null ? getClass().getSimpleName().toLowerCase() : className) + ".get_record", this.reference);
+        Map<String, Object> result = null;
+
+        try {
+            result = (Map<String, Object>) Controller.dispatch((className == null ? getClass().getSimpleName().toLowerCase() : className) + ".get_record", this.reference);
+        } catch (BadAPICallException ex) {
+            Logger.getLogger(getClass()).error(ex);
+        }
+
         if (result == null) {
             return;
         }
-        
+
         Map<String, String> interpretation = interpretation();
 
         for (Field f : ReflectionUtils.getAllFields(getClass())) {
@@ -126,6 +184,11 @@ public class XenApiEntity {
                                     f.set(this, obj);
                                 }
                             }
+                        } else if (f.isAnnotationPresent(Fill.class)) {
+                            Object casted = f.getType().cast(value);
+                            if (XenApiEntity.class.isAssignableFrom(f.getType()) && f.getAnnotation(Fill.class).fillAPIObject()) {
+                            }
+                            f.set(this, casted);
                         }
                         break;
                 }

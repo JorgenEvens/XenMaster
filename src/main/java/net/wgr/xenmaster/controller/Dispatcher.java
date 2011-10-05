@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.connectivity.Connection;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.log4j.Logger;
 
 /**
  * 
@@ -26,15 +25,11 @@ public class Dispatcher {
         this.conn = new Connection();
     }
 
-    public Object dispatch(String methodName, Object[] params) {
+    public Object dispatch(String methodName, Object[] params) throws BadAPICallException {
         ArrayList list = new ArrayList();
         CollectionUtils.addAll(list, params);
-        try {
-            return execute(methodName, list);
-        } catch (BadAPICallException ex) {
-            Logger.getLogger(getClass()).error(ex);
-            return null;
-        }
+        return execute(methodName, list);
+
     }
 
     protected Object execute(String methodName, List params) throws BadAPICallException {
@@ -46,23 +41,19 @@ public class Dispatcher {
         switch (result.get("Status").toString()) {
             case "Success":
                 return result.get("Value");
-            case "":
-                return null;
+            case "Failure":
+                throw new BadAPICallException(methodName, params, result.get("ErrorDescription").toString());
             default:
                 return null;
         }
     }
 
-    public Object dispatchWithSession(String methodName, Object[] params) {
+    public Object dispatchWithSession(String methodName, Object[] params) throws BadAPICallException {
         ArrayList list = new ArrayList();
         list.add(conn.getSession().getReference());
         CollectionUtils.addAll(list, params);
-        try {
-            return execute(methodName, list);
-        } catch (BadAPICallException ex) {
-            Logger.getLogger(getClass()).error(ex);
-            return null;
-        }
+
+        return execute(methodName, list);
     }
 
     public Connection getConnection() {
