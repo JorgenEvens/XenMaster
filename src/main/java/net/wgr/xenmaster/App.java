@@ -8,6 +8,7 @@ import net.wgr.services.discovery.BasicDiscoverableService;
 import net.wgr.services.discovery.Discovery;
 import net.wgr.settings.Settings;
 import net.wgr.xenmaster.web.Hook;
+import net.wgr.xenmaster.web.TemplateHook;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
@@ -55,8 +56,9 @@ public class App implements Daemon {
         server = new Server();
         server.boot();
         
-        ServerHook sh = new ServerHook();
+        ServerHook sh = new ServerHook("/*");
         sh.addPandaHook(new Hook());
+        sh.addPandaHook(new TemplateHook());
         
         Authorize.disable();
         

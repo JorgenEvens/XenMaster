@@ -1,5 +1,5 @@
 target/
-web/
+/web/
 
 # Compiled source #
 ###################
@@ -35,4 +35,4 @@ web/
 ehthumbs.db
 Icon?
 Thumbs.db
-src/main/java/net/wgr/xenmaster/.DS_Store
+.DS_Store
