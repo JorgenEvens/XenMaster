@@ -48,7 +48,7 @@ public class VM extends XenApiEntity {
 
     public void start(boolean startPaused) {
         try {
-            dispatch("vm.start", startPaused);
+            dispatch("VM.start", startPaused);
         } catch (BadAPICallException ex) {
             String errMsg = "";
             switch (ex.getMessage()) {
@@ -75,7 +75,7 @@ public class VM extends XenApiEntity {
 
     public void pause() {
         try {
-            dispatch("vm.pause");
+            dispatch("VM.pause");
         } catch (BadAPICallException ex) {
             String errMsg = "";
             switch (ex.getMessage()) {
@@ -92,7 +92,7 @@ public class VM extends XenApiEntity {
 
     public void resume() {
         try {
-            dispatch("vm.unpause");
+            dispatch("VM.unpause");
         } catch (BadAPICallException ex) {
             String errMsg = "";
             switch (ex.getMessage()) {
@@ -114,9 +114,9 @@ public class VM extends XenApiEntity {
     public void stop(boolean polite) {
         try {
             if (polite) {
-                dispatch("vm.clean_shutdown");
+                dispatch("VM.clean_shutdown");
             } else {
-                dispatch("vm.hard_shutdown");
+                dispatch("VM.hard_shutdown");
             }
         } catch (BadAPICallException ex) {
             String errMsg = "";
@@ -138,9 +138,9 @@ public class VM extends XenApiEntity {
     public void reboot(boolean polite) {
         try {
             if (polite) {
-                dispatch("vm.clean_reboot");
+                dispatch("VM.clean_reboot");
             } else {
-                dispatch("vm.hard_reboot");
+                dispatch("VM.hard_reboot");
             }
         } catch (BadAPICallException ex) {
             String errMsg = "";
@@ -157,7 +157,7 @@ public class VM extends XenApiEntity {
     
     public void suspend() {
         try {
-            dispatch("vm.suspend");
+            dispatch("VM.suspend");
         } catch (BadAPICallException ex) {
             String errMsg = "";
             switch (ex.getMessage()) {
@@ -174,7 +174,7 @@ public class VM extends XenApiEntity {
     
     public void wake(boolean startPaused, boolean force) {
         try {
-            dispatch("vm.resume", startPaused, force);
+            dispatch("VM.resume", startPaused, force);
         } catch (BadAPICallException ex) {
             String errMsg = "";
             switch (ex.getMessage()) {
