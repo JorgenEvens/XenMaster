@@ -11,9 +11,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import javax.swing.text.StyledEditorKit.BoldAction;
 import net.wgr.server.web.handling.WebCommandHandler;
 import net.wgr.wcp.Command;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -44,8 +44,12 @@ public class Hook extends WebCommandHandler {
                         return m.invoke(null, args);
                     } else {
                         m.setAccessible(true);
-                        Constructor c = clazz.getConstructor(String.class);
-                        return m.invoke(c.newInstance(ref), args);
+                        Constructor c = clazz.getConstructor(String.class, boolean.class);
+                        if (methodName.equals("get")) {
+                            return c.newInstance(ref, true);
+                        } else {
+                            return m.invoke(c.newInstance(ref, false), args);
+                        }
                     }
                 }
             }
@@ -54,8 +58,9 @@ public class Hook extends WebCommandHandler {
         }
         return null;
     }
-    
+
     public static class APICall {
+
         public Object[] args;
         public String ref;
     }

@@ -11,7 +11,8 @@ import org.apache.log4j.TTCCLayout;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.wgr.wcp.Command;
-import net.wgr.xenmaster.entities.Session;
+import net.wgr.xenmaster.controller.Controller;
+import net.wgr.xenmaster.entities.Host;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -55,14 +56,16 @@ public class HookTest {
      */
     @Test
     public void testExecute() {
+        Controller.start();
+        
         Hook.APICall apic = new Hook.APICall();
-        apic.args = new String[]{"", ""};
+        apic.args = new String[0];
         Gson gson = new Gson();
         JsonElement json = gson.toJsonTree(apic);
-        Command cmd = new Command("xen", "Session.loginWithPassword", apic);
+        Command cmd = new Command("xen", "Session.getThisHost", apic);
         Object o = hook.execute(cmd);
         assertNotNull(o);
-        Session s = (Session) o;
-        System.out.println("Your personalized session id: " + s.getUUID().toString());
+        Host s = (Host) o;
+        System.out.println("Your current host id: " + s.getUUID().toString());
     }
 }

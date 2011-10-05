@@ -21,6 +21,10 @@ public class Controller {
     private Controller() {
         this.dispatcher = new Dispatcher();
     }
+    
+    public static void start() {
+        get().getDispatcher().getConnection().authenticate();
+    }
 
     public static Controller get() {
         if (instance == null) {

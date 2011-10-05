@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.connectivity.Connection;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.log4j.Logger;
 
 /**
  * 
@@ -18,25 +19,37 @@ import org.apache.commons.collections.CollectionUtils;
  * @author double-u
  */
 public class Dispatcher {
+
     protected Connection conn;
-    
+
     public Dispatcher() {
         this.conn = new Connection();
     }
-    
+
     public Object dispatch(String methodName, Object[] params) {
         ArrayList list = new ArrayList();
         CollectionUtils.addAll(list, params);
-        return execute(methodName, list);
-    }
-    
-    protected Object execute(String methodName, List params) {
-        Map result = this.conn.executeCommand(methodName, params);
-        
-        if (result.get("Status").equals("Success")) {
-            return result.get("Value");
-        } else {
+        try {
+            return execute(methodName, list);
+        } catch (BadAPICallException ex) {
+            Logger.getLogger(getClass()).error(ex);
             return null;
+        }
+    }
+
+    protected Object execute(String methodName, List params) throws BadAPICallException {
+        Map result = this.conn.executeCommand(methodName, params);
+        if (result == null) {
+            throw new BadAPICallException(methodName, params);
+        }
+
+        switch (result.get("Status").toString()) {
+            case "Success":
+                return result.get("Value");
+            case "":
+                return null;
+            default:
+                return null;
         }
     }
 
@@ -44,7 +57,12 @@ public class Dispatcher {
         ArrayList list = new ArrayList();
         list.add(conn.getSession().getReference());
         CollectionUtils.addAll(list, params);
-        return execute(methodName, list);
+        try {
+            return execute(methodName, list);
+        } catch (BadAPICallException ex) {
+            Logger.getLogger(getClass()).error(ex);
+            return null;
+        }
     }
 
     public Connection getConnection() {

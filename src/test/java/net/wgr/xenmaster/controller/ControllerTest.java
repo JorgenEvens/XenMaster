@@ -4,9 +4,10 @@
  */
 package net.wgr.xenmaster.controller;
 
+import java.util.List;
 import junit.framework.TestCase;
 import net.wgr.xenmaster.entities.Host;
-import net.wgr.xenmaster.entities.Session;
+import net.wgr.xenmaster.entities.VM;
 import org.junit.Test;
 
 /**
@@ -31,6 +32,7 @@ public class ControllerTest extends TestCase {
     
     @Test
     public void test() {
-        Host thisHost = Controller.getSession().getThisHost();
+        Host host = Controller.getSession().getThisHost();
+        List<VM> residentVMs = host.getResidentVMs();
     }
 }
