@@ -1,6 +1,7 @@
 package net.wgr.xenmaster;
 
 import net.wgr.core.access.Authorize;
+import net.wgr.server.application.DefaultApplication;
 import net.wgr.server.http.Server;
 import net.wgr.server.web.handling.ServerHook;
 import net.wgr.services.discovery.BasicDiscoverableService;
@@ -61,6 +62,9 @@ public class App implements Daemon {
         
         server.addServlet(sh.getHttpHandler());
         server.addServlet(sh.getWebSocketHandler());
+        
+        DefaultApplication da = DefaultApplication.create("/", Settings.getInstance().getString("WebContentPath"));
+        server.addHook(da);
         server.start();
     }
 

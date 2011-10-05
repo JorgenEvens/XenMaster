@@ -13,4 +13,8 @@
         <string>WebApplicationPort</string>
         <int>12345</int>
     </entry>
+    <entry>
+        <string>WebContentPath</string>
+        <string>web</string>
+    </entry>
 </map>
