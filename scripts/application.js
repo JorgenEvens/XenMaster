@@ -236,34 +236,35 @@
 
 	Buffer.prototype.flush = function() {
 		var content = this.content,
-			resources = [],
 			uri = null,
+			path = null,
+			parts = null,
 			me = this;
-	
-		// Load uri's into the to-load resources collection.
+		
+		// Clear buffer
+		this.content = {};
+		
+
 		for( uri in content ) {
-			resources.push( uri );
+			parts = uri.split( '://' );
+			
+			if( parts[0] == 'js' ) {
+				path = 'scripts/';
+			} else if( parts[0] == 'css' ) {
+				path = 'styles/';
+			} else if( parts[0] == 'tpl' ) {
+				path = 'view/';
+			} else {
+				path = '';
+			}
+			
+			path +=  parts[1] + '.' + parts[0];
+			
+			this.retrieve( path, content[ uri ] );
 		}
 		
-		if( resources.length > 0 ) {
-			// Clear buffer
-			this.content = {};
-			
-			// Perform call
-			$.ajax({
-				url: this.proxy,
-				data: {
-					resources: resources
-				},
-				dataType: 'json',
-				success: function( data ){
-					// Call the callbacks
-					for( uri in data ) {
-						me.retrieve( data[ uri ], content[ uri ] );
-					}
-					me.updateUI();
-				}
-			});
+		if( uri != null ) {
+			this.updateUI();
 		}
 		
 		// Reset timer.

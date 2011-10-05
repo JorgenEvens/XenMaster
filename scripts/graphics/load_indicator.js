@@ -69,6 +69,7 @@
 			
 			c.fillStyle = 'black';
 			c.textAlign = 'center';
+			c.font = Math.round( r/6  ) + 'px sans-serif';
 			c.textBaseline = 'bottom';
 			c.fillText( 'GROUPNAME', x, y );
 			
