@@ -20,7 +20,7 @@ public class BadAPICallException extends Exception {
     protected String errorDescription;
 
     public BadAPICallException(String methodName, List args) {
-        this(methodName, args, null);
+        this(methodName, args, "Call " + methodName + "failed");
     }
 
     public BadAPICallException(String methodName, List params, String errorDescription) {
@@ -45,4 +45,8 @@ public class BadAPICallException extends Exception {
         return "The method " + methodName + " returned following error " + errorDescription;
     }
 
+    @Override
+    public String getMessage() {
+        return errorDescription;
+    }
 }

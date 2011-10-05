@@ -9,7 +9,6 @@ package net.wgr.xenmaster.entities;
 import java.util.HashMap;
 import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
-import net.wgr.xenmaster.controller.Controller;
 import org.apache.log4j.Logger;
 
 /**
@@ -47,9 +46,9 @@ public class VM extends XenApiEntity {
         return "VM";
     }
 
-    public void start(boolean startPaused, boolean forceStart) {
+    public void start(boolean startPaused) {
         try {
-            dispatch("vm.start", startPaused, forceStart);
+            dispatch("vm.start", startPaused);
         } catch (BadAPICallException ex) {
             String errMsg = "";
             switch (ex.getMessage()) {
@@ -70,7 +69,7 @@ public class VM extends XenApiEntity {
 
             }
 
-            Logger.getLogger(getClass()).error(errMsg);
+            Logger.getLogger(getClass()).error(errMsg, ex);
         }
     }
 
@@ -87,7 +86,7 @@ public class VM extends XenApiEntity {
 
             }
 
-            Logger.getLogger(getClass()).error(errMsg);
+            Logger.getLogger(getClass()).error(errMsg, ex);
         }
     }
 
@@ -104,7 +103,7 @@ public class VM extends XenApiEntity {
 
             }
 
-            Logger.getLogger(getClass()).error(errMsg);
+            Logger.getLogger(getClass()).error(errMsg, ex);
         }
     }
 
@@ -128,7 +127,7 @@ public class VM extends XenApiEntity {
                     errMsg = ex.toString();
             }
 
-            Logger.getLogger(getClass()).error(errMsg);
+            Logger.getLogger(getClass()).error(errMsg, ex);
         }
     }
     
@@ -152,7 +151,7 @@ public class VM extends XenApiEntity {
                     errMsg = ex.toString();
             }
 
-            Logger.getLogger(getClass()).error(errMsg);
+            Logger.getLogger(getClass()).error(errMsg, ex);
         }
     }
     

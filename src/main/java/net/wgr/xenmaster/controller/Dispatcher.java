@@ -42,7 +42,7 @@ public class Dispatcher {
             case "Success":
                 return result.get("Value");
             case "Failure":
-                throw new BadAPICallException(methodName, params, result.get("ErrorDescription").toString());
+                throw new BadAPICallException(methodName, params, ((Object[]) result.get("ErrorDescription"))[0].toString());
             default:
                 return null;
         }
