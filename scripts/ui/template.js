@@ -17,9 +17,10 @@
 			}
 		},
 		defaultHandler = function( action, data, target, source ) {
+			console.log( data );
 			$(this).trigger({
 					type: action,
-					data: data,
+					dataset: data,
 					action: action,
 					bindTo: target,
 					source: source

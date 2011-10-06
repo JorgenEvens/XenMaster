@@ -43,8 +43,7 @@
 			});
 			
 			t.bind( 'vm_clicked', function( e ) {
-				// socket.send('xen://VM.start', { args: [ false ], ref: vm.reference }, function(data){console.log( data ); });
-				console.log( e );
+				socket.send('xen://VM.start', { args: [ false ], ref: e.dataset.reference }, function(data){console.log( data ); });
 			});
 			
 			$('body').append( t.dom );
