@@ -30,7 +30,9 @@ public class Hook extends WebCommandHandler {
     public Object execute(Command cmd) {
         Gson gson = new Gson();
         APICall apic = gson.fromJson(cmd.getData(), APICall.class);
-        if (apic.args == null) apic.args = new Object[0];
+        if (apic.args == null) {
+            apic.args = new Object[0];
+        }
         String[] splitsies = StringUtils.split(cmd.getName(), '.');
         return invoke(splitsies[0], splitsies[1], apic.args, apic.ref);
     }
@@ -48,7 +50,12 @@ public class Hook extends WebCommandHandler {
                         if (methodName.equals("get")) {
                             return c.newInstance(ref, true);
                         } else {
-                            return m.invoke(c.newInstance(ref, false), args);
+                            Object result = m.invoke(c.newInstance(ref, false), args);
+                            if (result == null) {
+                                return true;
+                            } else {
+                                return result;
+                            }
                         }
                     }
                 }
