@@ -32,6 +32,8 @@ public class VM extends XenApiEntity {
     protected PowerState powerState;
     protected String HVMbootPolicy;
     protected String nameLabel, nameDescription;
+    protected String metrics;
+    
 
     public VM(String ref, boolean autoFill) {
         super(ref, autoFill);
@@ -44,6 +46,10 @@ public class VM extends XenApiEntity {
     @Override
     protected String getAPIName() {
         return "VM";
+    }
+    
+    public VMMetrics getMetrics() {
+        return new VMMetrics(this.metrics);
     }
 
     public void start(boolean startPaused) {

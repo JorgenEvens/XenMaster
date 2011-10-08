@@ -75,6 +75,14 @@ public class XenApiEntity {
     protected void notNull(Object obj) {
     }
 
+    protected <T> T value(T obj, String name, Object ... params) {
+        if (obj != null) {
+            return obj;
+        } else {
+            return (T) safeDispatch(name, params);
+        }
+    }
+
     /**
      * Useful when a more detailed error message cannot be provided
      * @param methodName the method name
@@ -176,6 +184,9 @@ public class XenApiEntity {
                         } else {
                             f.setInt(this, (int) value);
                         }
+                        break;
+                    case "float":
+                        f.setFloat(this, (float) value);
                         break;
                     default:
                         if (f.getType().isEnum()) {

@@ -7,6 +7,7 @@ import net.wgr.server.web.handling.ServerHook;
 import net.wgr.services.discovery.BasicDiscoverableService;
 import net.wgr.services.discovery.Discovery;
 import net.wgr.settings.Settings;
+import net.wgr.utility.GlobalExecutorService;
 import net.wgr.xenmaster.web.Hook;
 import net.wgr.xenmaster.web.TemplateHook;
 import org.apache.commons.daemon.Daemon;
@@ -16,7 +17,6 @@ import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.TTCCLayout;
-
 
 public class App implements Daemon {
 
@@ -55,16 +55,16 @@ public class App implements Daemon {
 
         server = new Server();
         server.boot();
-        
+
         ServerHook sh = new ServerHook("/*");
         sh.addPandaHook(new Hook());
         sh.addPandaHook(new TemplateHook());
-        
+
         Authorize.disable();
-        
+
         server.addServlet(sh.getHttpHandler());
         server.addServlet(sh.getWebSocketHandler());
-        
+
         DefaultApplication da = DefaultApplication.create("/", Settings.getInstance().getString("WebContentPath"));
         server.addHook(da);
         server.start();
@@ -73,6 +73,7 @@ public class App implements Daemon {
     @Override
     public void stop() throws Exception {
         server.stop();
+        GlobalExecutorService.get().shutdownNow();
     }
 
     @Override

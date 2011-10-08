@@ -17,4 +17,13 @@
         <string>WebContentPath</string>
         <string>web</string>
     </entry>
+    <entry>
+        <string>Monitoring</string>
+        <map>
+            <entry>
+                <string>Interval</string>
+                <double>0.5</double>
+            </entry>
+        </map>
+    </entry>
 </map>

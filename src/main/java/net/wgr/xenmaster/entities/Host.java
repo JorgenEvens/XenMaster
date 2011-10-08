@@ -10,9 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import net.wgr.xenmaster.controller.BadAPICallException;
-import net.wgr.xenmaster.controller.Controller;
-import org.apache.log4j.Logger;
 
 /**
  * 
@@ -27,6 +24,8 @@ public class Host extends XenApiEntity {
     protected String nameLabel, schedulingPolicy, nameDescription;
     @Fill
     protected Map<String, String> softwareVersion;
+    @Fill
+    protected List<String> hostCPUs;
 
     public Host(String ref) {
         super(ref);
@@ -62,6 +61,14 @@ public class Host extends XenApiEntity {
 
     public String getSchedulingPolicy() {
         return schedulingPolicy;
+    }
+    
+    public void shutdown() {
+        safeDispatch("host.shutdown");
+    }
+    
+    public void reboot() {
+        safeDispatch("host.reboot");
     }
 
     public List<VM> getResidentVMs() {
