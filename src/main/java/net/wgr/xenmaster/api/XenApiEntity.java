@@ -4,7 +4,7 @@
  * All rights reserved.
  * 
  */
-package net.wgr.xenmaster.entities;
+package net.wgr.xenmaster.api;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -75,12 +75,24 @@ public class XenApiEntity {
     protected void notNull(Object obj) {
     }
 
-    protected <T> T value(T obj, String name, Object ... params) {
+    protected <T> T value(T obj, String name, Object... params) {
         if (obj != null) {
             return obj;
         } else {
             return (T) safeDispatch(name, params);
         }
+    }
+
+    protected <T> T setter(T obj, String name) {
+        if (reference == null || reference.isEmpty()) {
+            throw new IllegalArgumentException("Instance is not set");
+        }
+        if (obj == null) {
+            throw new IllegalArgumentException("Null value is not allowed for " + name);
+        } else {
+            safeDispatch(name, obj);
+        }
+        return obj;
     }
 
     /**
@@ -152,7 +164,12 @@ public class XenApiEntity {
             if (interpretation.containsKey(f.getName())) {
                 processedName = interpretation.get(f.getName());
             } else {
-                processedName = f.getName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase();
+                // Try exact match
+                if (result.keySet().contains(f.getName())) {
+                    processedName = f.getName();
+                } else {
+                    processedName = f.getName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase();
+                }
             }
 
             Object value = null;
@@ -183,6 +200,13 @@ public class XenApiEntity {
                             f.set(this, Integer.parseInt(value.toString()));
                         } else {
                             f.setInt(this, (int) value);
+                        }
+                        break;
+                    case "long":
+                        if (value.getClass().getName().equals("java.lang.String")) {
+                            f.set(this, Long.parseLong(value.toString()));
+                        } else {
+                            f.setLong(this, (long) value);
                         }
                         break;
                     case "float":

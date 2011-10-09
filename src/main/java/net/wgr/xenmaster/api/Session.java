@@ -4,7 +4,7 @@
  * All rights reserved.
  * 
  */
-package net.wgr.xenmaster.entities;
+package net.wgr.xenmaster.api;
 
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;

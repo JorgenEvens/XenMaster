@@ -6,11 +6,13 @@
  */
 package net.wgr.xenmaster.monitoring;
 
+import com.google.common.collect.ArrayListMultimap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import net.wgr.settings.Settings;
 import net.wgr.utility.GlobalExecutorService;
+import net.wgr.xenmaster.entities.Host;
 
 /**
  * 
@@ -19,12 +21,17 @@ import net.wgr.utility.GlobalExecutorService;
  */
 public class MonitoringAgent implements Runnable {
     protected boolean lazy = false;
-    protected Map<String, Record> vmData, hostData;
+    protected ArrayListMultimap<String, Record> vmData, hostData;
     protected Map<String, ParsedRecord> vmParsed, hostParsed;
     
+    public MonitoringAgent() {
+        vmData = ArrayListMultimap.create();
+        hostData = ArrayListMultimap.create();
+    }
+    
     protected void schedule() {
-        int interval = (int) Settings.getInstance().get("Monitoring.Interval");
-        GlobalExecutorService.get().scheduleAtFixedRate(this, interval, interval, TimeUnit.SECONDS);
+        int interval = (int)((double) Settings.getInstance().get("Monitoring.Interval") * 1000);
+        GlobalExecutorService.get().scheduleAtFixedRate(this, interval, interval, TimeUnit.MILLISECONDS);
     }
     
     public List<Record> requestVMData(String ref, int start, int delta, int end) {
@@ -37,7 +44,12 @@ public class MonitoringAgent implements Runnable {
 
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Host h = new Host();
+        for (Host host : h.getAll()) {
+            String ref = host.getId().toString();
+            Record r = new Record(ref, true);
+            hostData.put(ref, r);
+        }
     }
     
 }

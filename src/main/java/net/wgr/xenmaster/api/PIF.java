@@ -4,7 +4,7 @@
  * All rights reserved.
  * 
  */
-package net.wgr.xenmaster.entities;
+package net.wgr.xenmaster.api;
 
 /**
  * Physical (Network) Interface

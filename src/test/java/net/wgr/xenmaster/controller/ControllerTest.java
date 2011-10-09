@@ -6,8 +6,8 @@ package net.wgr.xenmaster.controller;
 
 import java.util.List;
 import junit.framework.TestCase;
-import net.wgr.xenmaster.entities.Host;
-import net.wgr.xenmaster.entities.VM;
+import net.wgr.xenmaster.api.Host;
+import net.wgr.xenmaster.api.VM;
 import org.junit.Test;
 
 /**

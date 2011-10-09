@@ -4,10 +4,12 @@
  * All rights reserved.
  * 
  */
-package net.wgr.xenmaster.entities;
+package net.wgr.xenmaster.api;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,10 +18,11 @@ import java.util.Map;
  * @author double-u
  */
 public class VMMetrics extends XenApiEntity {
+
     protected int actualMemory;
     protected int VCPUs;
     @Fill
-    protected Map<Integer, Float> VCPUutilisation;
+    protected Map<Integer, Double> VCPUutilisation;
     @Fill
     protected Map<Integer, Integer> PCPUs;
     protected Date startTime, lastUpdated;
@@ -30,27 +33,32 @@ public class VMMetrics extends XenApiEntity {
 
     public VMMetrics(String ref) {
         super(ref);
-    } 
+    }
 
     @Override
-    protected Map<String, String> interpretation() {
-        HashMap<String, String> m = new HashMap<>();
-        m.put("actualMemory", "memory_actual");
-        m.put("VCPUs", "VCPUs_number");
-        m.put("VCPUutilisation", "VCPUs_utilisation");
-        m.put("PCPUs", "VCPUs_CPU");
-        return m;
+    protected String getAPIName() {
+        return "VM_metrics";
+    }
+   
+    public List<PCPU> getPCPUs(Host physical) {
+        this.PCPUs = getPCPUs();
+        ArrayList<PCPU> cpus = new ArrayList<>();
+        for (Map.Entry<Integer, Integer> entry : PCPUs.entrySet()) {
+            cpus.add(physical.getCPU(entry.getValue().intValue()));
+        }
+
+        return cpus;
     }
 
     public Map<Integer, Integer> getPCPUs() {
-        return PCPUs;
+        return value(PCPUs, "get_VCPUs_CPU");
     }
 
     public int getVCPUs() {
         return VCPUs;
     }
 
-    public Map<Integer, Float> getVCPUutilisation() {
+    public Map<Integer, Double> getVCPUutilisation() {
         return VCPUutilisation;
     }
 
@@ -64,5 +72,15 @@ public class VMMetrics extends XenApiEntity {
 
     public Date getStartTime() {
         return startTime;
+    }
+
+    @Override
+    protected Map<String, String> interpretation() {
+        HashMap<String, String> m = new HashMap<>();
+        m.put("actualMemory", "memory_actual");
+        m.put("VCPUs", "VCPUs_number");
+        m.put("VCPUutilisation", "VCPUs_utilisation");
+        m.put("PCPUs", "VCPUs_CPU");
+        return m;
     }
 }

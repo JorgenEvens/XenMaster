@@ -4,7 +4,7 @@
  * All rights reserved.
  * 
  */
-package net.wgr.xenmaster.entities;
+package net.wgr.xenmaster.api;
 
 /**
  * 
@@ -14,7 +14,7 @@ package net.wgr.xenmaster.entities;
 public class PCPU extends XenApiEntity {
     protected int number, speed;
     protected String vendor, modelname, stepping, flags, features;
-    protected float utilisation;
+    protected double utilisation;
 
     public PCPU(String ref, boolean autoFill) {
         super(ref, autoFill);
@@ -24,6 +24,11 @@ public class PCPU extends XenApiEntity {
         super(ref);
     }
 
+    @Override
+    protected String getAPIName() {
+        return "host_cpu";
+    }
+    
     public String getFeatures() {
         return features;
     }
@@ -48,7 +53,7 @@ public class PCPU extends XenApiEntity {
         return stepping;
     }
 
-    public float getUtilisation() {
+    public double getUtilisation() {
         return value(utilisation, "get_utilisation");
     }
 

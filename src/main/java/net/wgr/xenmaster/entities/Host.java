@@ -6,101 +6,50 @@
  */
 package net.wgr.xenmaster.entities;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Collection;
+import java.util.UUID;
+import net.wgr.core.dao.Required;
+import net.wgr.core.data.Retrieval;
 
 /**
  * 
- * @created Oct 2, 2011
+ * @created Oct 8, 2011
  * @author double-u
  */
-public class Host extends XenApiEntity {
+public class Host extends net.wgr.core.dao.Object {
+    
+    @Required
+    protected UUID id;
+    @Required
+    protected String hostName;
+    protected String macAddress;
 
-    protected boolean enabled;
-    protected String apiMajorVersion, apiMinorVersion;
-    protected String apiVendor;
-    protected String nameLabel, schedulingPolicy, nameDescription;
-    @Fill
-    protected Map<String, String> softwareVersion;
-    @Fill
-    protected List<String> hostCPUs;
-
-    public Host(String ref) {
-        super(ref);
+    @Override
+    public String getColumnFamily() {
+        return "hosts";
     }
 
-    public Host(String ref, boolean autoFill) {
-        super(ref, autoFill);
-    }
-
-    public String getMajorApiVersion() {
-        return apiMajorVersion;
-    }
-
-    public String getMinorApiVersion() {
-        return apiMinorVersion;
-    }
-
-    public String getApiVendor() {
-        return apiVendor;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public String getNameDescription() {
-        return nameDescription;
-    }
-
-    public String getNameLabel() {
-        return nameLabel;
-    }
-
-    public String getSchedulingPolicy() {
-        return schedulingPolicy;
+    @Override
+    public String getKeyFieldName() {
+        return "id";
     }
     
-    public void shutdown() {
-        safeDispatch("host.shutdown");
+    public UUID getId() {
+        return id;
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+
+    public String getMacAddress() {
+        return macAddress;
     }
     
-    public void reboot() {
-        safeDispatch("host.reboot");
+    public Collection<Host> getAll() {
+        Collection<Host> hosts;
+        hosts = Retrieval.getRowsAs(Host.class, Retrieval.getAllRowsFromColumnFamily(getColumnFamily())).values();
+        return hosts;
     }
-
-    public List<VM> getResidentVMs() {
-        Object[] refs = (Object[]) safeDispatch("host.get_resident_VMs");
-        ArrayList<VM> vms = new ArrayList<>();
-        for (Object obj : refs) {
-            // Lame
-            String ref = (String) obj;
-            if (ref.equals("00000000-0000-0000-0000-000000000000")) {
-                continue;
-            }
-            vms.add(new VM(ref, true));
-        }
-        return vms;
-    }
-
-    public List<PIF> getPhysicalInterfaces() {
-        Object[] refs = (Object[]) safeDispatch("host.get_PIFs");
-        ArrayList<PIF> pifs = new ArrayList<>();
-        for (Object obj : refs) {
-            String ref = (String) obj;
-            pifs.add(new PIF(ref, true));
-        }
-        return pifs;
-    }
-
-    protected Map<String, String> interpretation() {
-        HashMap<String, String> i = new HashMap<>();
-        i.put("majorApiVersion", "api_version_major");
-        i.put("minorApiVersion", "api_version_minor");
-        i.put("apiVendor", "api_version_vendor");
-        i.put("schedulingPolicy", "sched_policy");
-        return i;
-    }
+    
 }

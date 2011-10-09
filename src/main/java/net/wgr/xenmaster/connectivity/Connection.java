@@ -9,7 +9,7 @@ package net.wgr.xenmaster.connectivity;
 import java.net.MalformedURLException;
 import java.util.List;
 import java.util.Map;
-import net.wgr.xenmaster.entities.Session;
+import net.wgr.xenmaster.api.Session;
 import org.apache.log4j.Logger;
 
 /**

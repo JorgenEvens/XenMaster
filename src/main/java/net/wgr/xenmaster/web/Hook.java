@@ -39,7 +39,7 @@ public class Hook extends WebCommandHandler {
 
     protected Object invoke(String className, String methodName, Object[] args, String ref) {
         try {
-            Class clazz = Class.forName("net.wgr.xenmaster.entities." + className);
+            Class clazz = Class.forName("net.wgr.xenmaster.api." + className);
             for (Method m : clazz.getDeclaredMethods()) {
                 if (m.getName().equals(methodName)) {
                     if (Modifier.isStatic(m.getModifiers())) {

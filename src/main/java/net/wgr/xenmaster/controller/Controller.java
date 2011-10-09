@@ -6,7 +6,7 @@
  */
 package net.wgr.xenmaster.controller;
 
-import net.wgr.xenmaster.entities.Session;
+import net.wgr.xenmaster.api.Session;
 
 /**
  * 

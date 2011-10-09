@@ -12,7 +12,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.wgr.wcp.Command;
 import net.wgr.xenmaster.controller.Controller;
-import net.wgr.xenmaster.entities.Host;
+import net.wgr.xenmaster.api.Host;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

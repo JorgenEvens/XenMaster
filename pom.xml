@@ -94,5 +94,10 @@
             <version>0.9-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>commons-math</groupId>
+            <artifactId>commons-math</artifactId>
+            <version>1.2</version>
+        </dependency>
     </dependencies>
 </project>
