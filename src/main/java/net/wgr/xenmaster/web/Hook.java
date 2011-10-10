@@ -13,6 +13,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import net.wgr.server.web.handling.WebCommandHandler;
 import net.wgr.wcp.Command;
+import net.wgr.wcp.CommandException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -27,6 +28,7 @@ public class Hook extends WebCommandHandler {
         super("xen");
     }
 
+    // Todo: make better use of the JSON conversion instead of having to extract everything by hand
     public Object execute(Command cmd) {
         Gson gson = new Gson();
         APICall apic = gson.fromJson(cmd.getData(), APICall.class);
@@ -55,7 +57,7 @@ public class Hook extends WebCommandHandler {
                     int opening = s.indexOf('[');
                     String className = (opening != -1 ? s.substring(0, opening) : s);
                     clazz = Class.forName("net.wgr.xenmaster.api." + className);
-                    
+
                     String ref = null;
                     if (opening != -1) {
                         ref = s.substring(opening + 1, s.indexOf(']'));
@@ -83,6 +85,25 @@ public class Hook extends WebCommandHandler {
                         if (m.getName().equals(methodName)) {
                             match = true;
 
+                            Class<?>[] types = m.getParameterTypes();
+                            if ((types != null && types.length != 0) && ((types.length > 0 && args == null) || (types.length != args.length))) {
+                                return new CommandException("Illegal number of arguments in " + methodName + " call", command);
+                            } else if (args != null) {
+                                for (int j = 0; j < types.length; j++) {
+                                    Class<?> type = types[i];
+                                    Object value = args[i];
+
+                                    switch (type.getSimpleName()) {
+                                        case "boolean":
+                                            args[j] = Boolean.parseBoolean(value.toString());
+                                            break;
+                                        case "int":
+                                            args[j] = Integer.parseInt(value.toString());
+                                            break; 
+                                    }
+                                }
+                            }
+
                             if (Modifier.isStatic(m.getModifiers())) {
                                 current = m.invoke(null, (Object[]) args);
                             } else {
@@ -93,14 +114,15 @@ public class Hook extends WebCommandHandler {
                             break;
                         }
                     }
-                    
+
                     if (!match) {
                         Logger.getLogger(getClass()).warn("Method not found " + s + " in " + command);
-                        return null;
+                        return new CommandException("Method " + methodName + " was not found", command);
                     }
                 }
             } catch (Exception ex) {
                 Logger.getLogger(getClass()).error("Instruction failed " + s, ex);
+                return new CommandException(ex, command);
             }
         }
 
