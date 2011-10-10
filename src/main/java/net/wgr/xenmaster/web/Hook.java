@@ -33,42 +33,83 @@ public class Hook extends WebCommandHandler {
         if (apic.args == null) {
             apic.args = new Object[0];
         }
-        String[] splitsies = StringUtils.split(cmd.getName(), '.');
-        return invoke(splitsies[0], splitsies[1], apic.args, apic.ref);
-    }
-
-    protected Object invoke(String className, String methodName, Object[] args, String ref) {
-        try {
-            Class clazz = Class.forName("net.wgr.xenmaster.api." + className);
-            for (Method m : clazz.getDeclaredMethods()) {
-                if (m.getName().equals(methodName)) {
-                    if (Modifier.isStatic(m.getModifiers())) {
-                        return m.invoke(null, args);
-                    } else {
-                        m.setAccessible(true);
-                        Constructor c = clazz.getConstructor(String.class, boolean.class);
-                        if (methodName.equals("get")) {
-                            return c.newInstance(ref, true);
-                        } else {
-                            Object result = m.invoke(c.newInstance(ref, false), args);
-                            if (result == null) {
-                                return true;
-                            } else {
-                                return result;
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (ClassNotFoundException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException | NoSuchMethodException ex) {
-            Logger.getLogger(getClass()).error("Entity not found", ex);
+        if (apic.command == null || apic.command.isEmpty()) {
+            return null;
+        }
+        switch (cmd.getName()) {
+            case "execute":
+                return executeInstruction(apic.command);
         }
         return null;
+    }
+
+    protected Object executeInstruction(String command) {
+        String[] split = StringUtils.split(command, '.');
+        Class clazz = null;
+        Object current = null;
+
+        for (int i = 0; i < split.length; i++) {
+            String s = split[i];
+            try {
+                if (i == 0) {
+                    int opening = s.indexOf('[');
+                    String className = (opening != -1 ? s.substring(0, opening) : s);
+                    clazz = Class.forName("net.wgr.xenmaster.api." + className);
+                    
+                    String ref = null;
+                    if (opening != -1) {
+                        ref = s.substring(opening + 1, s.indexOf(']'));
+                    }
+
+                    if (ref != null) {
+                        Constructor c = clazz.getConstructor(String.class, boolean.class);
+                        current = c.newInstance(ref, !ref.isEmpty());
+                    }
+                } else {
+                    int open = s.indexOf('(');
+                    String methodName = (open != -1 ? s.substring(0, open) : s);
+                    Object[] args = null;
+                    if (open != -1) {
+                        String argstr = s.substring(s.indexOf('(') + 1, s.indexOf(')'));
+                        argstr = argstr.replace(", ", ",");
+                        args = StringUtils.split(argstr, ',');
+                    }
+                    boolean match = false;
+                    if (current != null) {
+                        clazz = current.getClass();
+                    }
+
+                    for (Method m : clazz.getDeclaredMethods()) {
+                        if (m.getName().equals(methodName)) {
+                            match = true;
+
+                            if (Modifier.isStatic(m.getModifiers())) {
+                                current = m.invoke(null, (Object[]) args);
+                            } else {
+                                m.setAccessible(true);
+                                current = m.invoke(current, (Object[]) args);
+                            }
+
+                            break;
+                        }
+                    }
+                    
+                    if (!match) {
+                        Logger.getLogger(getClass()).warn("Method not found " + s + " in " + command);
+                        return null;
+                    }
+                }
+            } catch (Exception ex) {
+                Logger.getLogger(getClass()).error("Instruction failed " + s, ex);
+            }
+        }
+
+        return current;
     }
 
     public static class APICall {
 
         public Object[] args;
-        public String ref;
+        public String command;
     }
 }

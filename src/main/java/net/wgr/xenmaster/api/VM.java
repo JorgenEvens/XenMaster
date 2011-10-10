@@ -6,7 +6,9 @@
  */
 package net.wgr.xenmaster.api;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import org.apache.log4j.Logger;
@@ -35,6 +37,8 @@ public class VM extends XenApiEntity {
     protected String nameLabel, nameDescription;
     protected String metrics, guestMetrics;
     protected String host;
+    @Fill
+    protected Object[] VBDs, VIFs;
 
     public VM(String ref, boolean autoFill) {
         super(ref, autoFill);
@@ -42,11 +46,6 @@ public class VM extends XenApiEntity {
 
     public VM(String ref) {
         super(ref);
-    }
-
-    @Override
-    protected String getAPIName() {
-        return "VM";
     }
 
     public void start(boolean startPaused) {
@@ -199,6 +198,22 @@ public class VM extends XenApiEntity {
     public GuestMetrics getGuestMetrics() {
         this.guestMetrics = value(this.guestMetrics, "get_guest_metrics");
         return new GuestMetrics(this.guestMetrics);
+    }
+    
+    public List<VBD> getVBDs() {
+        ArrayList<VBD> vbds = new ArrayList<>();
+        for (Object o : this.VBDs) {
+            vbds.add(new VBD((String) o));
+        }
+        return vbds;
+    }
+    
+    public List<VIF> getVIFs() {
+        ArrayList<VIF> objs = new ArrayList<>();
+        for (Object o : this.VIFs) {
+            objs.add(new VIF((String) o));
+        }
+        return objs;
     }
 
     public String getHVMbootPolicy() {

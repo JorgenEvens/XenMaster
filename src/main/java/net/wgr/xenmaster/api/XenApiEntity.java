@@ -42,7 +42,12 @@ public class XenApiEntity {
     }
 
     protected String getAPIName() {
-        return getClass().getSimpleName().toLowerCase();
+        String sn = getClass().getSimpleName();
+        if (sn.toUpperCase().equals(sn)) {
+            return sn;
+        } else {
+            return sn.toLowerCase();
+        }
     }
 
     public String getReference() {
@@ -192,7 +197,13 @@ public class XenApiEntity {
                         f.set(this, value);
                         break;
                     case "boolean":
-                        f.setBoolean(this, (boolean) value);
+                        if ((value.getClass().getName().equals("java.lang.String"))) {
+                            // The API is nuts
+                            String corrected = value.toString().replace("1", "true").replace("0", "false");
+                            f.setBoolean(this, Boolean.parseBoolean(corrected));
+                        } else {
+                            f.setBoolean(this, (boolean) value);
+                        }
                         break;
                     case "int":
                         // The API returns numeric values as String ><

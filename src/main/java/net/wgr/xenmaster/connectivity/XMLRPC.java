@@ -22,21 +22,24 @@ import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
  * @author double-u
  */
 public class XMLRPC {
+
     protected XmlRpcClientConfigImpl cfg;
     protected XmlRpcClient client;
-    
+    protected Logger logger = Logger.getLogger(getClass());
+
     public XMLRPC() throws MalformedURLException {
         cfg = new XmlRpcClientConfigImpl();
         cfg.setServerURL(new URL(Settings.getInstance().getString("Xen.URL")));
         client = new XmlRpcClient();
         client.setConfig(cfg);
     }
-    
+
     public Map execute(String method, List params) {
         try {
+            logger.debug("Called " + method);
             return (Map) client.execute(method, params);
         } catch (XmlRpcException ex) {
-            Logger.getLogger(getClass()).error(ex);
+            logger.error(ex);
         }
         return null;
     }

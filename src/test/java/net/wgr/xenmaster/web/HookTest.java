@@ -60,9 +60,10 @@ public class HookTest {
         
         Hook.APICall apic = new Hook.APICall();
         apic.args = new String[0];
+        apic.command = "Session[].getThisHost";
         Gson gson = new Gson();
         JsonElement json = gson.toJsonTree(apic);
-        Command cmd = new Command("xen", "Session.getThisHost", apic);
+        Command cmd = new Command("xen", "execute", apic);
         Object o = hook.execute(cmd);
         assertNotNull(o);
         Host s = (Host) o;
