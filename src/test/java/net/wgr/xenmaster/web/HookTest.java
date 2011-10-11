@@ -59,7 +59,6 @@ public class HookTest {
         Controller.start();
         
         Hook.APICall apic = new Hook.APICall();
-        apic.args = new String[0];
         apic.command = "Session[].getThisHost";
         Gson gson = new Gson();
         JsonElement json = gson.toJsonTree(apic);

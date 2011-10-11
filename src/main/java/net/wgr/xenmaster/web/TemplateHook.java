@@ -20,7 +20,6 @@ import net.wgr.server.web.handling.WebHook;
 import net.wgr.settings.Settings;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -42,7 +41,8 @@ public class TemplateHook extends WebHook {
         }
         String path = "";
         try {
-            URI uri = new URI(StringUtils.join(rb.getPathParts()));
+            String concat = StringUtils.join(rb.getPathParts(), '/');
+            URI uri = new URI(concat);
             uri = uri.normalize();
             path = uri.getPath();
         } catch (URISyntaxException ex) {

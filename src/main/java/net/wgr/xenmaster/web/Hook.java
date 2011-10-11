@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Map;
 import net.wgr.server.web.handling.WebCommandHandler;
 import net.wgr.wcp.Command;
 import net.wgr.wcp.CommandException;
@@ -31,9 +32,7 @@ public class Hook extends WebCommandHandler {
     public Object execute(Command cmd) {
         Gson gson = new Gson();
         APICall apic = gson.fromJson(cmd.getData(), APICall.class);
-        if (apic.args == null) {
-            apic.args = new Object[0];
-        }
+        
         if (apic.command == null || apic.command.isEmpty()) {
             return null;
         }
@@ -130,7 +129,7 @@ public class Hook extends WebCommandHandler {
 
     public static class APICall {
 
-        public Object[] args;
+        public Map<String, String> data;
         public String command;
     }
 }
