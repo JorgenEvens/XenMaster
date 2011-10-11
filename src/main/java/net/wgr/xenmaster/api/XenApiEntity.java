@@ -84,7 +84,7 @@ public class XenApiEntity {
         if (obj != null) {
             return obj;
         } else {
-            return (T) safeDispatch(name, params);
+            return (T) safeDispatch(getAPIName() + "." + name, params);
         }
     }
 
@@ -95,7 +95,7 @@ public class XenApiEntity {
         if (obj == null) {
             throw new IllegalArgumentException("Null value is not allowed for " + name);
         } else {
-            safeDispatch(name, obj);
+            safeDispatch(getAPIName() + "." + name, obj);
         }
         return obj;
     }

@@ -8,7 +8,6 @@ package net.wgr.xenmaster.web;
 
 import com.google.gson.Gson;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import net.wgr.server.web.handling.WebCommandHandler;

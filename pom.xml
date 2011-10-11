@@ -62,7 +62,7 @@
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
-            <url>http://butters.double-u.co.cc:81/content/repositories/wr/</url>
+            <url>http://butters.double-u.co.cc:81/nexus/content/repositories/wr/</url>
         </repository>
     </repositories>
 
