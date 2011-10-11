@@ -32,12 +32,8 @@ public class Hook extends WebCommandHandler {
     public Object execute(Command cmd) {
         Gson gson = new Gson();
         APICall apic = gson.fromJson(cmd.getData(), APICall.class);
-        
-        switch (cmd.getName()) {
-            case "execute":
-                return executeInstruction(cmd.getName());
-        }
-        return null;
+
+        return executeInstruction(cmd.getName());
     }
 
     protected Object executeInstruction(String command) {
@@ -94,7 +90,7 @@ public class Hook extends WebCommandHandler {
                                             break;
                                         case "int":
                                             args[j] = Integer.parseInt(value.toString());
-                                            break; 
+                                            break;
                                     }
                                 }
                             }
