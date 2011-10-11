@@ -33,12 +33,9 @@ public class Hook extends WebCommandHandler {
         Gson gson = new Gson();
         APICall apic = gson.fromJson(cmd.getData(), APICall.class);
         
-        if (apic.command == null || apic.command.isEmpty()) {
-            return null;
-        }
         switch (cmd.getName()) {
             case "execute":
-                return executeInstruction(apic.command);
+                return executeInstruction(cmd.getName());
         }
         return null;
     }
@@ -130,6 +127,5 @@ public class Hook extends WebCommandHandler {
     public static class APICall {
 
         public Map<String, String> data;
-        public String command;
     }
 }
