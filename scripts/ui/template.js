@@ -1,6 +1,6 @@
 (function( ready, app ){
 	
-	app.load( 'js://lib/jquery', function( $ ) {
+	app.load( 'js://lib/jquery', 'js://ui/dataset', function( $, Dataset ) {
 		
 		var Template = function( options ) {
 			options = options || {};
@@ -17,7 +17,6 @@
 			}
 		},
 		defaultHandler = function( action, data, target, source ) {
-			console.log( data );
 			$(this).trigger({
 					type: action,
 					dataset: data,
@@ -47,7 +46,8 @@
 			var source = e.target,
 				target = source,
 				action = $(target).attr( 'data-action' ),
-				root = this.dom.parentNode;
+				root = this.dom.parentNode,
+				dataset = {};
 			
 			while( target != null && target != root && action == null ) {
 				target = target.parentNode;
@@ -60,7 +60,11 @@
 				return;
 			}
 			
-			this.action( action, target.dataset, target, source );
+			if( Dataset.exists( target ) ) {
+				dataset = Dataset.get( target );
+			}
+			
+			this.action( action, dataset, target, source );
 			
 		};
 		

@@ -1,5 +1,21 @@
 (function( $, undefined ){
-		
+	
+	var init_app = function() {
+		/*
+		 * Initialize application
+		 ********************************************************************************************
+		 */
+		M.load( 'tpl://global/ui', 'tpl://dashboard', 'js://ui/template', function( ui, dashboard, Template ) {
+			
+			var global_ui = new Template({ resource: ui });
+			global_ui.show();
+			
+			var dashboard_ui = new Template({ resource: dashboard });
+			global_ui.setContent( dashboard_ui );
+			
+		});
+	};
+	
 	$(document).ready(function(){
 		MASTER = new Application({
 			'proxy': 'resources.php',
@@ -10,14 +26,18 @@
 		M = MASTER;
 		
 		/*
-		 * Initialize application
-		 ********************************************************************************************
+		 * Setup a connection with backend
 		 */
-		M.load( 'tpl://global/ui', 'js://ui/template', function( ui, Template ) {
+		M.load( 'js://net/XmConnection', function( XmCon ){
 			
-			var global_ui = new Template({ resource: ui });
-			global_ui.show();
+			var xm = new XmCon(document.location.host + '/wwscp');
+			xm.open();
 			
+			xm.onopen = function(){
+				init_app();
+			};
+			// Instance generated
+			// TODO: attach error handlers.
 		});
 		
 	});

@@ -7,6 +7,8 @@
 				address: address,
 				protocol: 'WWSCP'
 			});
+			
+			XmConnection.instance = this;
 		},
 		sendRaw,
 		proto = function(){};
@@ -17,7 +19,7 @@
 		sendRaw = XmConnection.prototype.send;
 		
 		XmConnection.prototype.send = function() {
-			var args = Util.argumentsToArray( arguments )
+			var args = Util.argumentsToArray( arguments ),
 				command = null,
 				handler = null,
 				data = { args: [] },
@@ -63,6 +65,14 @@
 				data: data,
 				callback: callback
 			});
+		};
+		
+		XmConnection.getInstance = function() {
+			if( !this.instance ) {
+				throw "Connection not initialized yet!";
+			}
+			
+			return this.instance;
 		};
 		
 		ready( XmConnection );
