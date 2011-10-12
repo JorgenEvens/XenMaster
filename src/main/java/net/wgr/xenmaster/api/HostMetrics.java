@@ -31,7 +31,7 @@ public class HostMetrics extends XenApiEntity {
     @Override
     protected Map<String, String> interpretation() {
         HashMap<String, String> m = new HashMap<>();
-        m.put("actualMemory", "memorty_actual");
+        m.put("actualMemory", "memory_actual");
         return m;
     }
 

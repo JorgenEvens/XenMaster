@@ -50,7 +50,7 @@ public class VM extends XenApiEntity {
 
     public void start(boolean startPaused) {
         try {
-            dispatch("VM.start", startPaused);
+            dispatch("start", startPaused);
         } catch (BadAPICallException ex) {
             String errMsg = "";
             switch (ex.getMessage()) {
@@ -77,7 +77,7 @@ public class VM extends XenApiEntity {
 
     public void pause() {
         try {
-            dispatch("VM.pause");
+            dispatch("pause");
         } catch (BadAPICallException ex) {
             String errMsg = "";
             switch (ex.getMessage()) {
@@ -94,7 +94,7 @@ public class VM extends XenApiEntity {
 
     public void resume() {
         try {
-            dispatch("VM.unpause");
+            dispatch("unpause");
         } catch (BadAPICallException ex) {
             String errMsg = "";
             switch (ex.getMessage()) {
@@ -116,9 +116,9 @@ public class VM extends XenApiEntity {
     public void stop(boolean polite) {
         try {
             if (polite) {
-                dispatch("VM.clean_shutdown");
+                dispatch("clean_shutdown");
             } else {
-                dispatch("VM.hard_shutdown");
+                dispatch("hard_shutdown");
             }
         } catch (BadAPICallException ex) {
             String errMsg = "";
@@ -140,9 +140,9 @@ public class VM extends XenApiEntity {
     public void reboot(boolean polite) {
         try {
             if (polite) {
-                dispatch("VM.clean_reboot");
+                dispatch("clean_reboot");
             } else {
-                dispatch("VM.hard_reboot");
+                dispatch("hard_reboot");
             }
         } catch (BadAPICallException ex) {
             String errMsg = "";
@@ -159,7 +159,7 @@ public class VM extends XenApiEntity {
     
     public void suspend() {
         try {
-            dispatch("VM.suspend");
+            dispatch("suspend");
         } catch (BadAPICallException ex) {
             String errMsg = "";
             switch (ex.getMessage()) {
@@ -176,7 +176,7 @@ public class VM extends XenApiEntity {
     
     public void wake(boolean startPaused, boolean force) {
         try {
-            dispatch("VM.resume", startPaused, force);
+            dispatch("resume", startPaused, force);
         } catch (BadAPICallException ex) {
             String errMsg = "";
             switch (ex.getMessage()) {
@@ -273,7 +273,7 @@ public class VM extends XenApiEntity {
     }
 
     public long getMaximumStaticMemory() {
-        return value(maximumStaticMemory, "VM.get_memory_static_max");
+        return value(maximumStaticMemory, "get_memory_static_max");
     }
 
     public int getMinimumStaticMemory() {

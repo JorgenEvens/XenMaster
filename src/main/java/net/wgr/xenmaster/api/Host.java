@@ -37,11 +37,11 @@ public class Host extends XenApiEntity {
     }
 
     public void shutdown() {
-        safeDispatch("host.shutdown");
+        safeDispatch("shutdown");
     }
 
     public void reboot() {
-        safeDispatch("host.reboot");
+        safeDispatch("reboot");
     }
 
     public String getMajorApiVersion() {
@@ -90,7 +90,7 @@ public class Host extends XenApiEntity {
     }
 
     public List<VM> getResidentVMs() {
-        Object[] refs = (Object[]) safeDispatch("host.get_resident_VMs");
+        Object[] refs = (Object[]) safeDispatch("get_resident_VMs");
         ArrayList<VM> vms = new ArrayList<>();
         for (Object obj : refs) {
             // Lame
@@ -104,7 +104,7 @@ public class Host extends XenApiEntity {
     }
 
     public List<PIF> getPhysicalInterfaces() {
-        Object[] refs = (Object[]) safeDispatch("host.get_PIFs");
+        Object[] refs = (Object[]) safeDispatch("get_PIFs");
         ArrayList<PIF> pifs = new ArrayList<>();
         for (Object obj : refs) {
             String ref = (String) obj;

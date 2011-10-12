@@ -10,7 +10,6 @@ import com.google.gson.Gson;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Map;
 import net.wgr.server.web.handling.WebCommandHandler;
 import net.wgr.wcp.Command;
 import net.wgr.wcp.CommandException;
@@ -33,10 +32,10 @@ public class Hook extends WebCommandHandler {
         Gson gson = new Gson();
         APICall apic = gson.fromJson(cmd.getData(), APICall.class);
 
-        return executeInstruction(cmd.getName());
+        return executeInstruction(cmd.getName(), apic.ref, apic.args);
     }
 
-    protected Object executeInstruction(String command) {
+    protected Object executeInstruction(String command, String ref, Object[] args) {
         String[] split = StringUtils.split(command, '.');
         Class clazz = null;
         Object current = null;
@@ -49,7 +48,6 @@ public class Hook extends WebCommandHandler {
                     String className = (opening != -1 ? s.substring(0, opening) : s);
                     clazz = Class.forName("net.wgr.xenmaster.api." + className);
 
-                    String ref = null;
                     if (opening != -1) {
                         ref = s.substring(opening + 1, s.indexOf(']'));
                     }
@@ -61,7 +59,6 @@ public class Hook extends WebCommandHandler {
                 } else {
                     int open = s.indexOf('(');
                     String methodName = (open != -1 ? s.substring(0, open) : s);
-                    Object[] args = null;
                     if (open != -1) {
                         String argstr = s.substring(s.indexOf('(') + 1, s.indexOf(')'));
                         argstr = argstr.replace(", ", ",");
@@ -80,9 +77,11 @@ public class Hook extends WebCommandHandler {
                             if ((types != null && types.length != 0) && ((types.length > 0 && args == null) || (types.length != args.length))) {
                                 return new CommandException("Illegal number of arguments in " + methodName + " call", command);
                             } else if (args != null) {
-                                for (int j = 0; j < types.length; j++) {
-                                    Class<?> type = types[i];
-                                    Object value = args[i];
+                                for (int j = 0; j < types.length - 1; j++) {
+                                    Class<?> type = types[j];
+                                    Object value = args[j];
+                                    
+                                    if (!(value instanceof String)) continue; 
 
                                     switch (type.getSimpleName()) {
                                         case "boolean":
@@ -121,7 +120,7 @@ public class Hook extends WebCommandHandler {
     }
 
     public static class APICall {
-
-        public Map<String, String> data;
+        public String ref;
+        public Object[] args;
     }
 }

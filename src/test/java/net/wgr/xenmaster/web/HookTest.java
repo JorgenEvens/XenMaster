@@ -4,6 +4,8 @@
  */
 package net.wgr.xenmaster.web;
 
+import java.util.List;
+import net.wgr.xenmaster.api.VM;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -13,6 +15,7 @@ import com.google.gson.JsonElement;
 import net.wgr.wcp.Command;
 import net.wgr.xenmaster.controller.Controller;
 import net.wgr.xenmaster.api.Host;
+import net.wgr.xenmaster.api.Session;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -59,6 +62,8 @@ public class HookTest {
         Controller.start();
         
         Hook.APICall apic = new Hook.APICall();
+        apic.args = new Object[0];
+        apic.ref = "";
         Gson gson = new Gson();
         JsonElement json = gson.toJsonTree(apic);
         Command cmd = new Command("xen", "Session[].getThisHost", apic);

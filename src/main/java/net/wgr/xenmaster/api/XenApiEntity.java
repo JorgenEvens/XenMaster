@@ -120,7 +120,7 @@ public class XenApiEntity {
         arr.add(this.reference);
         CollectionUtils.addAll(arr, params);
         try {
-            return Controller.dispatch(methodName, arr.toArray());
+            return Controller.dispatch(getAPIName() + "." + methodName, arr.toArray());
         } catch (BadAPICallException ex) {
             String errMsg = "";
 
