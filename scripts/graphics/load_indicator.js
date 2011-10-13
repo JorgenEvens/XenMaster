@@ -22,28 +22,37 @@
 				red: 0.33	
 			};
 			
+			this.setTarget();
+			
 			this.draw();
 		};
 		
 		LoadIndicator.prototype.draw = function() {
-			this.advance(0.01);
+			this.advance();
 			this.drawLoads();
 		};
 		
-		LoadIndicator.prototype.advance = function( speed ) {
+		LoadIndicator.prototype.advance = function() {
 			var i = null,
 				val = null,
 				animate = true,
 				is_ready = false,
-				me = this;
+				me = this,
+				target = null,
+				abs_speed = null,
+				speed = null;
+				
 			
 			for( i in this.current ) {
-				val = this.current[i];
-				if( val > this.target[i] - speed && val < this.target[i] + speed ) {
-					this.current[i] = this.target[i];
+				current = this.current[i];
+				target = this.target[i];
+				is_ready = false;
+				speed = this.animation[i];
+				abs_speed = Math.abs( speed );
+				
+				if( current > target - abs_speed && current < target + abs_speed ) {
+					this.current[i] = target;
 					is_ready = true;
-				} else if( val > this.target[i] ) {
-					this.current[i] -= speed;
 				} else {
 					this.current[i] += speed;
 				}
@@ -51,8 +60,8 @@
 				animate = is_ready && animate;
 			}
 			
-			if( animate ) {
-				window.setTimeout( 1000/60, function(){ me.draw(); } );
+			if( !animate ) {
+				window.setTimeout( function(){ me.draw(); }, 1000/60 );
 			}
 		};
 		
@@ -63,7 +72,10 @@
 					red: 0
 				},
 				i = null,
-				total = 0;
+				total = 0,
+				duration = 250,
+				fps = 60,
+				frames = Math.round( duration * ( fps / 1000 ) );
 			
 			for( i in this.data ) {
 				if( this.data[i] <= 0.3 ) {
@@ -77,8 +89,14 @@
 			}
 			
 			for( i in percentage ) {
-				this.current[i] = percentage[i]/total;
+				this.target[i] = percentage[i]/total;
 			}
+			
+			this.animation = { // calculate step sizes
+					green: ( this.target['green'] - this.current['green'] ) / frames,
+					orange: ( this.target['orange'] - this.current['orange'] ) / frames,
+					red: ( this.target['red'] - this.current['red'] ) / frames
+			};
 		};
 
 		LoadIndicator.prototype.drawLoads = function() {
@@ -124,7 +142,7 @@
 			c.fillText( 'GROUPNAME', x, y );
 			
 			c.textBaseline = 'hanging';
-			c.fillText( total + ' VMs', x, y );
+			//c.fillText( total + ' VMs', x, y );
 			
 		};
 		
