@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map>
+    <entry>
+        <string>Xen</string>
+        <map>
+            <entry>
+                <!-- temporary measure until proper cfg backend is set up -->
+                <string>URL</string>
+                <string>http://x.x.x.x:9363</string>
+            </entry>
+        </map>
+    </entry>
+    <entry>
+        <string>WebApplicationPort</string>
+        <int>8080</int>
+    </entry>
+    <entry>
+        <string>WebContentPath</string>
+        <string>../web</string>
+    </entry>
+    <entry>
+        <string>Monitoring</string>
+        <map>
+            <entry>
+                <string>Interval</string>
+                <double>0.5</double>
+            </entry>
+        </map>
+    </entry>
+</map>
