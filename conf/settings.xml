@@ -6,7 +6,7 @@
             <entry>
                 <!-- temporary measure until proper cfg backend is set up -->
                 <string>URL</string>
-                <string>http://x.x.x.x:9363</string>
+                <string>http://172.16.1.104:9363</string>
             </entry>
         </map>
     </entry>
