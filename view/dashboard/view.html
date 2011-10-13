@@ -1,24 +1,32 @@
 <div id="dashboard">
-	<div class="summary">
+	<div class="summary column_left">
 		<h2 class="corner top left">Summary</h2>
-		<div class="legend">
-			<h3>VM's under high load</h3>
-			<span class="values">
-				<ul>
-					<li>CPU</li>
-					<li>MEM</li>
-				</ul>
-			</span>
-		</div>
-		<div class="record vm_template" data-action="vm_clicked">
-			<h4>VM Name</h4>
-			<span class="values">
-				<ul>
-					<li>CPU</li>
-					<li>MEM</li>
-				</ul>
-			</span>
-			
-		</div>
+		<table cellspacing="0" cellpadding="0">
+			<thead>
+				<tr>
+					<th>VM's under high load</th>
+					<th>CPU</th>
+					<th>MEM</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr class="record vm_template" data-action="vm_clicked">
+					<td>VM Name</td>
+					<td>CPU</td>
+					<td>MEM</td>
+				</tr>
+			</tbody>
+			<tfoot></tfoot>
+		</table>
+	</div>
+	<div class="column_right">
+		<h2>The news</h2>
+		<h3>2011-09-30</h3>
+		<ul>
+			<li>
+				Jantje ging eens pruimen vangen.<br/>
+				Hij is sindsdien vermist.
+			</li>
+		</ul>
 	</div>
 </div>

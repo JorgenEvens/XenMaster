@@ -78,6 +78,14 @@
 			$(this).unbind( action, callback );
 		};
 		
+		Template.prototype.show = function( placeholder ) {
+			placeholder = placeholder || 'main';
+			
+			$('.placeholder.' + placeholder )
+				.html('')
+				.append( this.dom );
+		};
+		
 		ready( Template );
 		
 	});

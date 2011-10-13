@@ -1,15 +1,19 @@
 (function( $, app ){
 	
-	this.content = $(this.dom).find('#content').get(0);
-	
 	this.show = function() {
-		$('body').append( this.dom );
+		$('body')
+			.html('')
+			.append( this.dom );
 	};
 	
-	this.setContent = function( tpl ) {
-		$(this.content)
-			.html('')
-			.append( tpl.dom );
-	};
+	this.capture( 'click' );
+	this.bind( 'ui_dashboard', function() {
+		app.load( 'tpl://dashboard', 'js://ui/template', function( dashboard, Template ) {
+			
+			var dashboard_ui = new Template({ resource: dashboard });
+			dashboard_ui.show();
+			
+		});
+	});
 	
 });

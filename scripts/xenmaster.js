@@ -11,7 +11,7 @@
 			global_ui.show();
 			
 			var dashboard_ui = new Template({ resource: dashboard });
-			global_ui.setContent( dashboard_ui );
+			dashboard_ui.show();
 			
 		});
 	};

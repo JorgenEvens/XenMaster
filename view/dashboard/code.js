@@ -17,20 +17,25 @@
 				
 				r = record.clone();
 				
-				r.find('h4').html( vm.nameLabel );
-				r.find('.values li:first').html(Math.round(Math.random()*99));
-				r.find('.values li:last').html(Math.round(Math.random()*99));
+				r.find('td:first').html( vm.nameLabel );
+				r.find('td:nth(1)').html(Math.round(Math.random()*99));
+				r.find('td:last').html(Math.round(Math.random()*99));
 				
 				ds = Dataset.get( r.get(0) );
 				ds.config = vm;
 				
-				$(tpl.dom).find('.summary').append( r );
+				$(tpl.dom).find('tbody').append( r );
 			}
 		});
 		
 		tpl.capture( 'click' );
 		tpl.bind( 'vm_clicked', function( e ) {
-			console.log( e.dataset );
+			app.load( 'tpl://detail/vm', 'js://ui/template', function( vm, Template ) {
+				
+				var vm_ui = new Template({ resource: vm });
+				vm_ui.show( e.dataset.config );
+				
+			});
 		});
 		
 	});

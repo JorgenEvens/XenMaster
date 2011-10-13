@@ -1,6 +1,6 @@
 @CHARSET "US-ASCII";
 
-body, html, ul, li, div {
+body, html, ul, li, div, h1, h2, h3, h4, h5, h6 {
 	margin: 0;
 	padding: 0;
 }
@@ -113,69 +113,105 @@ header .quick_access:hover ul
 	display: block;
 }
 
-/* Dashboard */
-#dashboard .summary h2, #dashboard .summary h3, #dashboard .record h4 {
+h1, h2, h3, h4, h5, h6, #dashboard th, #dashboard td {
 	font-family: Code;
 	text-transform: uppercase;
-	padding: 5px 10px;
+	padding: 8px 10px 5px 10px;
 	margin: 0;
 }
 
-#dashboard .summary h2 {
+h2 {
 	color: black;
 	background: #E6E6E6;
-	font-size: 22px;
+	font-size: 18px;
 }
 
-#dashboard .legend h3, #dashboard .record h4 {
-	color: #F7931E;
-	font-size: 18px;
+/* Dashboard */
+/* Layout */
+#dashboard .column_left {
+	width: 70%;
 	float: left;
 }
 
-#dashboard .legend ul, #dashboard .record ul {
+#dashboard .column_right {
+	width: 29%;
+	margin-left: 71%;
+}
+
+/* Style */
+#dashboard th:first-child, #dashboard h3 {
+	color: #F7931E;
+	font-size: 18px;
+}
+
+#dashboard th, #dashboard td {
+	border-bottom: 2px solid #E6E6E6;
+}
+
+#dashboard h2.corner:before {
+	height: 31px;
+	width: 31px;
+}
+
+#dashboard table {
+	width: 100%;
+	border: 0;
+}
+
+#dashboard tbody td+td, #dashboard thead th+th {
+	width: 15px;
+	padding: 5px 5px;
+	text-align: center;
+}
+
+#dashboard tbody td:last-child, #dashboard thead th:last-child {
+	position: relative;
+}
+
+#dashboard tbody td:last-child:before, #dashboard thead th:last-child:before {
+	content: '';
+	position: absolute;
+	bottom: 8px;
+	left: 0;
+	height: 15px;
+	width: 10px;
+	border-left: 2px solid #CFCFCF;
+	display: block;
+}
+
+#dashboard .column_right li {
+	margin-left: 10px;
+	font-size: 14px;
+}
+
+/* VM Detail page */
+#vm_detail h2 ul {
 	float: right;
 }
 
-#dashboard .legend li, #dashboard .record li {
+#vm_detail h2 li {
 	float: left;
-	width: 30px;
+	border-right: 2px solid #CFCFCF;
 	padding: 0 10px;
-	margin-top: 5px;
-	border-right: 2px solid #DEDEDE;
 }
 
-#dashboard .legend li:last-child, #dashboard .record li:last-child {
-	border: none;
+#vm_detail h2 li:last-child {
+	float: left;
+	border-right: none;
 }
 
-#dashboard .record {
-	clear: both;
+#vm_detail h3{
+	color: #F7931E;
 }
 
-#dashboard .record h4 {
-	margin: 0;
-	color: black;
-	font-size: 16px;
+#vm_detail .basic {
+	width: 200px;
+	float: left;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#vm_detail .network {
+	float: left;
+}
 
 
 
