@@ -1,5 +1,5 @@
 # Setup build evironment
-export JAVA_HOME="/usr/lib/jvm/java-1.7.0-openjdk-`dpkg-architecture -qDEB_HOST_ARCH`"
+export JAVA_HOME="/usr/lib/jvm/java-1.7.0-openjdk-`dpkg --print-architecture`"
 JAVA="$JAVA_HOME/jre/bin/java"
 
 # Perform an update to get latest backend
