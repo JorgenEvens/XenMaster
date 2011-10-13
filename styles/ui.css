@@ -213,6 +213,14 @@ h2 {
 	float: left;
 }
 
+#vm_detail table, #vm_detail h3 {
+	border: 1px solid #CFCFCF;
+	width: 100%;
+}
+
+#vm_detail th {
+	border-left: 1px solid #CFCFCF;
+}
 
 
 

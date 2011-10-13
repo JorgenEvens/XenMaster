@@ -3,6 +3,10 @@
 	app.load( 'js://lib/modernizr', function( Modernizr ) {
 		var socketType = 'websocket';
 
+		if( window.MozWebSocket ) {
+			window.WebSocket = window.MozWebSocket;
+		}
+		
 		if( !Modernizr.websockets ) {
 			socketType = 'restsocket';
 		}

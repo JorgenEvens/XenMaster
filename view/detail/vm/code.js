@@ -6,25 +6,17 @@
 				property: 'nameLabel'
 			},
 			
-			os: {
-				property: ''
-			},
+			os: {},
 			ram: {
 				property: 'maximumStaticMemory'
 			},
 			cpu: {
 				property: 'maxVCPUs'
 			},
-			boot: {
-				property: ''
-			},
+			boot: {},
 			
-			nic: {
-				property: ''
-			},
-			vnc: {
-				property: ''
-			},
+			nic: {},
+			vnc: {},
 			
 			pae: {},
 			usb: {},
