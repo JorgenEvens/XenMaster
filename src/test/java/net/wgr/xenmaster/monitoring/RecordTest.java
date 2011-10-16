@@ -4,7 +4,10 @@
  */
 package net.wgr.xenmaster.monitoring;
 
+import java.util.List;
 import net.wgr.xenmaster.api.GuestMetrics;
+import net.wgr.xenmaster.api.VM;
+import net.wgr.xenmaster.api.VMMetrics;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.TTCCLayout;
@@ -24,7 +27,6 @@ import static org.junit.Assert.*;
 public class RecordTest {
 
     public RecordTest() {
-        
     }
 
     @BeforeClass
@@ -49,8 +51,11 @@ public class RecordTest {
     //@Test http://lists.xensource.com/archives/html/xen-devel/2011-10/msg00584.html
     @Test
     public void testRecord() {
-        GuestMetrics.getAll();
-        GuestMetrics guestMetrics = Controller.getSession().getThisHost().getResidentVMs().get(0).getGuestMetrics();
+        //GuestMetrics.getAll();
+        List<VM> residentVMs = Controller.getSession().getThisHost().getResidentVMs();
+
+        VMMetrics vm = residentVMs.get(0).getMetrics();
+        GuestMetrics guestMetrics = residentVMs.get(0).getGuestMetrics();
         Record r = new Record(Controller.getSession().getThisHost().getResidentVMs().get(0).getReference(), true);
         assertNotNull(r);
     }

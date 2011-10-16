@@ -6,11 +6,13 @@
  */
 package net.wgr.xenmaster.controller;
 
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.connectivity.Connection;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.log4j.Logger;
 
 /**
  * 
@@ -22,7 +24,11 @@ public class Dispatcher {
     protected Connection conn;
 
     public Dispatcher() {
-        this.conn = new Connection();
+        try {
+            this.conn = new Connection();
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(getClass()).error(ex);
+        }
     }
 
     public Object dispatch(String methodName, Object[] params) throws BadAPICallException {
@@ -42,7 +48,10 @@ public class Dispatcher {
             case "Success":
                 return result.get("Value");
             case "Failure":
-                throw new BadAPICallException(methodName, params, ((Object[]) result.get("ErrorDescription"))[0].toString());
+                Object[] info = (Object[]) result.get("ErrorDescription");
+                String decription = info[2].toString();
+                
+                throw new BadAPICallException(methodName, params, info[0].toString(), (decription != null) ? decription : "No description available");
             default:
                 return null;
         }

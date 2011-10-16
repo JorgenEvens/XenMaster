@@ -17,15 +17,16 @@ public class BadAPICallException extends Exception {
 
     protected String methodName;
     protected List args;
-    protected String errorDescription;
+    protected String errorName, errorDescription;
 
     public BadAPICallException(String methodName, List args) {
-        this(methodName, args, "Call " + methodName + "failed");
+        this(methodName, args, "Call " + methodName + " failed", "");
     }
 
-    public BadAPICallException(String methodName, List params, String errorDescription) {
+    public BadAPICallException(String methodName, List params, String errorName, String errorDescription) {
         this.methodName = methodName;
         this.args = params;
+        this.errorName = errorName; 
         this.errorDescription = errorDescription;
     }
 
@@ -42,7 +43,7 @@ public class BadAPICallException extends Exception {
     }
 
     public String toString() {
-        return "The method " + methodName + " returned following error " + errorDescription;
+        return "The method " + methodName + " returned following error " + errorName + " : " + errorDescription;
     }
 
     @Override

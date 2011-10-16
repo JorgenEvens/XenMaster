@@ -64,6 +64,10 @@
             </snapshots>
             <url>http://butters.double-u.co.cc:81/nexus/content/repositories/wr/</url>
         </repository>
+        <repository>
+            <url>http://repo.opennms.org/maven2/</url>
+            <id>opennms</id>
+        </repository>
     </repositories>
 
     <dependencies>

@@ -7,10 +7,11 @@
 package net.wgr.xenmaster.connectivity;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import net.wgr.settings.Settings;
 import net.wgr.xenmaster.api.Session;
-import org.apache.log4j.Logger;
 
 /**
  * 
@@ -18,29 +19,35 @@ import org.apache.log4j.Logger;
  * @author double-u
  */
 public class Connection {
-    protected XMLRPC x;
-    protected Session s;
+    protected XMLRPC xmlRpc;
+    protected Session session;
+    protected URL url;
     
-    public Connection() {
-        try {
-            this.x = new XMLRPC();
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(getClass()).error(ex);
-        }
+    public Connection() throws MalformedURLException {
+        this(new URL(Settings.getInstance().getString("Xen.URL")));
+    }
+    
+    public Connection(URL url) {
+        this.url = url;
+        this.xmlRpc = new XMLRPC(url);
     }
     
     public Map executeCommand(String commandName, List params) {
-        return x.execute(commandName, params);
+        return xmlRpc.execute(commandName, params);
     }
 
     public Session getSession() {
-        if (s == null) authenticate();
-        return s;
+        if (session == null) authenticate();
+        return session;
+    }
+
+    public URL getUrl() {
+        return url;
     }
     
     public void authenticate() {
         // TODO
-        s = Session.loginWithPassword("", "");
-        s.fill();
+        session = Session.loginWithPassword("root", "test");
+        session.fill();
     }
 }

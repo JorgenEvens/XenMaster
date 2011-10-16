@@ -6,11 +6,9 @@
  */
 package net.wgr.xenmaster.connectivity;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
-import net.wgr.settings.Settings;
 import org.apache.log4j.Logger;
 import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
@@ -27,9 +25,9 @@ public class XMLRPC {
     protected XmlRpcClient client;
     protected Logger logger = Logger.getLogger(getClass());
 
-    public XMLRPC() throws MalformedURLException {
+    public XMLRPC(URL host){
         cfg = new XmlRpcClientConfigImpl();
-        cfg.setServerURL(new URL(Settings.getInstance().getString("Xen.URL")));
+        cfg.setServerURL(host);
         client = new XmlRpcClient();
         client.setConfig(cfg);
     }

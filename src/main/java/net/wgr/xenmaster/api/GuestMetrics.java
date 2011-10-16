@@ -39,8 +39,8 @@ public class GuestMetrics extends XenApiEntity {
     
     public static List<GuestMetrics> getAll() {
         try {
-            List<String> gms = (List<String>) Controller.dispatch("VM_guest_metrics.get_all");
-            for (String gmr : gms){
+            Object[] gms = (Object[]) Controller.dispatch("VM_guest_metrics.get_all");
+            for (Object gmr : gms){
                 
             }
         } catch (BadAPICallException ex) {

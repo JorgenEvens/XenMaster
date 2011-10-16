@@ -31,7 +31,7 @@ public class XenApiEntity {
     protected String uuid;
 
     public XenApiEntity(String ref) {
-        this(ref, true);
+        this(ref, ref != null);
     }
 
     public XenApiEntity(String ref, boolean autoFill) {
@@ -90,7 +90,7 @@ public class XenApiEntity {
 
     protected <T> T setter(T obj, String name) {
         if (reference == null || reference.isEmpty()) {
-            throw new IllegalArgumentException("Instance is not set");
+            return obj;
         }
         if (obj == null) {
             throw new IllegalArgumentException("Null value is not allowed for " + name);
