@@ -13,6 +13,7 @@ import java.lang.reflect.Modifier;
 import net.wgr.server.web.handling.WebCommandHandler;
 import net.wgr.wcp.Command;
 import net.wgr.wcp.CommandException;
+import net.wgr.xenmaster.controller.BadAPICallException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -80,8 +81,10 @@ public class Hook extends WebCommandHandler {
                                 for (int j = 0; j < types.length - 1; j++) {
                                     Class<?> type = types[j];
                                     Object value = args[j];
-                                    
-                                    if (!(value instanceof String)) continue; 
+
+                                    if (!(value instanceof String)) {
+                                        continue;
+                                    }
 
                                     switch (type.getSimpleName()) {
                                         case "boolean":
@@ -94,11 +97,15 @@ public class Hook extends WebCommandHandler {
                                 }
                             }
 
-                            if (Modifier.isStatic(m.getModifiers())) {
-                                current = m.invoke(null, (Object[]) args);
-                            } else {
-                                m.setAccessible(true);
-                                current = m.invoke(current, (Object[]) args);
+                            try {
+                                if (Modifier.isStatic(m.getModifiers())) {
+                                    current = m.invoke(null, (Object[]) args);
+                                } else {
+                                    m.setAccessible(true);
+                                    current = m.invoke(current, (Object[]) args);
+                                }
+                            } catch (Exception ex) {
+                                return new CommandException(ex, command);
                             }
 
                             break;
@@ -120,6 +127,7 @@ public class Hook extends WebCommandHandler {
     }
 
     public static class APICall {
+
         public String ref;
         public Object[] args;
     }

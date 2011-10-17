@@ -8,6 +8,7 @@ package net.wgr.xenmaster.api;
 
 import java.util.HashMap;
 import java.util.Map;
+import net.wgr.xenmaster.api.helpers.iSCSI;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
 
@@ -116,13 +117,36 @@ public class SR extends XenApiEntity {
     }
 
     public void create(Host host, Map<String, String> deviceConfig, Type type, String contentType, boolean shared, int size) throws BadAPICallException {
-        if (reference != null) throw new IllegalArgumentException("Object reference is set");
-        if (host == null || deviceConfig == null || name == null) throw new IllegalArgumentException("Some essential arguments haven't been supplied");
+        if (host == null || deviceConfig == null || name == null || type == null) {
+            throw new IllegalArgumentException("Some essential arguments haven't been supplied");
+        }
+        create(host, deviceConfig, type.name().toLowerCase(), contentType, shared, size);
+    }
+
+    public void create(Host host, iSCSI cfg, String contentType, boolean shared, int size) throws BadAPICallException {
+        create(host, cfg.toDeviceConfig(), cfg.getType().name().toLowerCase(), contentType, shared, size);
+    }
+
+    protected void create(Host host, Map<String, String> deviceConfig, String type, String contentType, boolean shared, int size) throws BadAPICallException {
+        if (reference != null) {
+            throw new IllegalArgumentException("Object reference is set");
+        }
+        if (host == null || deviceConfig == null || name == null) {
+            throw new IllegalArgumentException("Some essential arguments haven't been supplied");
+        }
+        if (smConfig == null) {
+            smConfig = new HashMap<>();
+        }
+        Controller.dispatch("SR.create", host.getIDString(), deviceConfig, "" + size, name, description, type.toLowerCase(), contentType, shared, smConfig);
+    }
+    
+    public String probe(Host host, iSCSI cfg) throws BadAPICallException {
         if (smConfig == null) smConfig = new HashMap<>();
-        Controller.dispatch("SR.create", host.getUUID().toString(), deviceConfig, "" + size, name, description, type.name().toLowerCase(), contentType, shared);
+        return (String) Controller.dispatch("SR.probe", host.getReference(), cfg.toDeviceConfig(), cfg.getType().name().toLowerCase(), smConfig);
     }
 
     public static enum Type {
+
         EXT, File, LVM
     }
 }

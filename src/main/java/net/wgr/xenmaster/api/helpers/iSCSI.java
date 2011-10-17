@@ -6,10 +6,15 @@
  */
 package net.wgr.xenmaster.api.helpers;
 
+import com.thoughtworks.xstream.XStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import net.wgr.xenmaster.api.Host;
+import net.wgr.xenmaster.controller.BadAPICallException;
+import net.wgr.xenmaster.controller.Controller;
 import org.apache.log4j.Logger;
 
 /**
@@ -18,32 +23,49 @@ import org.apache.log4j.Logger;
  * @author double-u
  */
 public class iSCSI {
-    
+
     protected InetAddress target;
     protected String targetIQN, localIQN;
     protected String user, password;
-    protected int port;
+    protected int port = 3260;
     protected boolean useDiscoveryNumber;
     protected Type type;
-    
+
     public static enum Type {
+
         iSCSI, LVMoISCSI, EXToISCSI
     }
-    
+
     public Map<String, String> toDeviceConfig() {
         HashMap<String, String> map = new HashMap<>();
         map.put("target", target.getCanonicalHostName());
-        map.put("targetIQN", targetIQN);
-        map.put("localIQN", localIQN);
+        if (targetIQN != null) {
+            map.put("targetIQN", targetIQN);
+        }
+        if (localIQN != null) {
+            map.put("localIQN", localIQN);
+        }
         if (user != null && password != null) {
             map.put("chapuser", user);
             map.put("chappassword", password);
         }
-        if (port != 0) {
-            map.put("port", "" + port);
-        }
-        map.put("usediscoverynumber", Boolean.toString(useDiscoveryNumber));
+        map.put("port", "" + port);
+        if (useDiscoveryNumber) map.put("usediscoverynumber", Boolean.toString(useDiscoveryNumber));
         return map;
+    }
+    
+    public List<String> getAvailableIQNs(Host host) throws BadAPICallException {
+        if (target == null) throw new IllegalArgumentException("Target is not set");
+        try {
+            Controller.dispatch("SR.create", host.getReference(), this.toDeviceConfig(), "0", "", "", "iSCSI", "user", true, new HashMap<>());
+        } catch (BadAPICallException ex) {
+            if (ex.getErrorName().equals("SR_BACKEND_FAILURE_96")) {
+                // TODO
+            } else {
+                throw ex;
+            }
+        }
+        return null;
     }
 
     public String getLocalIQN() {
@@ -109,7 +131,7 @@ public class iSCSI {
     public void setUser(String user) {
         this.user = user;
     }
-    
+
     protected boolean isReachable() {
         if (target != null) {
             try {
@@ -118,7 +140,7 @@ public class iSCSI {
                 Logger.getLogger(getClass()).error(ex);
             }
         }
-        
+
         return false;
     }
 }

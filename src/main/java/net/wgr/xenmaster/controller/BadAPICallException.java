@@ -18,15 +18,23 @@ public class BadAPICallException extends Exception {
     protected String methodName;
     protected List args;
     protected String errorName, errorDescription;
+    protected List<String> info;
 
     public BadAPICallException(String methodName, List args) {
         this(methodName, args, "Call " + methodName + " failed", "");
     }
 
+    public BadAPICallException(String methodName, List params, String errorName, List<String> info) {
+        this.methodName = methodName;
+        this.args = params;
+        this.errorName = errorName;
+        this.info = info;
+    }
+
     public BadAPICallException(String methodName, List params, String errorName, String errorDescription) {
         this.methodName = methodName;
         this.args = params;
-        this.errorName = errorName; 
+        this.errorName = errorName;
         this.errorDescription = errorDescription;
     }
 
@@ -38,16 +46,44 @@ public class BadAPICallException extends Exception {
         return methodName;
     }
 
+    public String getErrorName() {
+        return errorName;
+    }
+
     public String getErrorDescription() {
-        return errorDescription;
+        if (this.errorDescription != null && !this.errorDescription.isEmpty()) {
+            return errorDescription;
+        } else if (info != null) {
+            String decription = null;
+            if (info.size() > 2) {
+                decription = info.get(2);
+            } else if (info.size() == 2) {
+                decription = info.get(1);
+            }
+
+            return decription;
+        }
+        return "No description available";
+    }
+
+    public void setErrorDescription(String errorDescription) {
+        this.errorDescription = errorDescription;
+    }
+
+    public List<String> getInfo() {
+        return info;
+    }
+
+    public void setInfo(List<String> info) {
+        this.info = info;
     }
 
     public String toString() {
-        return "The method " + methodName + " returned following error " + errorName + " : " + errorDescription;
+        return "The method " + methodName + " returned following error " + errorName + " : " + getErrorDescription();
     }
 
     @Override
     public String getMessage() {
-        return errorDescription;
+        return getErrorDescription();
     }
 }

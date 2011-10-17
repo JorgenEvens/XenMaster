@@ -48,64 +48,55 @@ public class VM extends XenApiEntity {
         super(ref);
     }
 
-    public void start(boolean startPaused) {
+    public void start(boolean startPaused) throws BadAPICallException {
         try {
             dispatch("start", startPaused);
         } catch (BadAPICallException ex) {
-            String errMsg = "";
+            Logger.getLogger(getClass()).error(ex);
+            
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":
-                    errMsg = "The VM has a bad power state. It might be already running";
+                    ex.setErrorDescription("The VM has a bad power state. It might be already running");
                     break;
                 case "VM_HVM_REQUIRED":
-                    errMsg = "Your CPU(s) do not support VT-x or AMD-v, which this VM requires";
-                    break;
-                case "UNKNOWN_BOOTLOADER":
-                    errMsg = "Unknown bootloader";
+                    ex.setErrorDescription("Your CPU(s) do not support VT-x or AMD-v, which this VM requires");
                     break;
                 case "NO_HOST_AVAILABLE":
-                    errMsg = "There are no hosts available for this machine to run on";
+                    ex.setErrorDescription("There are no hosts available for this machine to run on");
                     break;
-                default:
-                    errMsg = ex.toString();
-
             }
 
-            Logger.getLogger(getClass()).error(errMsg, ex);
+            throw ex;
         }
     }
 
-    public void pause() {
+    public void pause() throws BadAPICallException {
         try {
             dispatch("pause");
         } catch (BadAPICallException ex) {
-            String errMsg = "";
+            Logger.getLogger(getClass()).error(ex);
+            
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":
-                    errMsg = "The VM has a bad power state. It might be already paused";
-                default:
-                    errMsg = ex.toString();
-
+                    ex.setErrorDescription("The VM has a bad power state. It might be already paused");
             }
 
-            Logger.getLogger(getClass()).error(errMsg, ex);
+            throw ex;
         }
     }
 
-    public void resume() {
+    public void resume() throws BadAPICallException {
         try {
             dispatch("unpause");
         } catch (BadAPICallException ex) {
-            String errMsg = "";
+            Logger.getLogger(getClass()).error(ex);
+            
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":
-                    errMsg = "The VM has a bad power state. It might not be paused";
-                default:
-                    errMsg = ex.toString();
-
+                    ex.setErrorDescription("The VM has a bad power state. It might be already running");
             }
 
-            Logger.getLogger(getClass()).error(errMsg, ex);
+            throw ex;
         }
     }
 
@@ -113,7 +104,7 @@ public class VM extends XenApiEntity {
      * Stop the VM
      * @param polite it's up to you to keep your manners
      */
-    public void stop(boolean polite) {
+    public void stop(boolean polite) throws BadAPICallException {
         try {
             if (polite) {
                 dispatch("clean_shutdown");
@@ -121,15 +112,14 @@ public class VM extends XenApiEntity {
                 dispatch("hard_shutdown");
             }
         } catch (BadAPICallException ex) {
-            String errMsg = "";
+            Logger.getLogger(getClass()).error(ex);
+            
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":
-                    errMsg = "The VM has a bad power state. It might not be running";
-                default:
-                    errMsg = ex.toString();
+                    ex.setErrorDescription("The VM has a bad power state. It might not be running");
             }
 
-            Logger.getLogger(getClass()).error(errMsg, ex);
+            throw ex;
         }
     }
     
@@ -137,7 +127,7 @@ public class VM extends XenApiEntity {
      * Reboot the VM
      * @param polite it's up to you to keep your manners
      */
-    public void reboot(boolean polite) {
+    public void reboot(boolean polite) throws BadAPICallException {
         try {
             if (polite) {
                 dispatch("clean_reboot");
@@ -145,49 +135,44 @@ public class VM extends XenApiEntity {
                 dispatch("hard_reboot");
             }
         } catch (BadAPICallException ex) {
-            String errMsg = "";
+            Logger.getLogger(getClass()).error(ex);
+            
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":
-                    errMsg = "The VM has a bad power state. It might not be running";
-                default:
-                    errMsg = ex.toString();
+                    ex.setErrorDescription("The VM has a bad power state. It might not be running");
             }
 
-            Logger.getLogger(getClass()).error(errMsg, ex);
+            throw ex;
         }
     }
     
-    public void suspend() {
+    public void suspend() throws BadAPICallException {
         try {
             dispatch("suspend");
         } catch (BadAPICallException ex) {
-            String errMsg = "";
+            Logger.getLogger(getClass()).error(ex);
+            
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":
-                    errMsg = "The VM has a bad power state. It might be already paused";
-                default:
-                    errMsg = ex.toString();
-
+                    ex.setErrorDescription("The VM has a bad power state. It might not be running");
             }
 
-            Logger.getLogger(getClass()).error(errMsg);
+            throw ex;
         }
     }
     
-    public void wake(boolean startPaused, boolean force) {
+    public void wake(boolean startPaused, boolean force) throws BadAPICallException {
         try {
             dispatch("resume", startPaused, force);
         } catch (BadAPICallException ex) {
-            String errMsg = "";
+            Logger.getLogger(getClass()).error(ex);
+            
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":
-                    errMsg = "The VM has a bad power state. It might be already paused";
-                default:
-                    errMsg = ex.toString();
-
+                    ex.setErrorDescription("The VM has a bad power state. It might not be suspended");
             }
 
-            Logger.getLogger(getClass()).error(errMsg);
+            throw ex;
         }
     }
     
@@ -201,6 +186,7 @@ public class VM extends XenApiEntity {
     }
     
     public List<VBD> getVBDs() {
+        this.VBDs = value(this.VBDs, "get_VBDs");
         ArrayList<VBD> vbds = new ArrayList<>();
         for (Object o : this.VBDs) {
             vbds.add(new VBD((String) o));

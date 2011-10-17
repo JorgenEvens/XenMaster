@@ -8,10 +8,12 @@ package net.wgr.xenmaster.controller;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.connectivity.Connection;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -49,9 +51,12 @@ public class Dispatcher {
                 return result.get("Value");
             case "Failure":
                 Object[] info = (Object[]) result.get("ErrorDescription");
-                String decription = info[2].toString();
-                
-                throw new BadAPICallException(methodName, params, info[0].toString(), (decription != null) ? decription : "No description available");
+                ArrayList<String> errInfo = new ArrayList<>();
+                for (Object o : info) {
+                    if (o instanceof String) errInfo.add((String) o);
+                }
+
+                throw new BadAPICallException(methodName, params, errInfo.get(0), errInfo);
             default:
                 return null;
         }

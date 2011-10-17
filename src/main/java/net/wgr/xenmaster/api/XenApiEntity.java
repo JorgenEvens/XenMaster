@@ -37,7 +37,7 @@ public class XenApiEntity {
     public XenApiEntity(String ref, boolean autoFill) {
         this.reference = ref;
         if (autoFill) {
-            fillOut(getAPIName());
+            fillOut(getAPIName(), null);
         }
     }
 
@@ -59,6 +59,10 @@ public class XenApiEntity {
             return null;
         }
         return UUID.fromString(uuid);
+    }
+
+    public String getIDString() {
+        return getUUID().toString();
     }
 
     public void setUUID(UUID uuid) {
@@ -88,16 +92,22 @@ public class XenApiEntity {
         }
     }
 
-    protected <T> T setter(T obj, String name) {
-        if (reference == null || reference.isEmpty()) {
-            return obj;
+    protected <T> String setter(T obj, String name) {
+        if (reference != null && !reference.isEmpty() && name == null) {
+            if (obj == null) {
+                throw new IllegalArgumentException("Null value is not allowed for " + name);
+            } else {
+                safeDispatch(getAPIName() + "." + name, obj);
+            }
         }
-        if (obj == null) {
-            throw new IllegalArgumentException("Null value is not allowed for " + name);
+
+        if (obj instanceof String) {
+            return (String) obj;
+        } else if (obj instanceof XenApiEntity) {
+            return ((XenApiEntity) obj).getReference();
         } else {
-            safeDispatch(getAPIName() + "." + name, obj);
+            return obj.toString();
         }
-        return obj;
     }
 
     /**
@@ -147,17 +157,22 @@ public class XenApiEntity {
         boolean fillAPIObject() default false;
     }
 
-    protected final void fillOut(String className) {
-        Map<String, Object> result = null;
+    public void fillOut(Map<String, Object> data) {
+        fillOut(getAPIName(), data);
+    }
 
-        try {
-            result = (Map<String, Object>) Controller.dispatch((className == null ? getClass().getSimpleName().toLowerCase() : className) + ".get_record", this.reference);
-        } catch (BadAPICallException ex) {
-            Logger.getLogger(getClass()).error(ex);
+    protected final void fillOut(String className, Map<String, Object> data) {
+
+        if (data == null) {
+            try {
+                data = (Map<String, Object>) Controller.dispatch((className == null ? getClass().getSimpleName().toLowerCase() : className) + ".get_record", this.reference);
+            } catch (BadAPICallException ex) {
+                Logger.getLogger(getClass()).error(ex);
+            }
         }
 
-        if (result == null) {
-            return;
+        if (data == null) {
+            throw new Error("Get record failed");
         }
 
         Map<String, String> interpretation = interpretation();
@@ -170,7 +185,7 @@ public class XenApiEntity {
                 processedName = interpretation.get(f.getName());
             } else {
                 // Try exact match
-                if (result.keySet().contains(f.getName())) {
+                if (data.keySet().contains(f.getName())) {
                     processedName = f.getName();
                 } else {
                     processedName = f.getName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase();
@@ -178,9 +193,9 @@ public class XenApiEntity {
             }
 
             Object value = null;
-            for (String key : result.keySet()) {
+            for (String key : data.keySet()) {
                 if (key.equals(processedName)) {
-                    value = result.get(key);
+                    value = data.get(key);
                 }
             }
             if (value == null) {
