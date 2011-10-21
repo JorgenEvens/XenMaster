@@ -5,10 +5,9 @@
 package net.wgr.xenmaster.api;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
-import net.wgr.xenmaster.api.helpers.iSCSI;
+import java.util.List;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
 import org.apache.log4j.ConsoleAppender;
@@ -52,19 +51,17 @@ public class SRTest {
     //@Test
     public void testSomeMethod() throws BadAPICallException, UnknownHostException, IOException {
         Host thisHost = Controller.getSession().getThisHost();
-        SR nsr = new SR(null);
-        nsr.setName("M00p");
-        nsr.setDescription("Ah ja eh");
-        HashMap<String, String> cfg = new HashMap<>();
-        cfg.put("location", "/var/vm/meep.img");
-        iSCSI i = new iSCSI();
-        i.setTarget(InetAddress.getByName("172.16.222.198"));
-        i.setType(iSCSI.Type.LVMoISCSI);
-        i.getAvailableIQNs(thisHost);
-        //String probe = nsr.probe(thisHost, i);
-        nsr.create(thisHost, i, "user", true, 0);
+        List<SR> all = SR.getAll();
+        //all.get(0).destroy();
+        //all.get(0).setAsDefault(Pool.getAll().get(0));
         
-        Object[] dispatch = (Object[]) Controller.dispatch("SR.get_all");
-        SR meep = new SR(dispatch[0].toString());
+        HashMap<String, String> data = new HashMap<>();
+        data.put("location", "/var/vm/test");
+        
+        SR ns = new SR(null);
+        ns.setName("File-based SR");
+        ns.setDescription("Test");
+        ns.create(Controller.getSession().getThisHost(), data, SR.Type.File, "user", true, 0);
+        ns.setAsDefault(Pool.getAll().get(0));
     }
 }

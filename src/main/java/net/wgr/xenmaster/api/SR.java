@@ -6,7 +6,9 @@
  */
 package net.wgr.xenmaster.api;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.api.helpers.iSCSI;
 import net.wgr.xenmaster.controller.BadAPICallException;
@@ -39,6 +41,58 @@ public class SR extends XenApiEntity {
         super(ref);
     }
 
+    public void create(Host host, Map<String, String> deviceConfig, Type type, String contentType, boolean shared, int size) throws BadAPICallException {
+        if (host == null || deviceConfig == null || name == null || type == null) {
+            throw new IllegalArgumentException("Some essential arguments haven't been supplied");
+        }
+        create(host, deviceConfig, type.name().toLowerCase(), contentType, shared, size);
+    }
+
+    public void create(Host host, iSCSI cfg, String contentType, boolean shared, int size) throws BadAPICallException {
+        create(host, cfg.toDeviceConfig(), cfg.getType().name().toLowerCase(), contentType, shared, size);
+    }
+
+    protected void create(Host host, Map<String, String> deviceConfig, String type, String contentType, boolean shared, int size) throws BadAPICallException {
+        if (reference != null) {
+            throw new IllegalArgumentException("Object reference is set");
+        }
+        if (host == null || deviceConfig == null || name == null) {
+            throw new IllegalArgumentException("Some essential arguments haven't been supplied");
+        }
+        if (smConfig == null) {
+            smConfig = new HashMap<>();
+        }
+        this.reference = (String) Controller.dispatch("SR.create", host.getIDString(), deviceConfig, "" + size, name, description, type.toLowerCase(), contentType, shared, smConfig);
+    }
+
+    public String probe(Host host, iSCSI cfg) throws BadAPICallException {
+        if (smConfig == null) {
+            smConfig = new HashMap<>();
+        }
+        return (String) Controller.dispatch("SR.probe", host.getReference(), cfg.toDeviceConfig(), cfg.getType().name().toLowerCase(), smConfig);
+    }
+
+    public void setAsDefault(Pool p) throws BadAPICallException {
+        Controller.dispatch("pool.set_default_SR", p.getReference(), this.reference);
+    }
+    
+    public void destroy() throws BadAPICallException {
+        dispatch("destroy");
+    }
+    
+    public void forget() throws BadAPICallException {
+        dispatch("forget");
+    }
+
+    public static List<SR> getAll() throws BadAPICallException {
+        Object[] srs = (Object[]) Controller.dispatch("SR.get_all");
+        ArrayList<SR> SRs = new ArrayList<>();
+        for (Object srref : srs) {
+            SRs.add(new SR((String) srref));
+        }
+        return SRs;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -47,12 +101,12 @@ public class SR extends XenApiEntity {
         this.description = setter(description, "set_label_description");
     }
 
-    public boolean isLocalCache() {
+    public boolean usesLocalCache() {
         return localCache;
     }
 
-    public void setLocalCache(boolean localCache) {
-        this.localCache = localCache;
+    public void setLocalCache(boolean useLocalCache) {
+        this.localCache = useLocalCache;
     }
 
     public String getName() {
@@ -114,35 +168,6 @@ public class SR extends XenApiEntity {
         map.put("description", "name_description");
         map.put("localCache", "local_cache_enabled");
         return map;
-    }
-
-    public void create(Host host, Map<String, String> deviceConfig, Type type, String contentType, boolean shared, int size) throws BadAPICallException {
-        if (host == null || deviceConfig == null || name == null || type == null) {
-            throw new IllegalArgumentException("Some essential arguments haven't been supplied");
-        }
-        create(host, deviceConfig, type.name().toLowerCase(), contentType, shared, size);
-    }
-
-    public void create(Host host, iSCSI cfg, String contentType, boolean shared, int size) throws BadAPICallException {
-        create(host, cfg.toDeviceConfig(), cfg.getType().name().toLowerCase(), contentType, shared, size);
-    }
-
-    protected void create(Host host, Map<String, String> deviceConfig, String type, String contentType, boolean shared, int size) throws BadAPICallException {
-        if (reference != null) {
-            throw new IllegalArgumentException("Object reference is set");
-        }
-        if (host == null || deviceConfig == null || name == null) {
-            throw new IllegalArgumentException("Some essential arguments haven't been supplied");
-        }
-        if (smConfig == null) {
-            smConfig = new HashMap<>();
-        }
-        Controller.dispatch("SR.create", host.getIDString(), deviceConfig, "" + size, name, description, type.toLowerCase(), contentType, shared, smConfig);
-    }
-    
-    public String probe(Host host, iSCSI cfg) throws BadAPICallException {
-        if (smConfig == null) smConfig = new HashMap<>();
-        return (String) Controller.dispatch("SR.probe", host.getReference(), cfg.toDeviceConfig(), cfg.getType().name().toLowerCase(), smConfig);
     }
 
     public static enum Type {

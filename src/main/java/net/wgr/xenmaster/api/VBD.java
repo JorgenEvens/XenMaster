@@ -8,6 +8,7 @@ package net.wgr.xenmaster.api;
 
 import java.util.HashMap;
 import java.util.Map;
+import net.wgr.xenmaster.controller.BadAPICallException;
 
 /**
  * 
@@ -15,7 +16,7 @@ import java.util.Map;
  * @author double-u
  */
 public class VBD extends XenApiEntity {
-    
+
     protected String VM;
     protected String VDI;
     protected String deviceName;
@@ -40,6 +41,39 @@ public class VBD extends XenApiEntity {
         super(ref);
     }
 
+    public void eject() throws BadAPICallException {
+        dispatch("eject");
+    }
+
+    public void insert(VDI disk) throws BadAPICallException {
+        dispatch("insert", disk.getReference());
+    }
+
+    public void plug() throws BadAPICallException {
+        dispatch("plug");
+    }
+
+    public void unplug(boolean force) throws BadAPICallException {
+        dispatch(force ? "unplug_force" : "unplug");
+    }
+
+    public boolean isAttachable() {
+        try {
+            dispatch("assert_attachable");
+            return true;
+        } catch (BadAPICallException ex) {
+            return false;
+        }
+    }
+    
+    public void create() {
+        
+    }
+    
+    public void destroy() throws BadAPICallException {
+        dispatch("destroy");
+    }
+
     public VDI getVDI() {
         VDI = value(VDI, "get_VDI");
         return new VDI(VDI);
@@ -48,6 +82,11 @@ public class VBD extends XenApiEntity {
     public VM getVM() {
         VM = value(VM, "get_VM");
         return new VM(VM);
+    }
+    
+    public VBDMetrics getMetrics() {
+        metrics = value(metrics, "get_metrics");
+        return new VBDMetrics(metrics);
     }
 
     public boolean isBootable() {
@@ -60,10 +99,6 @@ public class VBD extends XenApiEntity {
 
     public String getDeviceName() {
         return deviceName;
-    }
-
-    public String getMetrics() {
-        return metrics;
     }
 
     public Mode getMode() {
@@ -100,13 +135,15 @@ public class VBD extends XenApiEntity {
         map.put("attached", "currently_attached");
         map.put("deviceName", "device");
         return map;
-    }    
-    
+    }
+
     public static enum Mode {
+
         RO, RW
     }
-    
+
     public static enum Type {
+
         CD, DISK
     }
 }
