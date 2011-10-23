@@ -8,6 +8,7 @@ import java.util.List;
 import net.wgr.xenmaster.api.GuestMetrics;
 import net.wgr.xenmaster.api.VM;
 import net.wgr.xenmaster.api.VMMetrics;
+import net.wgr.xenmaster.controller.BadAPICallException;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.TTCCLayout;
@@ -49,7 +50,7 @@ public class RecordTest {
     }
 
     //@Test http://lists.xensource.com/archives/html/xen-devel/2011-10/msg00584.html
-    public void testRecord() {
+    public void testRecord() throws BadAPICallException {
         //GuestMetrics.getAll();
         List<VM> residentVMs = Controller.getSession().getThisHost().getResidentVMs();
 

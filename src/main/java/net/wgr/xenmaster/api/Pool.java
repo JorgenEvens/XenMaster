@@ -48,7 +48,7 @@ public class Pool extends NamedEntity {
         return new SR(defaultSR);
     }
     
-    public void setDefaultSR(SR newDefault) {
+    public void setDefaultSR(SR newDefault) throws BadAPICallException {
         defaultSR = setter(newDefault, "set_default_SR");
     }
     

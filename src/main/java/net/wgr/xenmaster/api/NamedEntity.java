@@ -8,6 +8,7 @@ package net.wgr.xenmaster.api;
 
 import java.util.HashMap;
 import java.util.Map;
+import net.wgr.xenmaster.controller.BadAPICallException;
 
 /**
  * 
@@ -31,7 +32,7 @@ public class NamedEntity extends XenApiEntity {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(String description) throws BadAPICallException {
         this.description = setter(description, "set_name_description");
     }
 
@@ -40,7 +41,7 @@ public class NamedEntity extends XenApiEntity {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(String name) throws BadAPICallException {
         this.name = setter(name, "set_name_label");
     }
 

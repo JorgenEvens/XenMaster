@@ -62,7 +62,7 @@ public class VIF extends XenApiEntity {
         return MAC;
     }
     
-    public void setMAC(String MAC) {
+    public void setMAC(String MAC) throws BadAPICallException {
         this.MAC = setter(MAC, "set_MAC");
     }
 

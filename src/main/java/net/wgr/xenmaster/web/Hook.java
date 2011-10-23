@@ -122,6 +122,9 @@ public class Hook extends WebCommandHandler {
             }
         }
 
+        if (current == null) {
+            current = "Success";
+        }
         return current;
     }
 

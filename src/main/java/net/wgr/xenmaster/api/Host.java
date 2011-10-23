@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.wgr.xenmaster.controller.BadAPICallException;
 import org.apache.log4j.Logger;
 
 /**
@@ -36,12 +37,12 @@ public class Host extends XenApiEntity {
         super(ref, autoFill);
     }
 
-    public void shutdown() {
-        safeDispatch("shutdown");
+    public void shutdown() throws BadAPICallException {
+        dispatch("shutdown");
     }
 
-    public void reboot() {
-        safeDispatch("reboot");
+    public void reboot() throws BadAPICallException {
+        dispatch("reboot");
     }
 
     public String getMajorApiVersion() {
@@ -72,7 +73,7 @@ public class Host extends XenApiEntity {
         return schedulingPolicy;
     }
 
-    public List<PCPU> getCPUs() {
+    public List<PCPU> getCPUs() throws BadAPICallException {
         hostCPUs = value(hostCPUs, "get_host_CPUs");
         ArrayList<PCPU> cpus = new ArrayList<>();
         for (Object cpu : hostCPUs) {
@@ -81,7 +82,7 @@ public class Host extends XenApiEntity {
         return cpus;
     }
 
-    public PCPU getCPU(int number) {
+    public PCPU getCPU(int number) throws BadAPICallException {
         hostCPUs = value(hostCPUs, "get_host_CPUs");
         if (number > hostCPUs.length - 1) {
             Logger.getLogger(getClass()).error("Tried to retrieve CPU which does not exist on the physical system");
@@ -89,8 +90,8 @@ public class Host extends XenApiEntity {
         return new PCPU((String) hostCPUs[number]);
     }
 
-    public List<VM> getResidentVMs() {
-        Object[] refs = (Object[]) safeDispatch("get_resident_VMs");
+    public List<VM> getResidentVMs() throws BadAPICallException {
+        Object[] refs = (Object[]) dispatch("get_resident_VMs");
         ArrayList<VM> vms = new ArrayList<>();
         for (Object obj : refs) {
             // Lame
@@ -103,8 +104,8 @@ public class Host extends XenApiEntity {
         return vms;
     }
 
-    public List<PIF> getPhysicalInterfaces() {
-        Object[] refs = (Object[]) safeDispatch("get_PIFs");
+    public List<PIF> getPhysicalInterfaces() throws BadAPICallException {
+        Object[] refs = (Object[]) dispatch("get_PIFs");
         ArrayList<PIF> pifs = new ArrayList<>();
         for (Object obj : refs) {
             String ref = (String) obj;

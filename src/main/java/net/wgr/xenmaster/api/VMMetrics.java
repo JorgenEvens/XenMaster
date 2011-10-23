@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.wgr.xenmaster.controller.BadAPICallException;
 
 /**
  * 
@@ -40,7 +41,7 @@ public class VMMetrics extends XenApiEntity {
         return "VM_metrics";
     }
    
-    public List<PCPU> getPCPUs(Host physical) {
+    public List<PCPU> getPCPUs(Host physical) throws BadAPICallException {
         this.PCPUs = getPCPUs();
         ArrayList<PCPU> cpus = new ArrayList<>();
         for (Map.Entry<Integer, Integer> entry : PCPUs.entrySet()) {

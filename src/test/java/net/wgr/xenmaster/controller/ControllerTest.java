@@ -31,7 +31,7 @@ public class ControllerTest extends TestCase {
     }
     
     @Test
-    public void test() {
+    public void test() throws BadAPICallException {
         Host host = Controller.getSession().getThisHost();
         List<VM> residentVMs = host.getResidentVMs();
     }

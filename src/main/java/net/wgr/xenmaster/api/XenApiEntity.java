@@ -88,16 +88,20 @@ public class XenApiEntity {
         if (obj != null) {
             return obj;
         } else {
-            return (T) safeDispatch(getAPIName() + "." + name, params);
+            try {
+                return (T) dispatch(getAPIName() + "." + name, params);
+            } catch (BadAPICallException ex) {
+                return null;
+            }
         }
     }
 
-    protected <T> String setter(T obj, String name) {
+    protected <T> String setter(T obj, String name) throws BadAPICallException {
         if (reference != null && !reference.isEmpty() && name == null) {
             if (obj == null) {
                 throw new IllegalArgumentException("Null value is not allowed for " + name);
             } else {
-                safeDispatch(getAPIName() + "." + name, obj);
+                dispatch(getAPIName() + "." + name, obj);
             }
         }
 
@@ -110,24 +114,11 @@ public class XenApiEntity {
         }
     }
 
-    /**
-     * Useful when a more detailed error message cannot be provided
-     * @param methodName the method name
-     * @param params method parameters
-     * @return result
-     */
-    protected Object safeDispatch(String methodName, Object... params) {
-        try {
-            return dispatch(methodName, params);
-        } catch (BadAPICallException ex) {
-            Logger.getLogger(getClass()).error(ex);
-            return null;
-        }
-    }
-
     protected Object dispatch(String methodName, Object... params) throws BadAPICallException {
         ArrayList arr = new ArrayList();
-        if (this.reference != null) arr.add(this.reference);
+        if (this.reference != null) {
+            arr.add(this.reference);
+        }
         CollectionUtils.addAll(arr, params);
         try {
             return Controller.dispatch(getAPIName() + "." + methodName, arr.toArray());
