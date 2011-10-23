@@ -18,9 +18,8 @@ import net.wgr.xenmaster.controller.Controller;
  * @created Oct 10, 2011
  * @author double-u
  */
-public class VDI extends XenApiEntity {
+public class VDI extends NamedEntity {
 
-    protected String name, description;
     protected String SR;
     protected Object[] VBDs;
     protected int virtualSize, physicalUtilization;
@@ -61,7 +60,7 @@ public class VDI extends XenApiEntity {
         values.put("sharable", shareable);
         values.put("read_only", readOnly);
         values.put("other_config", new HashMap<>());
-        this.reference = (String) Controller.dispatch("VDI.create", values);
+        this.reference = (String) dispatch("create", values);
     }
     
     public VDI snapshot() throws BadAPICallException {
@@ -104,16 +103,6 @@ public class VDI extends XenApiEntity {
         return VDIs;
     }
 
-    public String getDescription() {
-        description = value(description, "get_name_description");
-        return description;
-    }
-
-    public String getName() {
-        name = value(name, "get_name_label");
-        return name;
-    }
-
     public int getPhysicalUtilization() {
         physicalUtilization = value(physicalUtilization, "get_physical_utilization");
         return physicalUtilization;
@@ -139,20 +128,11 @@ public class VDI extends XenApiEntity {
         return virtualSize;
     }
 
-    public void setDescription(String description) {
-        this.description = setter(description, "name_description");
-    }
-
-    public void setName(String name) {
-        this.name = setter(name, "name_label");
-    }
-
     @Override
     protected Map<String, String> interpretation() {
-        HashMap<String, String> map = new HashMap<>();
+        HashMap<String, String> map = (HashMap<String, String>) super.interpretation();
         map.put("name", "name_label");
         map.put("description", "name_description");
-        // TODO file bug
         map.put("shareable", "sharable");
         return map;
     }

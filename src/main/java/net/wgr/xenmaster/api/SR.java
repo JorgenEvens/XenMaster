@@ -20,9 +20,8 @@ import net.wgr.xenmaster.controller.Controller;
  * @created Oct 16, 2011
  * @author double-u
  */
-public class SR extends XenApiEntity {
+public class SR extends NamedEntity {
 
-    protected String name, description;
     @Fill
     protected Object[] allowedOperations;
     @Fill
@@ -63,7 +62,7 @@ public class SR extends XenApiEntity {
         if (smConfig == null) {
             smConfig = new HashMap<>();
         }
-        this.reference = (String) Controller.dispatch("SR.create", host.getIDString(), deviceConfig, "" + size, name, description, type.toLowerCase(), contentType, shared, smConfig);
+        this.reference = (String) dispatch("create", host.getIDString(), deviceConfig, "" + size, name, description, type.toLowerCase(), contentType, shared, smConfig);
     }
 
     public void introduce(Type type, String contentType, boolean shared) throws BadAPICallException {
@@ -101,28 +100,12 @@ public class SR extends XenApiEntity {
         return SRs;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = setter(description, "set_label_description");
-    }
-
     public boolean usesLocalCache() {
         return localCache;
     }
 
     public void setLocalCache(boolean useLocalCache) {
         this.localCache = useLocalCache;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public Map<String, String> getOtherConfig() {
@@ -171,10 +154,9 @@ public class SR extends XenApiEntity {
 
     @Override
     protected Map<String, String> interpretation() {
-        HashMap<String, String> map = new HashMap<>();
-        map.put("name", "name_label");
-        map.put("description", "name_description");
+        HashMap<String, String> map = (HashMap<String, String>) super.interpretation();
         map.put("localCache", "local_cache_enabled");
+        
         return map;
     }
 

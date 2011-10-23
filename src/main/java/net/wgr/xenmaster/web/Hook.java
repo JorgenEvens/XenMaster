@@ -13,7 +13,6 @@ import java.lang.reflect.Modifier;
 import net.wgr.server.web.handling.WebCommandHandler;
 import net.wgr.wcp.Command;
 import net.wgr.wcp.CommandException;
-import net.wgr.xenmaster.controller.BadAPICallException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 

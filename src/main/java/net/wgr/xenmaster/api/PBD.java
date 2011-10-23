@@ -46,7 +46,7 @@ public class PBD extends XenApiEntity {
         if (otherConfig != null) {
             args.put("other_config", otherConfig);
         }
-        this.reference = (String) Controller.dispatch("PBD.create", args);
+        this.reference = (String) dispatch("create", args);
     }
 
     public SR getSR() {

@@ -18,9 +18,9 @@ import org.apache.log4j.Logger;
  * @created Oct 2, 2011
  * @author double-u
  */
-public class VM extends XenApiEntity {
+public class VM extends NamedEntity {
 
-    protected int userVersion;
+    protected int userVersion = 1;
     protected ShutdownAction actionsAfterReboot, actionsAfterShutdown;
     protected CrashedAction actionsAfterCrash;
     protected int startupVCPUs, maxVCPUs;
@@ -34,9 +34,8 @@ public class VM extends XenApiEntity {
     protected String PVargs, PVramdisk, PVbootloader, PVkernel;
     protected PowerState powerState;
     protected String HVMbootPolicy;
-    protected String nameLabel, nameDescription;
     protected String metrics, guestMetrics;
-    protected String host;
+    protected String host, hostAffinity;
     @Fill
     protected Object[] VBDs, VIFs;
 
@@ -46,6 +45,20 @@ public class VM extends XenApiEntity {
 
     public VM(String ref) {
         super(ref);
+    }
+    
+    public void create() throws BadAPICallException {
+        HashMap<String, Object> args = new HashMap<>();
+        args.put("name_label", name);
+        args.put("name_description", description);
+        args.put("user_version", "" + userVersion);
+        args.put("is_a_template", template);
+        args.put("affinity", (hostAffinity == null ? "" : hostAffinity));
+        dispatch("create", args);
+    }
+    
+    public void destroy() throws BadAPICallException {
+        dispatch("destroy");
     }
 
     public void start(boolean startPaused) throws BadAPICallException {
@@ -266,14 +279,6 @@ public class VM extends XenApiEntity {
         return minimumStaticMemory;
     }
 
-    public String getNameDescription() {
-        return nameDescription;
-    }
-
-    public String getNameLabel() {
-        return nameLabel;
-    }
-
     public String getPoolName() {
         return poolName;
     }
@@ -300,7 +305,7 @@ public class VM extends XenApiEntity {
 
     @Override
     protected Map<String, String> interpretation() {
-        HashMap<String, String> map = new HashMap<>();
+        HashMap<String, String> map = (HashMap<String, String>) super.interpretation();
         map.put("startupVCPUcount", "VCPUs_at_startup");
         map.put("minimumStaticMemory", "memory_static_min");
         map.put("maximumStaticMemory", "memory_static_max");
@@ -316,6 +321,7 @@ public class VM extends XenApiEntity {
         map.put("startupVCPUs", "VCPUs_at_startup");
         map.put("maxVCPUs", "VCPUs_max");
         map.put("host", "resident_on");
+        map.put("hostAffinity", "affinity");
         return map;
     }
 

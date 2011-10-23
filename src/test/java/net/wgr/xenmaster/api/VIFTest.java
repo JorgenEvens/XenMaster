@@ -6,7 +6,6 @@ package net.wgr.xenmaster.api;
 
 import java.util.List;
 import net.wgr.xenmaster.controller.BadAPICallException;
-import net.wgr.xenmaster.controller.Controller;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -21,7 +20,10 @@ import org.junit.Test;
  *
  * @author double-u
  */
-public class VMTest {
+public class VIFTest {
+
+    public VIFTest() {
+    }
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -30,23 +32,20 @@ public class VMTest {
     @AfterClass
     public static void tearDownClass() throws Exception {
     }
-    
+
     @Before
     public void setUp() {
         Logger root = Logger.getRootLogger();
         root.setLevel(Level.DEBUG);
         root.addAppender(new ConsoleAppender(new TTCCLayout()));
     }
-    
+
     @After
     public void tearDown() {
     }
 
-    //@Test
+    @Test
     public void testSomeMethod() throws BadAPICallException {
-        VM n = new VM(null);
-        n.setName("test");
-        n.setDescription("nix");
-        n.create();
+        List<Network> all = Network.getAll();
     }
 }

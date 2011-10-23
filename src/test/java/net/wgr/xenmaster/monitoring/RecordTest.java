@@ -49,7 +49,6 @@ public class RecordTest {
     }
 
     //@Test http://lists.xensource.com/archives/html/xen-devel/2011-10/msg00584.html
-    @Test
     public void testRecord() {
         //GuestMetrics.getAll();
         List<VM> residentVMs = Controller.getSession().getThisHost().getResidentVMs();

@@ -25,5 +25,20 @@ public class PIF extends XenApiEntity {
     public PIF(String ref) {
         super(ref);
     }
-    
+
+    public String getMAC() {
+        return MAC;
+    }
+
+    public int getMTU() {
+        return MTU;
+    }
+
+    public int getVLAN() {
+        return VLAN;
+    }
+
+    public String getDevice() {
+        return device;
+    }
 }

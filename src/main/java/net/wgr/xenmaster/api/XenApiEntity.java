@@ -127,7 +127,7 @@ public class XenApiEntity {
 
     protected Object dispatch(String methodName, Object... params) throws BadAPICallException {
         ArrayList arr = new ArrayList();
-        arr.add(this.reference);
+        if (this.reference != null) arr.add(this.reference);
         CollectionUtils.addAll(arr, params);
         try {
             return Controller.dispatch(getAPIName() + "." + methodName, arr.toArray());

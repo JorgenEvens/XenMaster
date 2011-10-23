@@ -18,7 +18,7 @@ import net.wgr.xenmaster.controller.Controller;
  * @created Oct 18, 2011
  * @author double-u
  */
-public class Pool extends XenApiEntity {
+public class Pool extends NamedEntity {
     
     protected Object[] metadataVDIs;
     protected boolean wlbEnabled, haEnabled;
@@ -27,7 +27,6 @@ public class Pool extends XenApiEntity {
     protected String redoLogVDI;
     protected boolean overcommitingAllowed, overcommitted;
     protected String master;
-    protected String name, description;
     @Fill
     protected Map<String, String> restrictions, otherConfig;
 
@@ -71,9 +70,7 @@ public class Pool extends XenApiEntity {
 
     @Override
     protected Map<String, String> interpretation() {
-        HashMap<String, String> map = new HashMap<>();
-        map.put("name", "name_label");
-        map.put("description", "name_description");
+        HashMap<String, String> map = (HashMap<String, String>) super.interpretation();
         map.put("overcomittingAllowed", "ha_allow_overcommit");
         map.put("overcommited", "ha_overcommitted");
         map.put("hostFailuresToTolerate", "ha_host_failures_to_tolerate");
