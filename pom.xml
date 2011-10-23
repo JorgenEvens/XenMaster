@@ -56,14 +56,18 @@
     <repositories>
         <repository>
             <id>wr</id>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
             <url>http://butters.double-u.co.cc:81/nexus/content/repositories/wr/</url>
         </repository>
+        <repository>
+            <id>releases</id>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <url>http://butters.double-u.co.cc:81/nexus/content/repositories/releases/</url>
+        </repository>     
         <repository>
             <url>http://repo.opennms.org/maven2/</url>
             <id>opennms</id>

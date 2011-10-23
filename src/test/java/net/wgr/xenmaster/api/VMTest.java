@@ -5,7 +5,7 @@
 package net.wgr.xenmaster.api;
 
 import java.util.List;
-import net.wgr.xenmaster.controller.BadAPICallException;
+import net.wgr.xenmaster.controller.Controller;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -20,10 +20,7 @@ import org.junit.Test;
  *
  * @author double-u
  */
-public class VDITest {
-
-    public VDITest() {
-    }
+public class VMTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -32,33 +29,20 @@ public class VDITest {
     @AfterClass
     public static void tearDownClass() throws Exception {
     }
-
+    
     @Before
     public void setUp() {
         Logger root = Logger.getRootLogger();
         root.setLevel(Level.DEBUG);
         root.addAppender(new ConsoleAppender(new TTCCLayout()));
     }
-
+    
     @After
     public void tearDown() {
     }
 
-    /**
-     * Test of getStorageRepository method, of class VDI.
-     */
-    //@Test
-    public void testDeletion() throws BadAPICallException {
-        List<VDI> all = VDI.getAll();
-        for (VDI vdi : all) {
-            vdi.destroy();
-        }
-
-        all = VDI.getAll();
-    }
-
     @Test
-    public void testCreation() throws BadAPICallException {
-       
+    public void testSomeMethod() {
+        List<VM> residentVMs = Controller.getSession().getThisHost().getResidentVMs();
     }
 }

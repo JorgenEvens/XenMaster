@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import net.wgr.xenmaster.api.helpers.iSCSI;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
@@ -56,13 +57,20 @@ public class SR extends XenApiEntity {
         if (reference != null) {
             throw new IllegalArgumentException("Object reference is set");
         }
-        if (host == null || deviceConfig == null || name == null) {
+        if (host == null || deviceConfig == null || (name == null || name.isEmpty()) || (type == null || type.isEmpty())) {
             throw new IllegalArgumentException("Some essential arguments haven't been supplied");
         }
         if (smConfig == null) {
             smConfig = new HashMap<>();
         }
         this.reference = (String) Controller.dispatch("SR.create", host.getIDString(), deviceConfig, "" + size, name, description, type.toLowerCase(), contentType, shared, smConfig);
+    }
+
+    public void introduce(Type type, String contentType, boolean shared) throws BadAPICallException {
+        if (smConfig == null) {
+            smConfig = new HashMap<>();
+        }
+        this.reference = (String) Controller.dispatch("SR.introduce", UUID.randomUUID().toString(), name, description, type.name().toLowerCase(), contentType, shared, smConfig);
     }
 
     public String probe(Host host, iSCSI cfg) throws BadAPICallException {
@@ -75,11 +83,11 @@ public class SR extends XenApiEntity {
     public void setAsDefault(Pool p) throws BadAPICallException {
         Controller.dispatch("pool.set_default_SR", p.getReference(), this.reference);
     }
-    
+
     public void destroy() throws BadAPICallException {
         dispatch("destroy");
     }
-    
+
     public void forget() throws BadAPICallException {
         dispatch("forget");
     }
@@ -172,6 +180,6 @@ public class SR extends XenApiEntity {
 
     public static enum Type {
 
-        EXT, File, LVM
+        EXT, File, LVM, NFS, ISO
     }
 }

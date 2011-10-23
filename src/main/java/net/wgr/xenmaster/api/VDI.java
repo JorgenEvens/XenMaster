@@ -54,7 +54,7 @@ public class VDI extends XenApiEntity {
         // Todo allow create with Map of args
         HashMap<String, Object> values = new HashMap<>();
         values.put("name_label", name);
-        values.put("name_description", description);
+        values.put("name_description", (description == null ? "" : description));
         values.put("virtual_size", "" + Math.round(sizeInMb * megabyte));
         values.put("type", type.name().toLowerCase());
         values.put("SR", repo.getReference());
