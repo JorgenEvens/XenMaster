@@ -113,7 +113,10 @@ header .quick_access:hover ul
 	display: block;
 }
 
-h1, h2, h3, h4, h5, h6, #dashboard th, #dashboard td {
+h1, h2, h3, h4, h5, h6,
+#dashboard th,
+#dashboard td,
+#vm_detail ul.hardware li {
 	font-family: Code;
 	text-transform: uppercase;
 	padding: 8px 10px 5px 10px;
@@ -200,29 +203,99 @@ h2 {
 	border-right: none;
 }
 
-#vm_detail h3{
+#vm_detail .usage_graph {
+	border: 2px solid #E6E6E6;
+	display: block;
+	height: 60px;
+}
+
+#vm_detail .usage_graph canvas {
+	width: 100%;
+	height: 100%;
+}
+
+#vm_detail ul.hardware {
+	float: left;
+	width: 200px;
+	background: #E6E6E6;
+	border: 1px solid #E6E6E6;
+}
+
+#vm_detail ul.hardware li:hover {
 	color: #F7931E;
 }
 
-#vm_detail .basic {
-	width: 200px;
-	float: left;
+#vm_detail ul.hardware li {
+	padding: 7px 0 7px 30px;
+	background-repeat: no-repeat;
 }
 
-#vm_detail .network {
-	float: left;
+#vm_detail ul.hardware li.selected {
+	background-color: #CCCCCC;
 }
 
-#vm_detail table, #vm_detail h3 {
-	border: 1px solid #CFCFCF;
-	width: 100%;
+#vm_detail ul.hardware li.general {
+	background-image: url('../images/icon/general.png');
 }
 
-#vm_detail th {
-	border-left: 1px solid #CFCFCF;
+#vm_detail ul.hardware li.display {
+	background-image: url('../images/icon/display.png');
 }
 
+#vm_detail ul.hardware li.memory {
+	background-image: url('../images/icon/memory.png');
+}
 
+#vm_detail ul.hardware li.processor {
+	background-image: url('../images/icon/processor.png');
+}
 
+#vm_detail ul.hardware li.disk {
+	background-image: url('../images/icon/disk.png');
+}
 
+#vm_detail ul.hardware li.nic {
+	background-image: url('../images/icon/nic.png');
+}
 
+#vm_detail ul.hardware li.external {
+	background-image: url('../images/icon/external.png');
+}
+
+#vm_detail .tab_host {
+	overflow: hidden;
+	border: 1px solid #E6E6E6;
+}
+
+#vm_detail .tab_panel {
+	margin-left: 200px;
+	padding: 10px;
+}
+
+#vm_general li span {
+	font-weight: bold;
+	padding-right: 10px;
+	width: 100px;
+}
+
+#notifier {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	margin-left: -150px;
+	width: 300px;
+	background: #FFB900;
+	padding: 10px 20px;
+	border: 2px solid #E6E6E6;
+}
+
+#notifier span {
+	font-weight: bold;
+	margin-left: 10px;
+}
+
+#notifier p {
+	margin: 0;
+	padding: 0;
+	display: inline;
+}

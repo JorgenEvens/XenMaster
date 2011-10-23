@@ -2,7 +2,6 @@
 	
 	this.show = function() {
 		$('body')
-			.html('')
 			.append( this.dom );
 	};
 	
@@ -14,6 +13,17 @@
 			dashboard_ui.show();
 			
 		});
+	});
+	
+	this.bind( 'ui_vm_create', function() {
+		
+		app.load( 'tpl://global/vm_create', 'js://ui/template', function( vm_create, Template ){
+			
+			var create = new Template({ resource: vm_create });
+			create.show();
+			
+		});
+		
 	});
 	
 });

@@ -4,7 +4,8 @@
 		var LoadIndicator = function( options ) {
 			this.canvas = options.canvas || Util.create( 'canvas' );
 			this.data = options.dataset || {};
-
+			this.animation_duration = options.duration || 250;
+			
 			this.style = {};
 			
 			this.canvas.height = $(this.canvas).height();
@@ -62,7 +63,7 @@
 			
 			if( !animate ) {
 				window.setTimeout( function(){ me.draw(); }, 1000/60 );
-			}
+			};
 		};
 		
 		LoadIndicator.prototype.setTarget = function() {
@@ -73,9 +74,8 @@
 				},
 				i = null,
 				total = 0,
-				duration = 250,
 				fps = 60,
-				frames = Math.round( duration * ( fps / 1000 ) );
+				frames = Math.round( this.animation_duration * ( fps / 1000 ) );
 			
 			for( i in this.data ) {
 				if( this.data[i] <= 0.3 ) {
@@ -109,6 +109,10 @@
 				arc = Math.PI*1.2,
 				base = Math.PI*0.9,
 				val = 0;
+			
+			if( r < 0 ) {
+				r = 0;
+			}
 				
 			c.clearRect( 0, 0, this.canvas.width, this.canvas.height );
 
@@ -147,8 +151,6 @@
 		};
 		
 		LoadIndicator.prototype.update = function() {
-			var c = this.canvas.getContext( '2d' );
-			
 			this.setTarget();
 
 			this.draw();

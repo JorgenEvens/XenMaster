@@ -6,12 +6,14 @@
 			this.data = options.dataset || {};
 
 			this.style = {
+				yAxis: true,
 				yAxisWidth: 20,
 				yAxisColor: '#000',
 				yAxisMax: null,
 				yAxisMin: null,
 				yAxisStep: null,
 				
+				xAxis: false,
 				xAxisHeight: 20,
 				xAxisColor: '#000',
 					
@@ -32,7 +34,9 @@
 		};
 		
 		LineChart.prototype.draw = function() {
-			this.drawAxis();
+			if( this.style.yAxis ) {
+				this.drawAxis();
+			}
 			this.drawLine();
 		};
 		

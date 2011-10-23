@@ -11,7 +11,7 @@
 			socketType = 'restsocket';
 		}
 		
-		M.load( 'js://net/' + socketType, function( socket ) {
+		app.load( 'js://net/' + socketType, function( socket ) {
 			ready( socket );
 		});
 		

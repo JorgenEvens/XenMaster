@@ -7,10 +7,16 @@
 			
 			var res = options.resource || {};
 			
+			if( res.instance != null && !options.force_new ) {
+				return res.instance;
+			}
+			res.instance = this;
+
 			this.dom = $(res.view).get(0);
 			
 			this.action = options.action || function(){ return defaultHandler.apply( this, arguments ); };
 			this.capture( options.events );
+			this.onshow = function(){};
 			
 			if( typeof res.code === 'function' ) {
 				res.code.call( this, $, app );
@@ -84,6 +90,8 @@
 			$('.placeholder.' + placeholder )
 				.html('')
 				.append( this.dom );
+			
+			this.onshow();
 		};
 		
 		ready( Template );

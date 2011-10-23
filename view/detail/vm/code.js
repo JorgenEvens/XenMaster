@@ -1,78 +1,102 @@
 (function( $, app ){
 	
-	var show = this.show,
-		elem = {
-			name: {
-				property: 'nameLabel'
-			},
-			
-			os: {},
-			ram: {
-				property: 'maximumStaticMemory'
-			},
-			cpu: {
-				property: 'maxVCPUs'
-			},
-			boot: {},
-			
-			nic: {},
-			vnc: {},
-			
-			pae: {},
-			usb: {},
-			apic: {}
+	var dom = $(this.dom),
+		canvas = dom.find('canvas.graph'),
+		vm_data = null,
+		show = this.show,
+		showDetail = function( detail ) {
+			app.load( 'tpl://detail/vm/' + detail, 'js://ui/template', 'js://tools/notifier', function( tpl_detail, Template, N ) {
+				
+				var view = new Template({ resource: tpl_detail });
+				view.vm = vm_data;
+				view.show( 'vm_detail_panel' );
+				
+			});
 		},
-		parseValue = function( name, value ) {
-			if( name == 'ram' ) {
-				value = parseBytes( value );
-			}
-			
-			if( value == null ) {
-				return 'N/A';
-			}
-			
-			return value;
+		VMState = {
+			RUNNING: 1,
+			STOPPED: 2,
+			PAUSED: 4,
+			ABORTED: 8,
+			REBOOT: 16
 		},
-		parseBytes = function( bytes ) {
-			var size = 0,
-				sizeTypes = ['B', 'KB', 'MB', 'GB', 'TB' ];
+		changeVMState = function( state ) {
+			var vm = vm_data;
 			
-			while( bytes >= 1024 ) {
-				bytes = bytes/1024;
-				size++;
-			}
-			
-			return bytes + sizeTypes[size];
+			app.load( 'js://net/xmconnection', 'js://tools/notifier', function( xm, Notifier ) {
+				var action = null,
+					args = null;
+				
+				if( state == VMState.RUNNING ) {
+					action = 'start';
+					args = [false];
+				} else if ( state == VMState.STOPPED ) {
+					action = 'stop';
+					args = [true];
+				} else if ( state == VMState.PAUSED ) {
+					action = 'pause';
+				} else if ( state == VMState.ABORTED ) {
+					action = 'stop';
+					args = [false];
+				} else if ( state == VMState.REBOOT ) {
+					action = 'reboot';
+				} else {
+					return;
+				}
+				
+				Notifier.publish( vm.nameLabel, 'Changing state of virtual machine.' );
+				
+				xm.getInstance().send( 'xen://VM.' + action, { ref: vm.reference, args: args }, function( result ) {
+					Notifier.publish( vm.nameLabel, 'Changed state to ' + action );
+				});
+			});
 		};
 	
-	/*
-	 * Map editable elements into elem.
-	 */
-	this.setup = function( vm_detail ) {
-		console.log( vm_detail );
-		
-		var d = $(this.dom),
-			e = elem,
-			i = null,
-			item = null,
-			value = null;
-		
-		for( i in e ) {
-			item = e[i];
-			
-			if( !item.element ) {
-				item.element = d.find( '.vm_' + i );
-			}
-			
-			value = parseValue( i, vm_detail[ item.property ] );
-			
-			
-			item.element.html( value );
-		}
-	};
+	dom.find( 'ul.hardware li' )
+		.click( function() {
+			dom.find( 'ul.hardware li' ).removeClass( 'selected' );
+			$(this).addClass( 'selected' );
+		});
 	
-	this.show = function( vm_detail ) {
+	this.capture( 'click' );
+	
+	this.bind('vm_device_selected',function( e ){
+		showDetail( e.source.dataset.devicetype );
+	});
+	
+	this.bind( 'vm_state', function( e ){
+		console.log( VMState[e.source.dataset.state], e.source.dataset.state );
+		changeVMState( VMState[e.source.dataset.state] );
+	});
+	
+	this.show = function( vm ) {
 		show.call(this);
-		this.setup( vm_detail );
+		vm_data = vm;
+		
+		console.log( vm );
+		
+		dom
+			.find('.vm_name')
+			.text( vm.nameLabel );
+		
+		showDetail( 'general' );
+		
+		app.load('js://graphics/graph/linechart', function( Linechart ) {
+			
+			var chart = new Linechart({
+				canvas: canvas.get(0),
+				dataset: [99,33,66,33,33,12,23,12,12,12,12,12,21,45,32,66,77],
+				style: {
+					yAxis: false,
+					yAxisWidth: 0,
+					yAxisMax: 100,
+					yAxisMin: 0,
+					xAxisHeight: 0,
+					pointColor: 'navy',
+					lineWidth: 2,
+					lineColor: '#5151AA'
+				}
+			});
+		});
 	};
 });

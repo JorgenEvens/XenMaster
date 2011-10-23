@@ -155,6 +155,13 @@
 			type = parts[0],
 			me = this;
 		
+		if( this.cache[ type ][ parts[1] ] ) {
+			/*
+			 * Prevent parsing resources when they have already been processed.
+			 */
+			return;
+		}
+		
 		if( type == 'js' ) {
 			/*
 			 * Initialise plugin with a reference to the application that loaded it.
@@ -178,7 +185,7 @@
 			this.ready( uri, data );
 		} else {
 			/*
-			 * Simply safe the data as plain text
+			 * Simply save the data as plain text
 			 */
 			this.ready( uri, data );
 		}

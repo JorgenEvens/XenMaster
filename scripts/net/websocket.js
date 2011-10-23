@@ -92,6 +92,9 @@
 	
 	Socket.prototype.onclose = function() {
 		this.connected = false;
+		if( !this.open() ) {
+			this.onerror({data: 'Could not reopen connection with websocket'});
+		}
 	};
 	
 	/*

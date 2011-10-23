@@ -2,77 +2,31 @@
 	<h2>
 		VM | <span class="vm_name">VM_NAME</span>
 		<ul>
-			<li data-action="state_start">Start</li>
-			<li data-action="state_stop">Stop</li>
-			<li data-action="state_reboot">Reboot</li>
-			<li data-action="state_kill">Kill</li>
+			<li data-action="vm_state" data-state="RUNNING">Start</li>
+			<li data-action="vm_state" data-state="STOPPED">Stop</li>
+			<li data-action="vm_state" data-state="REBOOT">Reboot</li>
+			<li data-action="vm_state" data-state="ABORTED">Kill</li>
 		</ul>
 	</h2>
 	
-	<div class="basic">
-		<h3>Basic</h3>
-		<table>
-			<thead></thead>
-			<tbody>
-				<tr>
-					<th>OS</th>
-					<td class="vm_os">Debian 6</td>
-				</tr>
-				<tr>
-					<th>RAM</th>
-					<td class="vm_ram">1024MB</td>
-				</tr>
-				<tr>
-					<th>CPU</th>
-					<td class="vm_cpu">2</td>
-				</tr>
-				<tr>
-					<th>Boot</th>
-					<td class="vm_boot">HD, DVD, PXE</td>
-				</tr>
-			</tbody>
-			<tfoot></tfoot>
-		</table>
-		
-		<h3>Connectivity</h3>
-		<table>
-			<thead></thead>
-			<tbody>
-				<tr>
-					<th>NIC</th>
-					<td class="vm_nic">(none)</td>
-				</tr>
-				<tr>
-					<th>VNC</th>
-					<td class="vm_vnc">On</td>
-				</tr>
-			</tbody>
-			<tfoot></tfoot>
-		</table>
-		
-		<h3>Details</h3>
-		<table>
-			<thead></thead>
-			<tbody>
-				<tr>
-					<th>PAE</th>
-					<td class="vm_pae">On</td>
-				</tr>
-				<tr>
-					<th>USB</th>
-					<td class="vm_usb">On</td>
-				</tr>
-				<tr>
-					<th>APIC</th>
-					<td class="vm_apic">On</td>
-				</tr>
-			</tbody>
-			<tfoot></tfoot>
-		</table>
+	<div class="usage_graph">
+		<canvas class="graph">You do not have canvas support.</canvas>
 	</div>
 	
-	<div class="network">
-		<h3>Network</h3>
+	<div class="tab_host">
+		<ul class="hardware" data-action="vm_device_selected">
+			<li data-deviceType="general" class="general selected">General</li>
+			<li data-deviceType="display" class="display">Display</li>
+			<li data-deviceType="memory" class="memory">Memory</li>
+			<li data-deviceType="processor" class="processor">Processor</li>
+			<li data-deviceType="disk" class="disk">WinXP OS</li>
+			<li data-deviceType="disk" class="disk">Datadisk</li>
+			<li data-deviceType="disk" class="disk">Debian OS</li>
+			<li data-deviceType="nic" class="nic">LAN Adapter</li>
+			<li data-deviceType="nic" class="nic">Home Adapter</li>
+			<li data-deviceType="external" class="external">WebCam USB</li>
+		</ul>
+		<div class="placeholder vm_detail_panel tab_panel"></div>
 	</div>
 	
 </div>
