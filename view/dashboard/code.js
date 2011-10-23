@@ -2,11 +2,9 @@
 	var tpl = this,
 		record = $(tpl.dom).find('.vm_template' ).remove();
 	
-	app.load( 'js://net/xmconnection', 'js://ui/dataset', function( XmCon, Dataset ) {
+	app.load( 'js://api/session', 'js://ui/dataset', function( Session, Dataset ) {
 		
-		var con = XmCon.getInstance();
-		
-		con.send( 'xen://Session[].getThisHost.getResidentVMs', function( result ){
+		Session.getThisHost().getResidentVMs().go(function( result ){
 			var r = null,
 				vm = null,
 				i = null,
@@ -17,7 +15,7 @@
 				
 				r = record.clone();
 				
-				r.find('td:first').html( vm.nameLabel );
+				r.find('td:first').html( vm.name );
 				r.find('td:nth(1)').html(Math.round(Math.random()*99));
 				r.find('td:last').html(Math.round(Math.random()*99));
 				

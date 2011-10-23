@@ -16,8 +16,6 @@
 			global_ui.show();
 			dashboard_ui.show();
 			
-			
-			
 		});
 	},
 	

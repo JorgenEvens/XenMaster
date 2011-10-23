@@ -166,7 +166,6 @@
 		}
 		
 		if( !options || !options.name || !options.handler ) {
-			console.log( options );
 			throw 'Invalid request packet';
 		};
 		

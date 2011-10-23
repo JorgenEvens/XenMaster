@@ -86,10 +86,13 @@
 		
 		Template.prototype.show = function( placeholder ) {
 			placeholder = placeholder || 'main';
+			placeholder = $('.placeholder.' + placeholder );
 			
-			$('.placeholder.' + placeholder )
-				.html('')
-				.append( this.dom );
+			placeholder
+				.children()
+				.detach();
+			
+			placeholder.append( this.dom );
 			
 			this.onshow();
 		};

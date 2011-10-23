@@ -4,6 +4,10 @@
 		canvas = dom.find('canvas.graph'),
 		vm_data = null,
 		show = this.show,
+		
+		/*
+		 * Get a content panel for the specific piece of hardware.
+		 */
 		showDetail = function( detail ) {
 			app.load( 'tpl://detail/vm/' + detail, 'js://ui/template', 'js://tools/notifier', function( tpl_detail, Template, N ) {
 				
@@ -13,59 +17,63 @@
 				
 			});
 		},
+		
+		/*
+		 * Enum of possible VM states.
+		 */
 		VMState = {
-			RUNNING: 1,
-			STOPPED: 2,
-			PAUSED: 4,
-			ABORTED: 8,
-			REBOOT: 16
+			RUNNING: [ 'start', [false], 'running' ],
+			STOPPED: [ 'stop', [true], 'stopped' ],
+			ABORTED: [ 'stop', [false], 'aborted' ],
+			PAUSED: [ 'pause', [], 'paused' ],
+			SUSPENDED: [ 'suspend', [], 'suspended' ],
+			REBOOT: [ 'reboot', [], 'rebooting' ]
 		},
+		
+		/*
+		 * Handles state changes of the VM
+		 */
 		changeVMState = function( state ) {
 			var vm = vm_data;
 			
-			app.load( 'js://net/xmconnection', 'js://tools/notifier', function( xm, Notifier ) {
-				var action = null,
-					args = null;
+			app.load( 'js://api/vm', 'js://tools/notifier', function( VM, Notifier ) {
+				var action = state[0],
+					args = state[1];
 				
-				if( state == VMState.RUNNING ) {
-					action = 'start';
-					args = [false];
-				} else if ( state == VMState.STOPPED ) {
-					action = 'stop';
-					args = [true];
-				} else if ( state == VMState.PAUSED ) {
-					action = 'pause';
-				} else if ( state == VMState.ABORTED ) {
-					action = 'stop';
-					args = [false];
-				} else if ( state == VMState.REBOOT ) {
-					action = 'reboot';
-				} else {
-					return;
-				}
+				Notifier.publish( vm.name, 'Changing state of virtual machine to <b>' + state[2] + '</b>.' );
 				
-				Notifier.publish( vm.nameLabel, 'Changing state of virtual machine.' );
-				
-				xm.getInstance().send( 'xen://VM.' + action, { ref: vm.reference, args: args }, function( result ) {
-					Notifier.publish( vm.nameLabel, 'Changed state to ' + action );
+				vm[action]().go(args, function() {
+					Notifier.publish( vm.name, 'State changed to <b>' + state[2] + '</b>' );
 				});
 			});
 		};
 	
+	/*
+	 * Setup template
+	 */
 	dom.find( 'ul.hardware li' )
 		.click( function() {
-			dom.find( 'ul.hardware li' ).removeClass( 'selected' );
+			dom
+				.find( 'ul.hardware li' )
+				.removeClass( 'selected' );
+			
 			$(this).addClass( 'selected' );
 		});
 	
-	this.capture( 'click' );
+	/*
+	 * Capture commands on click
+	 */
+	this.capture( ['click','keydown'] );
+	
+	this.bind( 'ui_alternate', function( e ){
+		console.log( e );
+	});
 	
 	this.bind('vm_device_selected',function( e ){
 		showDetail( e.source.dataset.devicetype );
 	});
 	
 	this.bind( 'vm_state', function( e ){
-		console.log( VMState[e.source.dataset.state], e.source.dataset.state );
 		changeVMState( VMState[e.source.dataset.state] );
 	});
 	
@@ -73,11 +81,9 @@
 		show.call(this);
 		vm_data = vm;
 		
-		console.log( vm );
-		
 		dom
 			.find('.vm_name')
-			.text( vm.nameLabel );
+			.text( vm.name );
 		
 		showDetail( 'general' );
 		
