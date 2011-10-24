@@ -42,7 +42,7 @@
 				
 				Notifier.publish( vm.name, 'Changing state of virtual machine to <b>' + state[2] + '</b>.' );
 				
-				vm[action]().go(args, function() {
+				vm[action](args, function() {
 					Notifier.publish( vm.name, 'State changed to <b>' + state[2] + '</b>' );
 				});
 			});

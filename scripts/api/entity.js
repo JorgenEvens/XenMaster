@@ -49,6 +49,10 @@
 					instance.xm_resource = this.xm_resource + '.' + name;
 					instance.reference = this.reference;
 					
+					if( arguments.length > 0 ) {
+						return instance.go.apply( instance, arguments );
+					}
+					
 					return instance;
 				};
 			},

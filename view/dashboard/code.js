@@ -4,7 +4,7 @@
 	
 	app.load( 'js://api/session', 'js://ui/dataset', function( Session, Dataset ) {
 		
-		Session.getThisHost().getResidentVMs().go(function( result ){
+		Session.getThisHost().getResidentVMs(function( result ){
 			var r = null,
 				vm = null,
 				i = null,
