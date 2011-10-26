@@ -37,7 +37,7 @@ public class XMLRPC {
             logger.debug("Called " + method);
             return (Map) client.execute(method, params);
         } catch (XmlRpcException ex) {
-            logger.error(ex);
+            logger.debug("Call failed", ex);
         }
         return null;
     }

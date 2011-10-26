@@ -6,10 +6,14 @@
  */
 package net.wgr.xenmaster.manager;
 
+import java.io.IOException;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 import net.wgr.xenmaster.connectivity.Connection;
 import net.wgr.xenmaster.entities.Host;
+import net.wgr.xenmaster.manager.pool.Pool;
+import org.apache.log4j.Logger;
 
 /**
  * 
@@ -18,11 +22,13 @@ import net.wgr.xenmaster.entities.Host;
  */
 public class Manager {
     protected HashMap<Host, Connection> connectedHosts;
+    protected Pool pool;
     
     private static Manager instance;
     
     private Manager() {
         connectedHosts = new HashMap<>();
+        pool = new Pool();
     }
     
     public static Manager get() {
@@ -32,5 +38,17 @@ public class Manager {
     
     public void loadInConnections(Map<Host, Connection> conn) {
         this.connectedHosts.putAll(conn);
+    }
+    
+    public void boot() {
+        try {
+            pool.boot();
+            if (pool.becomeMaster()) {
+                
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(getClass()).error("Pool init sequence failed", ex);
+        }
+        
     }
 }

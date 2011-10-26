@@ -45,10 +45,6 @@ public class Record {
         if (isVM) {
             vm = new VM(ref);
             vmr = vm.getMetrics();
-        } else {
-            // TODO get the dom0 of the VM host, not simply the current dom0
-            vm = VM.getDomain0();
-            vmr = vm.getMetrics();
         }
 
         Map<Integer, Double> utils = vmr.getVCPUutilisation();

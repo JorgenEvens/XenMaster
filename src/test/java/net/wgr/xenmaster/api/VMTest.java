@@ -4,9 +4,7 @@
  */
 package net.wgr.xenmaster.api;
 
-import java.util.List;
 import net.wgr.xenmaster.controller.BadAPICallException;
-import net.wgr.xenmaster.controller.Controller;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -42,11 +40,11 @@ public class VMTest {
     public void tearDown() {
     }
 
-    //@Test
+    @Test
     public void testSomeMethod() throws BadAPICallException {
         VM n = new VM(null);
         n.setName("test");
         n.setDescription("nix");
-        n.create();
+        n.create(256, 128, 512, 128);
     }
 }

@@ -17,7 +17,9 @@ import net.wgr.xenmaster.controller.BadAPICallException;
  */
 public class VIF extends XenApiEntity {
 
+    @ConstructorArgument
     protected String deviceName;
+    @ConstructorArgument
     protected String network;
     protected String VM;
     protected String MAC;
@@ -47,11 +49,9 @@ public class VIF extends XenApiEntity {
     
     public void create(String deviceName, Network network) throws BadAPICallException {
         this.deviceName = deviceName;
-        
-        HashMap<String, Object> args = new HashMap<>();
-        args.put("device", deviceName);
-        args.put("network", network.getReference());
-        this.reference = (String) dispatch("create", args);
+        this.network = network.getReference();
+
+        this.reference = (String) dispatch("create", collectConstructorArgs());
     }
     
     public void destroy() throws BadAPICallException {

@@ -17,6 +17,7 @@ import net.wgr.xenmaster.controller.BadAPICallException;
  */
 public class NamedEntity extends XenApiEntity {
     
+    @ConstructorArgument
     protected String name, description;
 
     public NamedEntity(String ref, boolean autoFill) {

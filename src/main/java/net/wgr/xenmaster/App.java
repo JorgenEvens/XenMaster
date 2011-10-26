@@ -8,6 +8,7 @@ import net.wgr.services.discovery.BasicDiscoverableService;
 import net.wgr.services.discovery.Discovery;
 import net.wgr.settings.Settings;
 import net.wgr.utility.GlobalExecutorService;
+import net.wgr.xenmaster.manager.Manager;
 import net.wgr.xenmaster.web.Hook;
 import net.wgr.xenmaster.web.TemplateHook;
 import org.apache.commons.daemon.Daemon;
@@ -42,16 +43,7 @@ public class App implements Daemon {
     @Override
     public void start() throws Exception {
         Settings ss = Settings.getInstance();
-
-        new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                if (Settings.getInstance().settingExists("DiscoveryServiceName")) {
-                    Discovery.getInstance().announceService(BasicDiscoverableService.createInLocalNetwork("XenMaster", Settings.getInstance().getString("DiscoveryServiceName"), 16663));
-                }
-            }
-        }).start();
+        Manager.get().boot();
 
         server = new Server();
         server.boot();

@@ -27,7 +27,6 @@ public class Hook extends WebCommandHandler {
         super("xen");
     }
 
-    // Todo: make better use of the JSON conversion instead of having to extract everything by hand
     public Object execute(Command cmd) {
         Gson gson = new Gson();
         APICall apic = gson.fromJson(cmd.getData(), APICall.class);

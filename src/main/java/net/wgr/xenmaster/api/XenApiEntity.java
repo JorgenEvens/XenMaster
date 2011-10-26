@@ -17,6 +17,8 @@ import java.util.UUID;
 import net.wgr.core.ReflectionUtils;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
+import net.wgr.xenmaster.monitoring.LogEntry;
+import net.wgr.xenmaster.monitoring.LogKeeper;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 
@@ -29,6 +31,7 @@ public class XenApiEntity {
 
     protected String reference;
     protected String uuid;
+    protected final String packageName = getClass().getPackage().getName();
 
     public XenApiEntity(String ref) {
         this(ref, ref != null);
@@ -123,29 +126,120 @@ public class XenApiEntity {
         try {
             return Controller.dispatch(getAPIName() + "." + methodName, arr.toArray());
         } catch (BadAPICallException ex) {
-            String errMsg = "";
 
             // Check if we can handle it
             switch (ex.getMessage()) {
                 case "OPERATION_NOT_ALLOWED":
-                    errMsg = "Tried to perform an unallowed operation";
+                    ex.setErrorDescription("Tried to perform an unallowed operation");
                     break;
                 case "OTHER_OPERATION_IN_PROGRESS":
-                    errMsg = "Another operation is in progress";
+                    ex.setErrorDescription("Another operation is in progress");
                     break;
-                default:
-                    throw ex;
             }
 
-            Logger.getLogger(getClass()).error(errMsg, ex);
+            error(ex);
+            throw ex;
         }
-        return null;
+    }
+
+    public void info(String message) {
+        for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+            if (ste.getClassName().startsWith(packageName) && !ste.getClassName().equals(packageName + ".XenApiEntity")) {
+                LogKeeper.log(new LogEntry(reference, getClass().getCanonicalName(), ste.getMethodName(), message, LogEntry.Level.INFORMATION));
+                Logger.getLogger(getClass()).info(ste.getMethodName() + " : " + message);
+            }
+        }
+    }
+
+    public void warn(Exception ex) {
+        parseThrowable(ex, LogEntry.Level.WARNING);
+    }
+
+    public void error(Exception ex) {
+        parseThrowable(ex, LogEntry.Level.ERROR);
+    }
+
+    protected void parseThrowable(Exception ex, LogEntry.Level level) {
+        // Find caller (people say that doing this is quite expensive ...)
+        for (StackTraceElement ste : ex.getStackTrace()) {
+            if (ste.getClassName().startsWith(packageName) && !ste.getClassName().equals(packageName + ".XenApiEntity")) {
+                log(ste.getClassName(), ste.getMethodName(), ex, level);
+                break;
+            }
+        }
+    }
+
+    protected void log(String className, String functionName, Exception ex, LogEntry.Level level) {
+        // TODO check db for friendly error msg
+        String title = null;
+        if (ex instanceof BadAPICallException) {
+            title = functionName + " : " + ((BadAPICallException) ex).getErrorName();
+        } else {
+            title = functionName;
+        }
+
+        LogKeeper.log(new LogEntry(reference, getClass().getCanonicalName(), title, ex.getMessage(), level));
+        Logger.getLogger(getClass()).error(title, ex);
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     public @interface Fill {
 
         boolean fillAPIObject() default false;
+    }
+
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface ConstructorArgument {
+    }
+
+    protected HashMap<String, Object> collectConstructorArgs() {
+        HashMap<String, Object> args = new HashMap<>();
+        Map<String, String> interpretation = interpretation();
+
+        for (Field f : ReflectionUtils.getAllFields(getClass())) {
+
+            if (f.isAnnotationPresent(ConstructorArgument.class)) {
+                String keyName = null;
+                if (interpretation.containsKey(f.getName())) {
+                    keyName = interpretation.get(f.getName());
+                } else {
+                    keyName = f.getName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase();
+                }
+
+                Object val = null;
+
+                try {
+                    switch (f.getType().getName()) {
+                        case "long":
+                            val = "" + f.getLong(this);
+                            break;
+                        case "int":
+                            val = "" + f.getInt(this);
+                            break;
+                        case "java.util.Map":
+                            val = f.get(this);
+                            if (val == null) val = new HashMap();
+                            break;
+                        default:
+                            val = f.get(this);
+                            if (val instanceof Enum) {
+                                val = val.toString();
+                            }
+                            break;
+                    }
+
+                    if (val == null) {
+                        val = "";
+                    }
+
+                    args.put(keyName, val);
+                } catch (IllegalArgumentException | IllegalAccessException ex) {
+                    Logger.getLogger(getClass()).error("Reflection fail", ex);
+                }
+            }
+        }
+
+        return args;
     }
 
     public void fillOut(Map<String, Object> data) {

@@ -20,12 +20,19 @@ import net.wgr.xenmaster.controller.Controller;
  */
 public class VDI extends NamedEntity {
 
+    @ConstructorArgument
     protected String SR;
     protected Object[] VBDs;
-    protected int virtualSize, physicalUtilization;
+    @ConstructorArgument
+    protected int virtualSize;
+    protected int physicalUtilization;
+    @ConstructorArgument
     protected Type type;
+    @ConstructorArgument
     protected boolean shareable, readOnly;
     protected String securityLabel;
+    @ConstructorArgument
+    protected Map<String, String> otherConfig;
     protected static int megabyte = 1024 * 1024;
 
     public VDI(String ref, boolean autoFill) {
@@ -50,17 +57,13 @@ public class VDI extends NamedEntity {
     }
 
     public void create(double sizeInMb, Type type, SR repo, boolean shareable, boolean readOnly) throws BadAPICallException {
-        // Todo allow create with Map of args
-        HashMap<String, Object> values = new HashMap<>();
-        values.put("name_label", name);
-        values.put("name_description", (description == null ? "" : description));
-        values.put("virtual_size", "" + Math.round(sizeInMb * megabyte));
-        values.put("type", type.name().toLowerCase());
-        values.put("SR", repo.getReference());
-        values.put("sharable", shareable);
-        values.put("read_only", readOnly);
-        values.put("other_config", new HashMap<>());
-        this.reference = (String) dispatch("create", values);
+        this.virtualSize = (int) (sizeInMb * (megabyte));
+        this.type = type;
+        this.SR = repo.getReference();
+        this.shareable = shareable;
+        this.readOnly = readOnly;
+        
+        this.reference = (String) dispatch("create", collectConstructorArgs());
     }
     
     public VDI snapshot() throws BadAPICallException {
