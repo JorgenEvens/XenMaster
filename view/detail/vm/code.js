@@ -1,6 +1,7 @@
 (function( $, app ){
 	
 	var dom = $(this.dom),
+		actions = dom.find('h2 li'),
 		canvas = dom.find('canvas.graph'),
 		vm_data = null,
 		show = this.show,
@@ -75,6 +76,17 @@
 	
 	this.bind( 'vm_state', function( e ){
 		changeVMState( VMState[e.source.dataset.state] );
+	});
+	
+	$(document).keydown(function(e){
+		if( e.keyCode != 16 ) return;
+		actions.parent('.onshift').show();
+		actions.parent(':not(.onshift)').hide();
+	});
+	
+	$(document).keyup(function(e){
+		actions.parent('.onshift').hide();
+		actions.parent(':not(.onshift)').show();
 	});
 	
 	this.show = function( vm ) {
