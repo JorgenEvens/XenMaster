@@ -1,5 +1,6 @@
 target/
 /web/
+netboot/
 
 # Compiled source #
 ###################

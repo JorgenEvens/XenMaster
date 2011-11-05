@@ -38,19 +38,24 @@ public class Hook extends WebCommandHandler {
         String[] split = StringUtils.split(command, '.');
         Class clazz = null;
         Object current = null;
+        String className = "";
 
         for (int i = 0; i < split.length; i++) {
             String s = split[i];
             try {
-                if (i == 0) {
-                    int opening = s.indexOf('[');
-                    String className = (opening != -1 ? s.substring(0, opening) : s);
-                    clazz = Class.forName("net.wgr.xenmaster.api." + className);
-
-                    if (opening != -1) {
-                        ref = s.substring(opening + 1, s.indexOf(']'));
+                if (clazz == null) {
+                    int refOpen = s.indexOf('[');
+                    if (refOpen != -1 || i == split.length - 2) {
+                        className = s.substring(0, refOpen);
+                        clazz = Class.forName("net.wgr.xenmaster.api." + className);
+                    } else {
+                        className += s;
                     }
 
+                    if (refOpen != -1) {
+                        ref = s.substring(refOpen + 1, s.indexOf(']'));
+                    }
+                   
                     if (ref != null) {
                         Constructor c = clazz.getConstructor(String.class, boolean.class);
                         current = c.newInstance(ref, !ref.isEmpty());
@@ -62,7 +67,8 @@ public class Hook extends WebCommandHandler {
                         String argstr = s.substring(s.indexOf('(') + 1, s.indexOf(')'));
                         argstr = argstr.replace(", ", ",");
                         args = StringUtils.split(argstr, ',');
-                    }
+                    } 
+                    
                     boolean match = false;
                     if (current != null) {
                         clazz = current.getClass();
