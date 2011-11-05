@@ -7,6 +7,8 @@
 package net.wgr.xenmaster.manager;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import net.wgr.xenmaster.connectivity.Connection;
 import net.wgr.xenmaster.entities.Host;
 import org.apache.log4j.Logger;
@@ -18,25 +20,24 @@ import org.apache.log4j.Logger;
  */
 public class Preflight {
     
-    public void connectToHosts() {
-        Host h = new Host();
+    public static Map<Host, Connection> checkHosts(Set<Host> hosts) {
         HashMap<Host, Connection> conns = new HashMap<>();
-        for (Host host : h.getAll()) {
+        for (Host host : hosts) {
             try {
-                Connection c = h.connect();
+                Connection c = host.connect();
                 if (c != null) {
-                    conns.put(h, c);
+                    conns.put(host, c);
                 } else {
-                    if (h.getAddress().isReachable(500)) {
-                        Logger.getLogger(getClass()).warn("Host " + h.getAddress().getCanonicalHostName() + " is up, but XAPI is not responding. Check your configuration.");
+                    if (host.getAddress().isReachable(500)) {
+                        Logger.getLogger(Preflight.class).warn("Host " + host.getAddress().getCanonicalHostName() + " is up, but XAPI is not responding. Check your configuration.");
                     } else {
-                        Logger.getLogger(getClass()).info("Failed to connect to " + h.getAddress().getCanonicalHostName());
+                        Logger.getLogger(Preflight.class).warn("Failed to connect to " + host.getAddress().getCanonicalHostName());
                     }
                 }
             } catch (Exception ex) {
-                Logger.getLogger(getClass()).error(ex);
+                Logger.getLogger(Preflight.class).error(ex);
             }
         }
-        Manager.get().loadInConnections(conns);
+        return conns;
     }
 }

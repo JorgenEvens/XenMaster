@@ -31,7 +31,7 @@ public class XenApiEntity {
 
     protected String reference;
     protected String uuid;
-    protected final String packageName = getClass().getPackage().getName();
+    protected final transient String packageName = getClass().getPackage().getName();
 
     public XenApiEntity(String ref) {
         this(ref, ref != null);
@@ -84,22 +84,26 @@ public class XenApiEntity {
         fillOut(null);
     }
 
-    protected void notNull(Object obj) {
-    }
-
     protected <T> T value(T obj, String name, Object... params) {
         if (obj != null) {
             return obj;
         } else {
+            if (this.reference == null) {
+                return null;
+            }
             try {
-                return (T) dispatch(getAPIName() + "." + name, params);
+                return (T) dispatch(name, params);
             } catch (BadAPICallException ex) {
+                Logger.getLogger(getClass()).warn("Getter value failed", ex);
                 return null;
             }
         }
     }
 
-    protected <T> String setter(T obj, String name) throws BadAPICallException {
+    protected <T> T setter(T obj, String name) throws BadAPICallException {
+        if (obj == null) {
+            Logger.getLogger(getClass()).error("Setter failed", new IllegalArgumentException("No value provided for setter"));
+        }
         if (reference != null && !reference.isEmpty() && name == null) {
             if (obj == null) {
                 throw new IllegalArgumentException("Null value is not allowed for " + name);
@@ -108,13 +112,22 @@ public class XenApiEntity {
             }
         }
 
-        if (obj instanceof String) {
-            return (String) obj;
-        } else if (obj instanceof XenApiEntity) {
-            return ((XenApiEntity) obj).getReference();
-        } else {
-            return obj.toString();
+        return obj;
+    }
+
+    protected <T extends XenApiEntity> String setter(T obj, String name) throws BadAPICallException {
+        if (obj == null) {
+            Logger.getLogger(getClass()).error("Setter failed", new IllegalArgumentException("No value provided for setter"));
         }
+        if (reference != null && !reference.isEmpty() && name == null) {
+            if (obj == null) {
+                throw new IllegalArgumentException("Null value is not allowed for " + name);
+            } else {
+                dispatch(getAPIName() + "." + name, obj.getReference());
+            }
+        }
+
+        return obj.getReference();
     }
 
     protected Object dispatch(String methodName, Object... params) throws BadAPICallException {
@@ -199,11 +212,14 @@ public class XenApiEntity {
         for (Field f : ReflectionUtils.getAllFields(getClass())) {
 
             if (f.isAnnotationPresent(ConstructorArgument.class)) {
-                String keyName = null;
-                if (interpretation.containsKey(f.getName())) {
-                    keyName = interpretation.get(f.getName());
+                String keyName = f.getName();
+                if (interpretation.containsKey(keyName)) {
+                    keyName = interpretation.get(keyName);
                 } else {
-                    keyName = f.getName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase();
+                    // If the keyName is fully in uppercase, preserve it
+                    if (!keyName.toUpperCase().equals(keyName)) {
+                        keyName = keyName.replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase();
+                    }
                 }
 
                 Object val = null;
@@ -218,7 +234,9 @@ public class XenApiEntity {
                             break;
                         case "java.util.Map":
                             val = f.get(this);
-                            if (val == null) val = new HashMap();
+                            if (val == null) {
+                                val = new HashMap();
+                            }
                             break;
                         default:
                             val = f.get(this);
@@ -264,7 +282,6 @@ public class XenApiEntity {
 
         for (Field f : ReflectionUtils.getAllFields(getClass())) {
 
-            // MyNameIsHans -> my_name_is_hans
             String processedName = "";
             if (interpretation.containsKey(f.getName())) {
                 processedName = interpretation.get(f.getName());
@@ -273,6 +290,7 @@ public class XenApiEntity {
                 if (data.keySet().contains(f.getName())) {
                     processedName = f.getName();
                 } else {
+                    // MyNameIsHans -> my_name_is_hans
                     processedName = f.getName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase();
                 }
             }

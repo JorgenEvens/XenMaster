@@ -9,6 +9,7 @@ package net.wgr.xenmaster.api;
 import java.util.HashMap;
 import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
+import net.wgr.xenmaster.controller.Controller;
 
 /**
  * 
@@ -17,21 +18,34 @@ import net.wgr.xenmaster.controller.BadAPICallException;
  */
 public class VBD extends XenApiEntity {
 
+    @ConstructorArgument
     protected String VM;
+    @ConstructorArgument
     protected String VDI;
-    protected String deviceName;
-    protected boolean bootable;
+    @ConstructorArgument
+    protected String deviceName, userFriendlyName;
+    @ConstructorArgument
+    protected boolean bootable, empty;
+    @ConstructorArgument
     protected Mode mode;
+    @ConstructorArgument
     protected Type type;
     protected boolean attached;
     protected int statusCode;
     protected String statusDetail;
     @Fill
     protected Map<String, String> runtimeProperties;
+    @ConstructorArgument
     protected String qosAlgorithm;
     @Fill
     protected Object[] supportedQosAlgorithms;
+    @Fill
+    @ConstructorArgument
+    protected Map<String, String> qosAlgorithmParams;
     protected String metrics;
+    @Fill
+    @ConstructorArgument
+    protected Map<String, String> otherConfig;
 
     public VBD(String ref, boolean autoFill) {
         super(ref, autoFill);
@@ -65,11 +79,18 @@ public class VBD extends XenApiEntity {
             return false;
         }
     }
-    
-    public void create() {
-        
+
+    public void create(VM vm, VDI vdi) throws BadAPICallException {
+        this.VM = vm.getReference();
+        if (vdi == null) {
+            empty = true;
+        } else {
+            this.VDI = vdi.getReference();
+        }
+
+        this.reference = (String) Controller.dispatch("VBD.create", collectConstructorArgs());
     }
-    
+
     public void destroy() throws BadAPICallException {
         dispatch("destroy");
     }
@@ -83,7 +104,7 @@ public class VBD extends XenApiEntity {
         VM = value(VM, "get_VM");
         return new VM(VM);
     }
-    
+
     public VBDMetrics getMetrics() {
         metrics = value(metrics, "get_metrics");
         return new VBDMetrics(metrics);
@@ -91,6 +112,10 @@ public class VBD extends XenApiEntity {
 
     public boolean isBootable() {
         return bootable;
+    }
+
+    public void setBootable(boolean bootable) throws BadAPICallException {
+        this.bootable = setter(bootable, "set_bootable");
     }
 
     public boolean isAttached() {
@@ -103,6 +128,10 @@ public class VBD extends XenApiEntity {
 
     public Mode getMode() {
         return mode;
+    }
+
+    public void setMode(Mode mode) throws BadAPICallException {
+        this.mode = setter(mode, "set_mode");
     }
 
     public String getQosAlgorithm() {
@@ -129,11 +158,17 @@ public class VBD extends XenApiEntity {
         return type;
     }
 
+    public void setType(Type type) throws BadAPICallException {
+        this.type = setter(type, "set_type");
+    }
+
     @Override
     protected Map<String, String> interpretation() {
         HashMap<String, String> map = new HashMap<>();
         map.put("attached", "currently_attached");
         map.put("deviceName", "device");
+        map.put("userFriendlyName", "userdevice");
+        map.put("qosAlgorithm", "qos_algorithm_type");
         return map;
     }
 

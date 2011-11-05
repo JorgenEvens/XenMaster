@@ -47,6 +47,7 @@ public class VDI extends NamedEntity {
         return SR;
     }
 
+    // todo watch closely
     public List<VBD> getVBDs() {
         VBDs = value(VBDs, "get_VBDs");
         ArrayList<VBD> vbds = new ArrayList<>();

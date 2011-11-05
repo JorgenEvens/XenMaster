@@ -5,7 +5,7 @@
 package net.wgr.xenmaster.controller;
 
 import java.util.List;
-import junit.framework.TestCase;
+import net.wgr.xenmaster.TestBase;
 import net.wgr.xenmaster.api.Host;
 import net.wgr.xenmaster.api.VM;
 import org.junit.Test;
@@ -14,21 +14,7 @@ import org.junit.Test;
  *
  * @author double-u
  */
-public class ControllerTest extends TestCase {
-    
-    public ControllerTest(String testName) {
-        super(testName);
-    }
-    
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-    
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
+public class ControllerTest extends TestBase {
     
     @Test
     public void test() throws BadAPICallException {

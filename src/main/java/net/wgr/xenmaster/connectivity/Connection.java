@@ -18,10 +18,10 @@ import net.wgr.xenmaster.api.Session;
  * @created Oct 2, 2011
  * @author double-u
  */
-public class Connection extends ThreadLocal {
+public class Connection {
 
-    protected XMLRPC xmlRpc;
-    protected Session session;
+    protected final XMLRPC xmlRpc;
+    protected final Session session = new Session();
     protected URL url;
 
     public Connection() throws MalformedURLException {
@@ -34,16 +34,12 @@ public class Connection extends ThreadLocal {
     }
 
     public Map executeCommand(String commandName, List params) {
-        return xmlRpc.execute(commandName, params);
+        synchronized (xmlRpc) {
+            return xmlRpc.execute(commandName, params);
+        }
     }
 
     public Session getSession() {
-        if (session == null) {
-            authenticate();
-            if (session == null) {
-                throw new Error("Failed to setup the connection. Check if XAPI is running and configuration is correct");
-            }
-        }
         return session;
     }
 
@@ -51,11 +47,12 @@ public class Connection extends ThreadLocal {
         return url;
     }
 
-    public void authenticate() {
-        // TODO
-        session = Session.loginWithPassword("root", "test");
-        if (session != null) {
-            session.fill();
+    public void authenticate(String userName, String password) {
+        synchronized (session) {
+            session.loginWithPassword(userName, password);
+            if (session.getReference() != null) {
+                session.fill();
+            }
         }
     }
 }

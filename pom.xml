@@ -68,10 +68,6 @@
             </releases>
             <url>http://butters.double-u.co.cc:81/nexus/content/repositories/releases/</url>
         </repository>     
-        <repository>
-            <url>http://repo.opennms.org/maven2/</url>
-            <id>opennms</id>
-        </repository>
     </repositories>
 
     <dependencies>
@@ -101,6 +97,12 @@
             <artifactId>wgr</artifactId>
             <version>0.9-SNAPSHOT</version>
             <type>jar</type>
+            <exclusions>
+                <exclusion>
+                    <artifactId>org.osgi.core</artifactId>
+                    <groupId>org.osgi</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>commons-math</groupId>

@@ -4,12 +4,12 @@ import net.wgr.core.access.Authorize;
 import net.wgr.server.application.DefaultApplication;
 import net.wgr.server.http.Server;
 import net.wgr.server.web.handling.ServerHook;
-import net.wgr.services.discovery.BasicDiscoverableService;
-import net.wgr.services.discovery.Discovery;
 import net.wgr.settings.Settings;
 import net.wgr.utility.GlobalExecutorService;
-import net.wgr.xenmaster.manager.Manager;
+import net.wgr.xenmaster.pool.Pool;
+import net.wgr.xenmaster.setup.debian.Bootstrapper;
 import net.wgr.xenmaster.web.Hook;
+import net.wgr.xenmaster.web.SetupHook;
 import net.wgr.xenmaster.web.TemplateHook;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
@@ -29,7 +29,7 @@ public class App implements Daemon {
             app.init(null);
             app.start();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            Logger.getLogger(App.class).error("Poor error handling detected", ex);
         }
     }
 
@@ -43,7 +43,7 @@ public class App implements Daemon {
     @Override
     public void start() throws Exception {
         Settings ss = Settings.getInstance();
-        Manager.get().boot();
+        Pool.get().boot();
 
         server = new Server();
         server.boot();
@@ -51,6 +51,7 @@ public class App implements Daemon {
         ServerHook sh = new ServerHook("/*");
         sh.addPandaHook(new Hook());
         sh.addPandaHook(new TemplateHook());
+        sh.addPandaHook(new SetupHook());
 
         Authorize.disable();
 
@@ -60,6 +61,9 @@ public class App implements Daemon {
         DefaultApplication da = DefaultApplication.create("/", Settings.getInstance().getString("WebContentPath"));
         server.addHook(da);
         server.start();
+
+        Bootstrapper b = new Bootstrapper();
+        b.boot();
     }
 
     @Override

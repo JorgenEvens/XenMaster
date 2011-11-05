@@ -4,22 +4,14 @@
  */
 package net.wgr.xenmaster.web;
 
-import java.util.List;
-import net.wgr.xenmaster.api.VM;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.TTCCLayout;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.wgr.wcp.Command;
-import net.wgr.xenmaster.controller.Controller;
+import net.wgr.xenmaster.TestBase;
 import net.wgr.xenmaster.api.Host;
-import net.wgr.xenmaster.api.Session;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -27,18 +19,11 @@ import static org.junit.Assert.*;
  *
  * @author double-u
  */
-public class HookTest {
+public class HookTest extends TestBase {
     
     protected Hook hook;
 
     public HookTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-        Logger root = Logger.getRootLogger();
-        root.setLevel(Level.INFO);
-        root.addAppender(new ConsoleAppender(new TTCCLayout()));
     }
 
     @AfterClass
@@ -59,8 +44,6 @@ public class HookTest {
      */
     @Test
     public void testExecute() {
-        Controller.start();
-        
         Hook.APICall apic = new Hook.APICall();
         apic.args = new Object[0];
         apic.ref = "";

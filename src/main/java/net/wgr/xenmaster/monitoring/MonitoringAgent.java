@@ -9,6 +9,7 @@ package net.wgr.xenmaster.monitoring;
 import com.google.common.collect.ArrayListMultimap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
 import net.wgr.settings.Settings;
 import net.wgr.utility.GlobalExecutorService;
@@ -23,10 +24,12 @@ public class MonitoringAgent implements Runnable {
     protected boolean lazy = false;
     protected ArrayListMultimap<String, Record> vmData, hostData;
     protected Map<String, ParsedRecord> vmParsed, hostParsed;
+    protected ConcurrentSkipListMap<String, String> data;
     
     public MonitoringAgent() {
         vmData = ArrayListMultimap.create();
         hostData = ArrayListMultimap.create();
+        data = new ConcurrentSkipListMap<>();
     }
     
     protected void schedule() {
@@ -45,6 +48,7 @@ public class MonitoringAgent implements Runnable {
     @Override
     public void run() {
         Host h = new Host();
+        
         for (Host host : h.getAll()) {
             String ref = host.getId().toString();
             Record r = new Record(ref, true);

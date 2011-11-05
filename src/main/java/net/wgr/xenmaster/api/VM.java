@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
+import net.wgr.xenmaster.controller.Controller;
+import org.apache.commons.collections.CollectionUtils;
 
 /**
  * 
@@ -77,26 +79,39 @@ public class VM extends NamedEntity {
         super(ref);
     }
 
-    public void create(long maxStaticMemMb, int minStaticMemMb, int maxDynMemMb, int minDynMemMb) throws BadAPICallException {
+    public void create(int maxVCPUs, long maxStaticMemMb, int minStaticMemMb, int maxDynMemMb, int minDynMemMb) throws BadAPICallException {
+        this.maxVCPUs = maxVCPUs;
         maximumStaticMemory = maxStaticMemMb * (1024 * 1024);
         maximumDynamicMemory = maxDynMemMb * (1024 * 1024);
         minimumDynamicMemory = minDynMemMb * (1024 * 1024);
         minimumStaticMemory = minStaticMemMb * (1024 * 1024);
 
+        if (startupVCPUs < 1 || maxVCPUs < 1 || startupVCPUs > maxVCPUs) {
+            throw new IllegalArgumentException("VM CPU count is zero or startup VCPU count is larger than max VCPU count");
+        }
+
         HashMap<String, Object> ctorArgs = collectConstructorArgs();
         // Not putting legacy args in the model, we don't do legacy
         ctorArgs.put("PV_legacy_args", "");
 
-        dispatch("create", ctorArgs);
+        this.reference = (String) dispatch("create", ctorArgs);
     }
 
     public void destroy() throws BadAPICallException {
         dispatch("destroy");
     }
 
-    public void start(boolean startPaused) throws BadAPICallException {
+    public void start(boolean startPaused, boolean force) throws BadAPICallException {
+        start(startPaused, force, null);
+    }
+
+    public void start(boolean startPaused, boolean force, Host host) throws BadAPICallException {
         try {
-            dispatch("start", startPaused);
+            if (host != null) {
+                dispatch("start", host.getReference(), startPaused, force);
+            } else {
+                dispatch("start", startPaused, force);
+            }
         } catch (BadAPICallException ex) {
 
             switch (ex.getMessage()) {
@@ -214,6 +229,45 @@ public class VM extends NamedEntity {
         }
     }
 
+    public void migrateInsidePool(Host host, Map<String, String> options) throws BadAPICallException {
+        if (options == null) {
+            options = new HashMap<>();
+        }
+        try {
+            dispatch("pool_migrate", host, options);
+        } catch (BadAPICallException ex) {
+            switch (ex.getMessage()) {
+                case "BAD_POWER_STATE":
+                    ex.setErrorDescription("The VM has a bad power state. It might not be running");
+            }
+
+            throw ex;
+        }
+    }
+
+    public int computeMemoryOverhead() throws BadAPICallException {
+        return (int) dispatch("compute_memory_overhead");
+    }
+
+    public void sendSysRq(String sysrq) throws BadAPICallException {
+        dispatch("send_sysrq", sysrq);
+    }
+
+    public void sendTrigger(String trigger) throws BadAPICallException {
+        dispatch("send_trigger", trigger);
+    }
+
+    // todo check what this does and decide on good name
+//    public int computeMaximumAvailableMemory() throws BadAPICallException {
+//        
+//    }
+    public List<Object> getDataSources() throws BadAPICallException {
+        Object[] result = (Object[]) dispatch("get_data_sources");
+        ArrayList<Object> arrr = new ArrayList<>();
+        CollectionUtils.addAll(arrr, result);
+        return arrr;
+    }
+
     public VMMetrics getMetrics() {
         this.metrics = value(this.metrics, "get_vm_metrics");
         return new VMMetrics(this.metrics);
@@ -222,6 +276,17 @@ public class VM extends NamedEntity {
     public GuestMetrics getGuestMetrics() {
         this.guestMetrics = value(this.guestMetrics, "get_guest_metrics");
         return new GuestMetrics(this.guestMetrics);
+    }
+    
+    public static List<VM> getAll() throws BadAPICallException {
+        Map<String, Object> pools = (Map) Controller.dispatch("VM.get_all_records");
+        ArrayList<VM> mudPools = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : pools.entrySet()) {
+            VM vm = new VM(entry.getKey(), false);
+            vm.fillOut((Map) entry.getValue());
+            mudPools.add(vm);
+        }
+        return mudPools;
     }
 
     public List<VBD> getVBDs() {
@@ -248,24 +313,52 @@ public class VM extends NamedEntity {
         return VCPUparams;
     }
 
-    public String getHVMbootPolicy() {
+    public String getHVMBootPolicy() {
         return HVMbootPolicy;
     }
+    
+    public void setDefaultHVMBootPolicy() throws BadAPICallException {
+        setHVMBootPolicy("BIOS order");
+    }
+    
+    public void setHVMBootPolicy(String policy) throws BadAPICallException {
+        HVMbootPolicy = setter(policy, "set_HVM_boot_policy");
+    }
+
+    public Map<String, String> getHVMBootParams() {
+        return HVMbootParams;
+    }
+    
+    public void setHVMBootParams(Map<String, String> params) {
+        HVMbootParams = params;
+    } 
 
     public String getPVargs() {
         return PVargs;
     }
 
-    public String getPVbootloader() {
+    public String getPVBootloader() {
         return PVbootloader;
     }
-
-    public String getPVkernel() {
-        return PVkernel;
+    
+    public void setPVBootloader(String bootloader) throws BadAPICallException {
+        PVbootloader = setter(bootloader, "set_PV_bootloader");
     }
 
-    public String getPVramdisk() {
+    public String getPVKernel() {
+        return PVkernel;
+    }
+    
+    public void setPVKernel(String kernel) throws BadAPICallException {
+        PVkernel = setter(kernel, "set_PV_kernel");
+    }
+
+    public String getPVRamdisk() {
         return PVramdisk;
+    }
+    
+    public void setPVRamdisk(String ramdisk) throws BadAPICallException {
+        PVramdisk = setter(ramdisk, "set_PV_ramdisk");
     }
 
     public CrashedAction getActionsAfterCrash() {
@@ -313,15 +406,26 @@ public class VM extends NamedEntity {
     }
 
     public String getPoolName() {
+        poolName = value(poolName, "get_pool_name");
         return poolName;
     }
 
     public PowerState getPowerState() {
+        powerState = value(powerState, "get_power_state");
         return powerState;
     }
 
-    public int getStartupVCPUs() {
+    public int getVCPUs() {
         return startupVCPUs;
+    }
+
+    public void setVCPUs(int count, boolean live) throws BadAPICallException {
+        if (getPowerState() == PowerState.RUNNING && live) {
+            dispatch("set_VCPUs_number_live", count);
+            startupVCPUs = count;
+        } else {
+            startupVCPUs = count;
+        }
     }
 
     public int getUserVersion() {
@@ -431,7 +535,7 @@ public class VM extends NamedEntity {
          */
         RUNNING,
         /**
-         * VM state has been saved to disk and it is nolonger running. Note that disks remain in-use while the VM is suspended.
+         * VM state has been saved to disk and it is no longer running. Note that disks remain in-use while the VM is suspended.
          */
         SUSPENDED
     };

@@ -49,7 +49,7 @@ public class CollectorTest {
      */
     @Test
     public void testRun() throws UnknownHostException {
-        Collector c = new Collector(Controller.get().getDispatcher().getConnection());
+        Collector c = new Collector(Controller.getLocal().getDispatcher().getConnection());
         c.run();
     }
 }

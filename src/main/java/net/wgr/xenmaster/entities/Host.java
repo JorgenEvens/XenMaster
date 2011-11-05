@@ -29,10 +29,12 @@ public class Host extends net.wgr.core.dao.Object {
     @Required
     protected InetAddress address;
     protected int port = 80;
+    protected String userName, password;
+    protected boolean useSSL, active;
 
     @Override
     public String getColumnFamily() {
-        return "hosts";
+        return "xen-hosts";
     }
 
     @Override
@@ -55,6 +57,38 @@ public class Host extends net.wgr.core.dao.Object {
     public void setAddress(InetAddress address) {
         this.address = address;
     }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public boolean usesSSL() {
+        return useSSL;
+    }
+
+    public void setUseSSL(boolean useSSL) {
+        this.useSSL = useSSL;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
     
     public Connection connect() {
         try {
@@ -71,5 +105,12 @@ public class Host extends net.wgr.core.dao.Object {
         hosts = Retrieval.getRowsAs(Host.class, Retrieval.getAllRowsFromColumnFamily(getColumnFamily())).values();
         return hosts;
     }
-    
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 }

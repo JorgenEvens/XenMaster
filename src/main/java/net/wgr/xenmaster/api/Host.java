@@ -85,7 +85,7 @@ public class Host extends XenApiEntity {
     public PCPU getCPU(int number) throws BadAPICallException {
         hostCPUs = value(hostCPUs, "get_host_CPUs");
         if (number > hostCPUs.length - 1) {
-            Logger.getLogger(getClass()).error("Tried to retrieve CPU which does not exist on the physical system");
+            Logger.getLogger(getClass()).error("Tried to retrieve CPU which doesn't exist on the physical system");
         }
         return new PCPU((String) hostCPUs[number]);
     }

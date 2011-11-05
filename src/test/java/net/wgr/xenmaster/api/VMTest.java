@@ -4,47 +4,25 @@
  */
 package net.wgr.xenmaster.api;
 
+import java.util.List;
+import net.wgr.xenmaster.TestBase;
 import net.wgr.xenmaster.controller.BadAPICallException;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.TTCCLayout;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
  *
  * @author double-u
  */
-public class VMTest {
-
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-    
-    @Before
-    public void setUp() {
-        Logger root = Logger.getRootLogger();
-        root.setLevel(Level.DEBUG);
-        root.addAppender(new ConsoleAppender(new TTCCLayout()));
-    }
-    
-    @After
-    public void tearDown() {
-    }
+public class VMTest extends TestBase {
 
     @Test
     public void testSomeMethod() throws BadAPICallException {
-        VM n = new VM(null);
-        n.setName("test");
-        n.setDescription("nix");
-        n.create(256, 128, 512, 128);
+        List<VM> all = VM.getAll();
+        for (VM vm : all) {
+            if (vm.getName().equals("test")) {
+                System.out.println("ref: " + vm.getReference());
+            }
+        }
     }
+    
 }

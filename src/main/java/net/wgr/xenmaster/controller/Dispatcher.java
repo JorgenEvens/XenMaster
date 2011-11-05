@@ -51,7 +51,9 @@ public class Dispatcher {
                 Object[] info = (Object[]) result.get("ErrorDescription");
                 ArrayList<String> errInfo = new ArrayList<>();
                 for (Object o : info) {
-                    if (o instanceof String) errInfo.add((String) o);
+                    if (o instanceof String) {
+                        errInfo.add((String) o);
+                    }
                 }
 
                 throw new BadAPICallException(methodName, params, errInfo.get(0), errInfo);
@@ -61,6 +63,9 @@ public class Dispatcher {
     }
 
     public Object dispatchWithSession(String methodName, Object[] params) throws BadAPICallException {
+        if (conn.getSession().getReference() == null) {
+            throw new Error("Session has not been initialized");
+        }
         ArrayList list = new ArrayList();
         list.add(conn.getSession().getReference());
         CollectionUtils.addAll(list, params);

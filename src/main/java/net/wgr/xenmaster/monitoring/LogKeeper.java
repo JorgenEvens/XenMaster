@@ -46,7 +46,7 @@ public class LogKeeper {
 
     public void becomeMaster() {
         // The Force is strong
-        // Check if there aren't any other masters still alive
+        // todo Check if there aren't any other masters still alive
         isMaster = true;
     }
     

@@ -84,6 +84,7 @@ public class BadAPICallException extends Exception {
 
     @Override
     public String getMessage() {
-        return getErrorDescription();
+        String msg = getErrorDescription();
+        return (msg == null ? "" : msg);
     }
 }

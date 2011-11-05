@@ -6,6 +6,7 @@
  */
 package net.wgr.xenmaster.api;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +20,7 @@ import net.wgr.xenmaster.controller.Controller;
  * @author double-u
  */
 public class Pool extends NamedEntity {
-    
+
     protected Object[] metadataVDIs;
     protected boolean wlbEnabled, haEnabled;
     protected int hostFailuresToTolerate;
@@ -37,21 +38,33 @@ public class Pool extends NamedEntity {
     public Pool(String ref) {
         super(ref);
     }
-    
+
+    public void addHostWithAddress(InetAddress address, String user, String password, boolean force) throws BadAPICallException {
+        Controller.dispatch((force ? "pool.join_force" : "pool.join"), address.getCanonicalHostName(), user, password);
+    }
+
+    public void ejectHost(Host host) throws BadAPICallException {
+        Controller.dispatch("pool.eject", host.getReference());
+    }
+
+    public void designateNewMaster(Host newMaster) throws BadAPICallException {
+        Controller.dispatch("pool.designate_new_master", newMaster.getReference());
+    }
+
     public Host getMaster() {
         master = value(master, "get_master");
         return new Host(master);
     }
-    
+
     public SR getDefaultSR() {
         defaultSR = value(defaultSR, "get_default_SR");
         return new SR(defaultSR);
     }
-    
+
     public void setDefaultSR(SR newDefault) throws BadAPICallException {
         defaultSR = setter(newDefault, "set_default_SR");
     }
-    
+
     public VDI getRedoLogVDI() {
         redoLogVDI = value(redoLogVDI, "get_redo_log_vdi");
         return new VDI(redoLogVDI);
@@ -74,9 +87,7 @@ public class Pool extends NamedEntity {
         map.put("overcomittingAllowed", "ha_allow_overcommit");
         map.put("overcommited", "ha_overcommitted");
         map.put("hostFailuresToTolerate", "ha_host_failures_to_tolerate");
-        
+
         return map;
     }
-    
-    
 }

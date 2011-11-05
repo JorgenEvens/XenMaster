@@ -18,6 +18,10 @@ import org.apache.log4j.Logger;
 public class Session extends XenApiEntity {
 
     protected String thisHost, thisUser;
+    
+    public Session() {
+        super(null);
+    }
 
     public Session(String ref) {
         super(ref);
@@ -27,14 +31,12 @@ public class Session extends XenApiEntity {
         super(ref, autoFill);
     }
 
-    public static Session loginWithPassword(String userName, String password) {
+    public void loginWithPassword(String userName, String password) {
         try {
-            String ref = (String) Controller.get().getDispatcher().dispatch("session.login_with_password", new Object[]{userName, password});
-            Session s = new Session(ref, false);
-            return s;
+            this.reference = (String) Controller.getLocal().getDispatcher().dispatch("session.login_with_password", new Object[]{userName, password});
+            fillOut();
         } catch (BadAPICallException ex) {
             Logger.getLogger(Session.class).error("Failed to log in", ex);
-            return null;
         }
     }
 
