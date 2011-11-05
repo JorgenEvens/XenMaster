@@ -201,6 +201,15 @@ h2 {
 	float: left;
 	border-right: 2px solid #CFCFCF;
 	padding: 0 10px;
+	cursor: pointer;
+}
+
+#vm_detail h2 li:hover {
+	color: #383838;
+}
+
+#vm_detail h2 ul.onshift {
+	display: none;
 }
 
 #vm_detail h2 li:last-child {
