@@ -1,3 +1,5 @@
+DEBUG = true;
+
 (function( $, undefined ){
 	
 	var init_app = function() {
@@ -15,6 +17,13 @@
 			
 			global_ui.show();
 			dashboard_ui.show();
+			
+			if( DEBUG ) {
+				M.load( 'tpl://debug/console', 'js://ui/template', function( dc, Template ) {
+					var tpl = new Template({resource: dc});
+					tpl.show('debug');
+				});
+			}
 			
 		});
 	},
