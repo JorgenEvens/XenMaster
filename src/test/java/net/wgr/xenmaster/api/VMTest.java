@@ -4,7 +4,6 @@
  */
 package net.wgr.xenmaster.api;
 
-import java.util.List;
 import net.wgr.xenmaster.TestBase;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import org.junit.Test;
@@ -17,12 +16,9 @@ public class VMTest extends TestBase {
 
     @Test
     public void testSomeMethod() throws BadAPICallException {
-        List<VM> all = VM.getAll();
-        for (VM vm : all) {
-            if (vm.getName().equals("test")) {
-                System.out.println("ref: " + vm.getReference());
-            }
-        }
+        VM vm = new VM(null);
+        vm.setName("test");
+        vm.create(2, 512, 256, 512, 256);
     }
     
 }

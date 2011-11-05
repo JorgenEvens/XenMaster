@@ -26,11 +26,18 @@ public class SetupHook extends WebHook {
     @Override
     public void handle(RequestBundle rb) throws IOException {
         Logger.getLogger(getClass()).info("Preseed request " + rb.getRequestURI());
-        if (rb.getPathParts()[0].equals("xapi")) {
-            
-            IOUtils.write(IOUtils.toByteArray(new FileInputStream("conf/preseed-template.txt")), rb.getResponseBody());
-            rb.getBaseRequest().setHandled(true);
-        } else {
+        switch (rb.getPathParts()[0]) {
+            case "xapi":
+                IOUtils.write(IOUtils.toByteArray(new FileInputStream("store/setup/preseed-template.txt")), rb.getResponseBody());
+                rb.getBaseRequest().setHandled(true);
+                break;
+            case "post-install.sh":
+                IOUtils.write(IOUtils.toByteArray(new FileInputStream("store/setup/post-install.sh")), rb.getResponseBody());
+                rb.getBaseRequest().setHandled(true);
+                break;
+            default:
+                rb.getBaseRequest().setHandled(false);
+                break;
         }
     }
 }

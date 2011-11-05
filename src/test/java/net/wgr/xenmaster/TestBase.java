@@ -25,6 +25,6 @@ public class TestBase {
         root.setLevel(Level.INFO);
         root.addAppender(new ConsoleAppender(new TTCCLayout()));
         
-        Controller.getSession().loginWithPassword("root", "test");
+        Controller.getSession().loginWithPassword("root", "r00tme");
     }
 }

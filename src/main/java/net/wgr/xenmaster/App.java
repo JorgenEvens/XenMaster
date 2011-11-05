@@ -29,7 +29,7 @@ public class App implements Daemon {
             app.init(null);
             app.start();
         } catch (Exception ex) {
-            Logger.getLogger(App.class).error("Poor error handling detected", ex);
+            Logger.getLogger(App.class).error("An unhandled exception ocurred", ex);
         }
     }
 
@@ -42,7 +42,6 @@ public class App implements Daemon {
 
     @Override
     public void start() throws Exception {
-        Settings ss = Settings.getInstance();
         Pool.get().boot();
 
         server = new Server();

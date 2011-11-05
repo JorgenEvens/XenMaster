@@ -11,18 +11,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import net.wgr.settings.Settings;
+import net.wgr.utility.Network;
 import net.wgr.xenmaster.connectivity.tftp.TFTPServer;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.tftp.TFTPOptionReadRequestPacket;
-import org.apache.commons.net.util.SubnetUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -52,31 +47,16 @@ public class Bootstrapper {
         @Override
         public InputStream pathRequest(TFTPOptionReadRequestPacket packet) {
             try {
-                File path = new File("/Users/double-u/Downloads/netboot/" + packet.getFilename());
+                File path = new File("store/netboot/" + packet.getFilename());
                 if (!path.exists()) {
                     return null;
                 }
                 File f = path.getAbsoluteFile();
                 if (f.exists()) {
-                    try {
-                        SubnetUtils utils = new SubnetUtils(packet.getAddress().getHostAddress(), "255.255.255.0");
-                        // todo determine correct interface address
-                        for (NetworkInterface nic : Collections.list(NetworkInterface.getNetworkInterfaces())) {
-                            for (InetAddress addr : Collections.list(nic.getInetAddresses())) {
-                                if (addr instanceof Inet4Address && !addr.isLoopbackAddress()) {
-                                    if (utils.getInfo().isInRange(addr.getHostAddress())) {
-                                        preseedValues.put("preseedUrl", "http://" + addr.getCanonicalHostName() + ":" + Settings.getInstance().get("WebApplicationPort") + "/setup/xapi");
-                                    }
-                                }
-                            }
-                        }
-
-                    } catch (SocketException ex) {
-                        Logger.getLogger(getClass()).error("Failed to configure preseeding", ex);
-                    }
-
                     FileInputStream fis = new FileInputStream(f);
                     if (f.getName().equals("txt.cfg")) {
+                        preseedValues.put("preseedUrl", "http://" + Network.getInterfaceInSubnet(packet.getAddress().getHostAddress(), "255.255.255.0").getHostAddress() + ":" + Settings.getInstance().get("WebApplicationPort") + "/setup/xapi");
+
                         String txt = IOUtils.toString(fis);
                         for (Map.Entry<String, String> entry : preseedValues.entrySet()) {
                             // todo regex
