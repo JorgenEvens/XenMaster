@@ -33,8 +33,10 @@
 		xm = xm.getInstance();
 		
 		dom.find('.submit').click(function(){
-			var param = data.val().split(',');
-			var toDelete = [];
+			var param = data.val().split(','),
+				toDelete = [],
+				reference = null;
+			
 			for( var i=0; i<param.length; i++ ) {
 				param[i] = param[i].replace(/^\s+|\s+$/g,"");
 				if( param[i].length == 0 ) {
@@ -45,9 +47,13 @@
 				delete param[toDelete[i]];
 			}
 			
-			console.log( 'abc', param );
-			param = { args: param.length > 0 ? param : null, ref: ref.val() };
-			console.log( 'testing: ', param );
+			if( ref.val().length > 0 ) {
+				reference = ref.val()();
+			}
+			
+
+			param = { args: param.length > 0 ? param : null, ref: reference };
+
 			xm.send('xen://' + cmd.val(), param, function( result ) {
 				console.log( result );
 				debug_pre.text('');
