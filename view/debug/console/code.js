@@ -34,17 +34,14 @@
 		
 		dom.find('.submit').click(function(){
 			var param = data.val().split(','),
-				toDelete = [],
+				args = [],
 				reference = null;
 			
 			for( var i=0; i<param.length; i++ ) {
 				param[i] = param[i].replace(/^\s+|\s+$/g,"");
-				if( param[i].length == 0 ) {
-					toDelete.push( i );
+				if( param[i].length > 0 ) {
+					args.push( param[i] );
 				}
-			}
-			for( var i=0; i<toDelete.length; i++ ) {
-				delete param[toDelete[i]];
 			}
 			
 			if( ref.val().length > 0 ) {
@@ -52,8 +49,8 @@
 			}
 			
 
-			param = { args: param.length > 0 ? param : null, ref: reference };
-
+			param = { args: args.length > 0 ? args : null, ref: reference };
+			
 			xm.send('xen://' + cmd.val(), param, function( result ) {
 				console.log( result );
 				debug_pre.text('');
