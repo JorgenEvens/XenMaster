@@ -47,17 +47,21 @@ public class Hook extends WebCommandHandler {
             try {
                 if (clazz == null) {
                     int refOpen = s.indexOf('[');
-                    if (refOpen != -1 || i == split.length - 2) {
+                    if (refOpen != -1) {
                         className = s.substring(0, refOpen);
                         clazz = Class.forName("net.wgr.xenmaster.api." + className);
-                    } else {
+                    } else if (i == split.length - 2) {
                         className += s;
+                        clazz = Class.forName("net.wgr.xenmaster.api." + className);
+                    } else {
+                        className += s + '.';
                     }
 
                     if (refOpen != -1) {
                         ref = s.substring(refOpen + 1, s.indexOf(']'));
                     }
-                   
+
+                    // The reference may be an empty string, just not null
                     if (ref != null) {
                         Constructor c = clazz.getConstructor(String.class, boolean.class);
                         current = c.newInstance(ref, !ref.isEmpty());
@@ -69,8 +73,8 @@ public class Hook extends WebCommandHandler {
                         String argstr = s.substring(s.indexOf('(') + 1, s.indexOf(')'));
                         argstr = argstr.replace(", ", ",");
                         args = StringUtils.split(argstr, ',');
-                    } 
-                    
+                    }
+
                     boolean match = false;
                     if (current != null) {
                         clazz = current.getClass();
@@ -82,6 +86,7 @@ public class Hook extends WebCommandHandler {
 
                             Class<?>[] types = m.getParameterTypes();
                             if ((types != null && types.length != 0) && ((types.length > 0 && args == null) || (types.length != args.length))) {
+                                Logger.getLogger(getClass()).info("Hook call made with incorrect number of arguments: " + command);
                                 return new CommandException("Illegal number of arguments in " + methodName + " call", command);
                             } else if (args != null) {
                                 for (int j = 0; j < types.length - 1; j++) {
