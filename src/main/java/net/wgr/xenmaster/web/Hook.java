@@ -13,6 +13,7 @@ import java.lang.reflect.Modifier;
 import net.wgr.server.web.handling.WebCommandHandler;
 import net.wgr.wcp.Command;
 import net.wgr.wcp.CommandException;
+import net.wgr.xenmaster.controller.Controller;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -25,6 +26,7 @@ public class Hook extends WebCommandHandler {
 
     public Hook() {
         super("xen");
+        Controller.getSession().loginWithPassword("root", "r00tme");
     }
 
     public Object execute(Command cmd) {
@@ -109,6 +111,7 @@ public class Hook extends WebCommandHandler {
                                     current = m.invoke(current, (Object[]) args);
                                 }
                             } catch (Exception ex) {
+                                Logger.getLogger(getClass()).info("Hook call threw Exception", ex);
                                 return new CommandException(ex, command);
                             }
 

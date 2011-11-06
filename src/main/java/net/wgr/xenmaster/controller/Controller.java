@@ -16,11 +16,6 @@ import net.wgr.xenmaster.api.Session;
 public class Controller extends ThreadLocal<Controller> {
 
     private static ThreadLocal<Controller> instance;
-    protected Dispatcher dispatcher;
-
-    private Controller() {
-        this.dispatcher = new Dispatcher();
-    }
 
     public static Controller getLocal() {
         if (instance == null) {
@@ -34,15 +29,11 @@ public class Controller extends ThreadLocal<Controller> {
         return new Controller();
     }
 
-    public Dispatcher getDispatcher() {
-        return dispatcher;
-    }
-    
     public static Session getSession() {
-        return getLocal().getDispatcher().getConnection().getSession();
+        return Dispatcher.get().getConnection().getSession();
     }
     
     public static Object dispatch(String methodName, Object ... params) throws BadAPICallException {
-        return getLocal().getDispatcher().dispatchWithSession(methodName, params);
+        return Dispatcher.get().dispatchWithSession(methodName, params);
     }
 }

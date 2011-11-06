@@ -58,7 +58,7 @@ public class XenApiEntity {
     }
 
     public UUID getUUID() {
-        if (uuid.isEmpty()) {
+        if (uuid == null || uuid.isEmpty()) {
             return null;
         }
         return UUID.fromString(uuid);
@@ -88,7 +88,7 @@ public class XenApiEntity {
         if (obj != null) {
             return obj;
         } else {
-            if (this.reference == null) {
+            if (this.reference == null || this.reference.isEmpty()) {
                 return null;
             }
             try {

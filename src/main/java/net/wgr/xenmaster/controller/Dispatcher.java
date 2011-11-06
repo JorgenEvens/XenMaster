@@ -22,13 +22,19 @@ import org.apache.log4j.Logger;
 public class Dispatcher {
 
     protected Connection conn;
+    private static Dispatcher instance;
 
-    public Dispatcher() {
+    private Dispatcher() {
         try {
             this.conn = new Connection();
         } catch (MalformedURLException ex) {
             Logger.getLogger(getClass()).error(ex);
         }
+    }
+    
+    public static Dispatcher get() {
+        if (instance == null) instance = new Dispatcher();
+        return instance;
     }
 
     public Object dispatch(String methodName, Object[] params) throws BadAPICallException {

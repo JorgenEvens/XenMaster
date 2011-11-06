@@ -8,6 +8,7 @@ package net.wgr.xenmaster.api;
 
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
+import net.wgr.xenmaster.controller.Dispatcher;
 import org.apache.log4j.Logger;
 
 /**
@@ -18,7 +19,8 @@ import org.apache.log4j.Logger;
 public class Session extends XenApiEntity {
 
     protected String thisHost, thisUser;
-    
+    protected boolean proxy;
+
     public Session() {
         super(null);
     }
@@ -29,11 +31,12 @@ public class Session extends XenApiEntity {
 
     public Session(String ref, boolean autoFill) {
         super(ref, autoFill);
+        if (ref != null && ref.isEmpty()) proxy = true;
     }
 
     public void loginWithPassword(String userName, String password) {
         try {
-            this.reference = (String) Controller.getLocal().getDispatcher().dispatch("session.login_with_password", new Object[]{userName, password});
+            this.reference = (String) Dispatcher.get().dispatch("session.login_with_password", new Object[]{userName, password});
             fillOut();
         } catch (BadAPICallException ex) {
             Logger.getLogger(Session.class).error("Failed to log in", ex);
@@ -45,13 +48,10 @@ public class Session extends XenApiEntity {
     }
 
     public Host getThisHost() {
-        if (thisHost == null) {
-            if (Controller.getSession() == null) {
-                throw new IllegalStateException("Not authenticated");
-            } else {
-                return Controller.getSession().getThisHost();
-            }
+        if (proxy) {
+            return Controller.getSession().getThisHost();
         }
+        thisHost = value(thisHost, "get_this_host");
         return new Host(thisHost);
     }
 }
