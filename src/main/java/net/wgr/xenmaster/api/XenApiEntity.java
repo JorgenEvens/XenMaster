@@ -296,11 +296,13 @@ public class XenApiEntity {
             }
 
             Object value = null;
-            for (String key : data.keySet()) {
-                if (key.equals(processedName)) {
-                    value = data.get(key);
+            for (Map.Entry<String, Object> entry : data.entrySet()) {
+                if (entry.getKey().equals(processedName)) {
+                    value = entry.getValue();
+                    break;
                 }
             }
+
             if (value == null) {
                 continue;
             }

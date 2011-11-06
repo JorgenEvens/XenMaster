@@ -48,9 +48,9 @@ public class App implements Daemon {
         server.boot();
 
         ServerHook sh = new ServerHook("/*");
-        sh.addPandaHook(new Hook());
-        sh.addPandaHook(new TemplateHook());
-        sh.addPandaHook(new SetupHook());
+        sh.addWebHook(new Hook());
+        sh.addWebHook(new TemplateHook());
+        sh.addWebHook(new SetupHook());
 
         Authorize.disable();
 

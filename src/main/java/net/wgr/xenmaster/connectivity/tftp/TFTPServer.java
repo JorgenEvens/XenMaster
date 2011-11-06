@@ -27,7 +27,6 @@ import org.apache.commons.net.tftp.TFTPOptionReadRequestPacket;
 import org.apache.commons.net.tftp.TFTPPacket;
 import org.apache.commons.net.tftp.TFTPPacketException;
 import org.apache.commons.net.tftp.TFTPReadRequestPacket;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 /**
@@ -55,7 +54,6 @@ public class TFTPServer implements Runnable {
         listeners = new LinkedList<>();
         resendTask = new ResendTask();
         GlobalExecutorService.get().scheduleAtFixedRate(resendTask, 500, 500, TimeUnit.MILLISECONDS);
-        Logger.getLogger(getClass()).setLevel(Level.ALL);
     }
 
     public void addListener(ActivityListener al) {
@@ -78,6 +76,8 @@ public class TFTPServer implements Runnable {
                     tftp.beginBufferedOps();
                 } catch (SocketException | UnknownHostException ex) {
                     Logger.getLogger(getClass()).error("TFTP listening failed", ex);
+                    run = false;
+                    return;
                 }
             }
 
@@ -188,7 +188,7 @@ public class TFTPServer implements Runnable {
                 break;
             case TFTPReadRequestPacket.ERROR:
                 TFTPErrorPacket tep = (TFTPErrorPacket) packet;
-                Logger.getLogger(getClass()).error("TFTP error : " + tep.getMessage());
+                Logger.getLogger(getClass()).warn("TFTP error : " + tep.getMessage());
                 clientAddress = null;
                 blockNumber = 0;
                 break;
@@ -214,10 +214,10 @@ public class TFTPServer implements Runnable {
             if (packet == null) return;
             if (blockNumber > blockCount) {
                 try {
-                    Logger.getLogger(getClass()).info("Resending " + blockNumber);
+                    Logger.getLogger(getClass()).debug("Resending " + blockNumber);
                     tftp.bufferedSend(packet);
                 } catch (IOException ex) {
-                    Logger.getLogger(getClass()).error("TFTP resend failed", ex);
+                    Logger.getLogger(getClass()).warn("TFTP resend failed", ex);
                 }
             }
         }

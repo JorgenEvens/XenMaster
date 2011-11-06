@@ -41,7 +41,7 @@ public class Pool implements Runnable {
     protected Worker local;
     // The port number is completely random ... or is it?
     public final static int PORT = 24515;
-    private static Pool instance;
+    private volatile static Pool instance;
 
     private Pool() {
         workers = new HashMap<>();
@@ -183,58 +183,6 @@ public class Pool implements Runnable {
             return true;
         } else {
             return false;
-        }
-    }
-
-    /**
-     * Prefix     Alive - \ / - Master
-     * +----------------+ | | - - - - - - - - - - - - - - +
-     * +1011010111010000+ 1 1
-     * @param packet 
-     */
-    public class XMPacket {
-        // Alive packet, does not require further processing
-
-        public boolean alive;
-        public boolean master;
-        public String contents;
-
-        public byte[] getContents() {
-            ByteBuffer bb = ByteBuffer.allocate(1024);
-            bb.put(Integer.valueOf(0b10110101).byteValue());
-            bb.put(Integer.valueOf(0b1101_0000).byteValue());
-
-            short flags = 0;
-            flags += (alive ? 0b1 : 0b0);
-            flags += (master ? 0b10 : 0b0);
-
-            bb.putShort(flags);
-            if (contents != null) {
-                try {
-                    bb.put(contents.getBytes("UTF-8"));
-                } catch (UnsupportedEncodingException ex) {
-                    Logger.getLogger(getClass()).error("UTF-8 not recognized, file a bug please", ex);
-                }
-            }
-            return bb.array();
-        }
-
-        public void setContents(byte[] data, int length) {
-            if (length < 2) {
-                return;
-            }
-
-            // 101101011101 ~ 29/09  = birthday of initial commit
-            if (!(data[0] == 0b10110101 && data[1] == 0b1101_0000)) {
-                Logger.getLogger(getClass()).debug("Illegal prefix for packet");
-                return;
-            }
-
-            short flags = data[2];
-            alive = (flags & 0b1) == 1;
-            master = (flags & 0b01) == 1;
-
-            contents = new String(ArrayUtils.subarray(data, 3, length));
         }
     }
 }

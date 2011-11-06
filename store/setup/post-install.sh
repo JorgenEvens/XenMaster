@@ -1,3 +1,7 @@
+#!/bin/sh
+
+echo 'Making xen boot by default';
+
 mv /etc/grub.d/20_linux_xen /etc/grub.d/09_linux_xen;
 update-grub;
 
@@ -31,4 +35,20 @@ CONTROL_DOMAIN_UUID='${control_domain}'
 INSTALLATION_UUID='${installation}'
 MANAGEMENT_INTERFACE='xenbr0'
 PRIMARY_DISK='/dev/sda1'
+EOF
+
+echo 'Make SSL comms start on boot';
+
+update-rc.d xapissl defaults;
+
+echo 'Saying hi to bootstrap server';
+
+mv /etc/motd.tail /etc/motd.tail.default;
+wget http://#{bootstrap-server-address}/setup/motd -O /etc/motd.tail
+
+cat > /root/setup-done.sh << EOF
+#!/bin/sh
+echo 'Removing message...';
+mv /etc/motd.tail.default /etc/motd.tail;
+echo 'Done! Enjoy your coffee';
 EOF

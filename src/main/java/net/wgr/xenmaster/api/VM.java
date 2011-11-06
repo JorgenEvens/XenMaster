@@ -279,14 +279,14 @@ public class VM extends NamedEntity {
     }
     
     public static List<VM> getAll() throws BadAPICallException {
-        Map<String, Object> pools = (Map) Controller.dispatch("VM.get_all_records");
-        ArrayList<VM> mudPools = new ArrayList<>();
-        for (Map.Entry<String, Object> entry : pools.entrySet()) {
+        Map<String, Object> records = (Map) Controller.dispatch("VM.get_all_records");
+        ArrayList<VM> objects = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : records.entrySet()) {
             VM vm = new VM(entry.getKey(), false);
             vm.fillOut((Map) entry.getValue());
-            mudPools.add(vm);
+            objects.add(vm);
         }
-        return mudPools;
+        return objects;
     }
 
     public List<VBD> getVBDs() {

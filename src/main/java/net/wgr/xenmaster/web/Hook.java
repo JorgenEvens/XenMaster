@@ -10,9 +10,11 @@ import com.google.gson.Gson;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.InetAddress;
 import net.wgr.server.web.handling.WebCommandHandler;
 import net.wgr.wcp.Command;
 import net.wgr.wcp.CommandException;
+import net.wgr.xenmaster.api.XenApiEntity;
 import net.wgr.xenmaster.controller.Controller;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -36,6 +38,7 @@ public class Hook extends WebCommandHandler {
         return executeInstruction(cmd.getName(), apic.ref, apic.args);
     }
 
+    // todo proper rewrite
     protected Object executeInstruction(String command, String ref, Object[] args) {
         String[] split = StringUtils.split(command, '.');
         Class clazz = null;
@@ -62,7 +65,7 @@ public class Hook extends WebCommandHandler {
                     }
 
                     // The reference may be an empty string, just not null
-                    if (ref != null) {
+                    if (ref != null && clazz != null) {
                         Constructor c = clazz.getConstructor(String.class, boolean.class);
                         current = c.newInstance(ref, !ref.isEmpty());
                     }
@@ -89,7 +92,7 @@ public class Hook extends WebCommandHandler {
                                 Logger.getLogger(getClass()).info("Hook call made with incorrect number of arguments: " + command);
                                 return new CommandException("Illegal number of arguments in " + methodName + " call", command);
                             } else if (args != null) {
-                                for (int j = 0; j < types.length - 1; j++) {
+                                for (int j = 0; j < types.length; j++) {
                                     Class<?> type = types[j];
                                     Object value = args[j];
 
@@ -103,6 +106,14 @@ public class Hook extends WebCommandHandler {
                                             break;
                                         case "int":
                                             args[j] = Integer.parseInt(value.toString());
+                                            break;
+                                        default:
+                                            if (InetAddress.class.isAssignableFrom(type)) {
+                                                args[j] = InetAddress.getByName(value.toString());
+                                            } else if (XenApiEntity.class.isAssignableFrom(type)) {
+                                                Constructor c = type.getConstructor(String.class, boolean.class);
+                                                args[j] = c.newInstance(value.toString(), false);
+                                            }
                                             break;
                                     }
                                 }

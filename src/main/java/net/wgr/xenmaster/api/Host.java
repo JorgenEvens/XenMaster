@@ -11,10 +11,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
+import net.wgr.xenmaster.controller.Controller;
 import org.apache.log4j.Logger;
 
 /**
- * 
+ * Xen host
  * @created Oct 2, 2011
  * @author double-u
  */
@@ -43,6 +44,15 @@ public class Host extends XenApiEntity {
 
     public void reboot() throws BadAPICallException {
         dispatch("reboot");
+    }
+    
+    public void scanPIFs() throws BadAPICallException {
+        Controller.dispatch("PIF.scan", this.getReference());
+    }
+    
+    public PIF createPIFWithInterface(String interfaceName, String macAddress) throws BadAPICallException {
+        String ref = (String) Controller.dispatch("PIF.introduce", this.getReference(), macAddress, interfaceName);
+        return new PIF(ref);
     }
 
     public String getMajorApiVersion() {
@@ -88,6 +98,17 @@ public class Host extends XenApiEntity {
             Logger.getLogger(getClass()).error("Tried to retrieve CPU which doesn't exist on the physical system");
         }
         return new PCPU((String) hostCPUs[number]);
+    }
+    
+    public static List<Host> getAll() throws BadAPICallException {
+        Map<String, Object> records = (Map) Controller.dispatch("host.get_all_records");
+        ArrayList<Host> objects = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : records.entrySet()) {
+            Host vm = new Host(entry.getKey(), false);
+            vm.fillOut((Map) entry.getValue());
+            objects.add(vm);
+        }
+        return objects;
     }
 
     public List<VM> getResidentVMs() throws BadAPICallException {

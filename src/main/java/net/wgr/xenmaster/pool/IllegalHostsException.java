@@ -28,10 +28,10 @@ public class IllegalHostsException extends Exception {
 
     @Override
     public String getMessage() {
-        String msg = "Failed to connect to : ";
+        StringBuilder msg = new StringBuilder("Failed to connect to : ");
         for (Host h : hosts) {
-            msg += h.getAddress().getCanonicalHostName() + ", ";
+            msg.append(h.getAddress().getCanonicalHostName()).append(", ");
         }
-        return msg;
+        return msg.toString();
     }
 }

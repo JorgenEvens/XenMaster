@@ -1,0 +1,8 @@
+Hi, and welcome to your freshly installed Debian-based Xen host with XAPI.
+
+Thank you for using our splendid network installer to install your system.
+However, there are some things that deserve your immediate attention, outlined at https://github.com/Double-U/XenMaster/wiki/After-Setup .
+When you think this message is no longer necessary and frankly disturbing your inner peace, execute /root/setup-done.sh and this message will vanish.
+
+Enjoy your coffee,
+The XenMaster team

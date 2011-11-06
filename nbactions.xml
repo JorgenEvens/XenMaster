@@ -13,4 +13,14 @@
                 <exec.executable>java</exec.executable>
             </properties>
         </action>
+        <action>
+            <actionName>CUSTOM-Fullblown build</actionName>
+            <displayName>Fullblown build</displayName>
+            <goals>
+                <goal>clean</goal>
+                <goal>install</goal>
+                <goal>javadoc:javadoc</goal>
+                <goal>findbugs:findbugs</goal>
+            </goals>
+        </action>
     </actions>
