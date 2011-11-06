@@ -17,9 +17,9 @@ public class DataSet {
     protected Type type;
     protected double minimalHeartbeat;
     protected String min, max;
-    protected long lastDS;
+    protected double lastDS;
     protected double value;
-    protected int unknownSec;
+    protected int unknownSeconds;
 
     public static enum Type {
         GAUGE, DERIVE

@@ -9,8 +9,6 @@ import com.google.gson.JsonElement;
 import net.wgr.wcp.Command;
 import net.wgr.xenmaster.TestBase;
 import net.wgr.xenmaster.api.Host;
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -23,20 +21,9 @@ public class HookTest extends TestBase {
     
     protected Hook hook;
 
-    public HookTest() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
-
     @Before
     public void setUp() {
         hook = new Hook();
-    }
-
-    @After
-    public void tearDown() {
     }
 
     /**
