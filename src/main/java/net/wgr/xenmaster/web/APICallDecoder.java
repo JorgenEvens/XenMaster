@@ -10,11 +10,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import net.wgr.xenmaster.web.Hook.APICall;
@@ -36,20 +38,23 @@ public class APICallDecoder implements JsonDeserializer<Hook.APICall> {
         for (Entry<String, JsonElement> e : obj.entrySet()) {
             switch (e.getKey()) {
                 case "ref":
-                    apic.ref = e.getValue().getAsString();
+                    if (e.getValue() != null && !(e.getValue() instanceof JsonNull)) {
+                        apic.ref = e.getValue().getAsString();
+                    }
                     break;
                 case "args":
                     if (e.getValue().isJsonArray()) {
                         JsonArray arr = e.getValue().getAsJsonArray();
-                        ArrayList<Object> args = new ArrayList<>();
-                        while (arr.iterator().hasNext()) {
-                            JsonElement value = arr.iterator().next();
+                        ArrayList<Object> args = new ArrayList<>(arr.size());
+                        for (int i = 0; i < arr.size(); i++) {
+                            JsonElement value = arr.get(i);
                             if (value.isJsonPrimitive()) {
                                 args.add(value.getAsString());
                             } else if (value.isJsonObject()) {
                                 args.add(deserializeToMap(value.getAsJsonObject()));
                             }
                         }
+                        apic.args = args.toArray();
                     } else {
                         apic.args = null;
                     }
@@ -58,7 +63,7 @@ public class APICallDecoder implements JsonDeserializer<Hook.APICall> {
         }
         return apic;
     }
-    
+
     protected Map<String, Object> deserializeToMap(JsonObject obj) {
         HashMap<String, Object> map = new HashMap<>();
         for (Entry<String, JsonElement> e : obj.entrySet()) {

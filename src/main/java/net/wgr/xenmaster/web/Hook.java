@@ -12,9 +12,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.InetAddress;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import net.wgr.server.web.handling.WebCommandHandler;
+import net.wgr.utility.GlobalExecutorService;
 import net.wgr.wcp.Command;
 import net.wgr.wcp.CommandException;
 import net.wgr.xenmaster.api.XenApiEntity;
@@ -29,7 +32,7 @@ import org.apache.log4j.Logger;
  */
 public class Hook extends WebCommandHandler {
 
-    protected ConcurrentHashMap<Integer, Object> store;
+    protected ConcurrentHashMap<Integer, StoredValue> store;
     protected Class clazz = null;
     protected Object current = null;
     protected String className = "", commandName;
@@ -38,6 +41,7 @@ public class Hook extends WebCommandHandler {
         super("xen");
 
         store = new ConcurrentHashMap<>();
+        GlobalExecutorService.get().scheduleAtFixedRate(new Housekeeper(), 1, 1, TimeUnit.MINUTES);
         Controller.getSession().loginWithPassword("root", "r00tme");
     }
 
@@ -46,23 +50,29 @@ public class Hook extends WebCommandHandler {
         clazz = null;
         current = null;
         className = commandName = "";
-        
+
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(APICall.class, new APICallDecoder());
-        Gson gson = new Gson();
+        Gson gson = builder.create();
         APICall apic = gson.fromJson(cmd.getData(), APICall.class);
 
         return executeInstruction(cmd.getName(), apic.ref, apic.args);
     }
 
-    protected Object convertToJavaObject(Object value, Class type) throws Exception {
+    protected Object deserializeToTargetType(Object value, Class type) throws Exception {
         switch (type.getSimpleName()) {
             case "boolean":
                 return Boolean.parseBoolean(value.toString());
             case "int":
                 return Integer.parseInt(value.toString());
             default:
-                if (InetAddress.class.isAssignableFrom(type)) {
+                if (type.isEnum()) {
+                    for (Object enumType : type.getEnumConstants()) {
+                        if (enumType.toString().equals(value)) {
+                            return enumType;
+                        }
+                    }
+                } else if (InetAddress.class.isAssignableFrom(type)) {
                     return InetAddress.getByName(value.toString());
                 } else if (XenApiEntity.class.isAssignableFrom(type)) {
                     Constructor c = type.getConstructor(String.class, boolean.class);
@@ -75,18 +85,21 @@ public class Hook extends WebCommandHandler {
 
     protected <T> String createLocalObject(Class<T> clazz, Object[] args) throws Exception {
         T obj = clazz.newInstance();
-        if (args.length < 1 || args[0] == null || !(args[0] instanceof Map)) {
-            throw new IllegalArgumentException("No or illegal arguments map was given");
+        if (args == null || args.length < 1 || args[0] == null || !(args[0] instanceof Map)) {
+            throw new IllegalArgumentException("Illegal arguments map was given");
         }
         for (Map.Entry<String, Object> entry : ((Map<String, Object>) args[0]).entrySet()) {
             String methodName = "set" + entry.getKey().toLowerCase();
             for (Method m : clazz.getMethods()) {
-                if (!m.getName().toLowerCase().equals(methodName)) continue;
+                if (!m.getName().toLowerCase().equals(methodName)) {
+                    continue;
+                }
                 m.invoke(obj, entry.getValue());
             }
         }
-        store.put(store.size(), obj);
-        return "LocalRef:" + store.size();
+        int ref = store.size();
+        store.put(ref, new StoredValue(obj));
+        return "LocalRef:" + ref;
     }
 
     protected void determineClass(String ref, int index, String[] values) throws Exception {
@@ -143,11 +156,19 @@ public class Hook extends WebCommandHandler {
                     Class<?> type = types[j];
                     Object value = args[j];
 
-                    if (!(value instanceof String)) {
+                    if (!(value instanceof String) || String.class.isAssignableFrom(type)) {
                         continue;
                     }
 
-                    args[j] = convertToJavaObject(value, clazz);
+                    String str = value.toString();
+
+                    if (str.startsWith("LocalRef:")) {
+                        Integer localRef = Integer.parseInt(str.substring(str.indexOf(":") + 1));
+                        if (!store.containsKey(localRef)) return new CommandException("Local object reference does not exist", commandName);
+                        args[j] = store.get(localRef).value;
+                    } else {
+                        args[j] = deserializeToTargetType(value, clazz);
+                    }
                 }
             }
 
@@ -155,6 +176,7 @@ public class Hook extends WebCommandHandler {
                 if (Modifier.isStatic(m.getModifiers())) {
                     current = m.invoke(null, (Object[]) args);
                 } else {
+                    if (current == null) throw new IllegalArgumentException("Instance method called as a static method.");
                     m.setAccessible(true);
                     current = m.invoke(current, (Object[]) args);
                 }
@@ -189,7 +211,9 @@ public class Hook extends WebCommandHandler {
                     determineClass(ref, i, split);
                 } else {
                     Object result = findAndCallMethod(ref, s, args);
-                    if (result != null) return result;
+                    if (result != null) {
+                        return result;
+                    }
                 }
             } catch (Exception ex) {
                 Logger.getLogger(getClass()).error("Instruction failed " + s, ex);
@@ -207,5 +231,27 @@ public class Hook extends WebCommandHandler {
 
         public String ref;
         public Object[] args;
+    }
+
+    public static class StoredValue {
+
+        public long lastAccess = System.currentTimeMillis();
+        public Object value;
+
+        public StoredValue(Object value) {
+            this.value = value;
+        }
+    }
+
+    protected class Housekeeper implements Runnable {
+
+        @Override
+        public void run() {
+            for (Iterator<Map.Entry<Integer, StoredValue>> it = store.entrySet().iterator(); it.hasNext();) {
+                Map.Entry<Integer, StoredValue> entry = it.next();
+                Logger.getLogger(getClass()).debug("Deleting stale object with index LocalRef:" + entry.getKey());
+                if (System.currentTimeMillis() - entry.getValue().lastAccess > 60000) it.remove();
+            }
+        }
     }
 }
