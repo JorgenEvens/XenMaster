@@ -7,6 +7,8 @@
 package net.wgr.xenmaster.monitoring;
 
 import com.google.common.collect.ArrayListMultimap;
+import java.io.IOException;
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -14,6 +16,9 @@ import java.util.concurrent.TimeUnit;
 import net.wgr.settings.Settings;
 import net.wgr.utility.GlobalExecutorService;
 import net.wgr.xenmaster.entities.Host;
+import org.apache.commons.net.ntp.NTPUDPClient;
+import org.apache.commons.net.ntp.TimeInfo;
+import org.apache.log4j.Logger;
 
 /**
  * 
@@ -25,11 +30,20 @@ public class MonitoringAgent implements Runnable {
     protected ArrayListMultimap<String, Record> vmData, hostData;
     protected Map<String, ParsedRecord> vmParsed, hostParsed;
     protected ConcurrentSkipListMap<String, String> data;
+    protected TimeInfo timeInfo;
     
     public MonitoringAgent() {
         vmData = ArrayListMultimap.create();
         hostData = ArrayListMultimap.create();
         data = new ConcurrentSkipListMap<>();
+        NTPUDPClient nuc = new NTPUDPClient();
+        try {
+            this.timeInfo = nuc.getTime(InetAddress.getByName("pool.ntp.org"));
+            timeInfo.computeDetails();
+            Logger.getLogger(getClass()).info("It is now " + (System.currentTimeMillis() + timeInfo.getOffset()) + ". Your host has an offset of " + (timeInfo.getOffset() / 1000) + " seconds");
+        } catch (IOException ex) {
+            Logger.getLogger(getClass()).warn("NTP time retrieval failed", ex);
+        }
     }
     
     protected void schedule() {

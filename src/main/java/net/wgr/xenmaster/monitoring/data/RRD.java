@@ -33,6 +33,7 @@ public class RRD {
         xs.aliasField("last_ds", DataSet.class, "lastDS");
         xs.aliasField("unknown_sec", DataSet.class, "unknownSeconds");
         xs.addImplicitCollection(RRD.class, "rra", RRA.class);
+        xs.addImplicitMap(RRA.class, "params", "param", String.class, "param");
         xs.aliasField("pdp_per_row", RRA.class, "pdpPerRow");
         xs.aliasField("cdp_prep", RRA.class, "cdpPrep");
         RRD fromXML = (RRD) xs.fromXML(is);

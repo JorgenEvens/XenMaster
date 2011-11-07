@@ -17,7 +17,7 @@ import java.util.Map;
 public class RRA {
     protected String cf;
     protected int pdpPerRow;
-    protected Object params;
+    protected Map<String, String> params;
     protected Object cdpPrep;
     protected List<List<Double>> database;
 }

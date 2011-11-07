@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import net.wgr.xenmaster.TestBase;
+import net.wgr.xenmaster.monitoring.MonitoringAgent;
 import org.junit.Test;
 
 /**
@@ -16,8 +17,9 @@ import org.junit.Test;
  */
 public class RRDTest extends TestBase {
 
-    //@Test
+    ///@Test
     public void testSomeMethod() throws MalformedURLException, IOException {
+        MonitoringAgent ma = new MonitoringAgent();
         RRD rrd = RRD.parse(new FileInputStream("rrd.xml"));
     }
 }

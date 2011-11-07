@@ -33,9 +33,6 @@ public class Collector implements Runnable {
             URLConnection uc = url.openConnection();
             uc.setRequestProperty("Authorization", "Basic " + new String(Base64.encodeBase64("root:test".getBytes())));
             uc.connect();
-            
-            
-            
         } catch (Exception ex) {
             Logger.getLogger(getClass()).error("Failed to retrieve statistics", ex);
         }

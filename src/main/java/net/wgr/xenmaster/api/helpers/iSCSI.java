@@ -6,7 +6,6 @@
  */
 package net.wgr.xenmaster.api.helpers;
 
-import com.thoughtworks.xstream.XStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.HashMap;
