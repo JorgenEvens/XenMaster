@@ -1,4 +1,4 @@
-DEBUG = true;
+DEBUG = document.location.toString().indexOf('debug') > -1;
 
 (function( $, undefined ){
 	

@@ -26,4 +26,15 @@
 		
 	});
 	
+	this.bind( 'ui_storage', function(){
+		
+		app.load( 'tpl://global/vm_create', 'js://ui/template', function( vm_create, Template ){
+			
+			var create = new Template({ resource: vm_create });
+			create.show();
+			
+		});
+		
+	});
+	
 });
