@@ -90,6 +90,10 @@ public class SR extends NamedEntity {
     public void forget() throws BadAPICallException {
         dispatch("forget");
     }
+    
+    public void update() throws BadAPICallException {
+        dispatch("update");
+    }
 
     public static List<SR> getAll() throws BadAPICallException {
         Object[] srs = (Object[]) Controller.dispatch("SR.get_all");

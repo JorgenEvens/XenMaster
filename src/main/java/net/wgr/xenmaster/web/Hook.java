@@ -167,7 +167,7 @@ public class Hook extends WebCommandHandler {
                         if (!store.containsKey(localRef)) return new CommandException("Local object reference does not exist", commandName);
                         args[j] = store.get(localRef).value;
                     } else {
-                        args[j] = deserializeToTargetType(value, clazz);
+                        args[j] = deserializeToTargetType(value, type);
                     }
                 }
             }
