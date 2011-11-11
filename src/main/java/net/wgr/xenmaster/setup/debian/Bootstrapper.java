@@ -47,7 +47,7 @@ public class Bootstrapper {
         @Override
         public InputStream pathRequest(TFTPOptionReadRequestPacket packet) {
             try {
-                File path = new File("store/netboot/" + packet.getFilename());
+                File path = new File(Settings.getInstance().getString("StorePath") + "/netboot/" + packet.getFilename());
                 if (!path.exists()) {
                     return null;
                 }

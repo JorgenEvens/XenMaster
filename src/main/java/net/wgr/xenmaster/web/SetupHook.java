@@ -31,15 +31,16 @@ public class SetupHook extends WebHook {
     public void handle(RequestBundle rb) throws IOException {
         Logger.getLogger(getClass()).info("Preseed request " + rb.getRequestURI());
         FileInputStream fis = null;
+        String store = Settings.getInstance().getString("StorePath");
         switch (rb.getPathParts()[0]) {
             case "xapi":
-                fis = new FileInputStream("store/setup/preseed-template.txt");
+                fis = new FileInputStream(store + "/setup/preseed-template.txt");
                 break;
             case "post-install.sh":
-                fis = new FileInputStream("store/setup/post-install.sh");
+                fis = new FileInputStream(store + "/setup/post-install.sh");
                 break;
             case "motd":
-                fis = new FileInputStream("store/setup/motd");
+                fis = new FileInputStream(store + "/setup/motd");
                 Logger.getLogger(getClass()).info(rb.getRequest().getParameter("IP") + " completed network install");
                 break;
             default:
