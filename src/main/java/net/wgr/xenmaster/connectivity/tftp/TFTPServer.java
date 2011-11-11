@@ -217,6 +217,7 @@ public class TFTPServer implements Runnable {
                     Logger.getLogger(getClass()).debug("Resending " + blockNumber);
                     tftp.bufferedSend(packet);
                 } catch (IOException ex) {
+                    chill();
                     Logger.getLogger(getClass()).warn("TFTP resend failed", ex);
                 }
             }

@@ -28,7 +28,7 @@ public class SR extends NamedEntity {
     protected Map<String, String> currentOperations;
     protected long virtualAllocation, physicalUtilisation;
     protected boolean shared;
-    @Fill
+    @Fill(storeExternally=true)
     protected Map<String, String> smConfig, otherConfig;
     protected String type, contentType;
     protected boolean localCache;
@@ -39,6 +39,9 @@ public class SR extends NamedEntity {
 
     public SR(String ref) {
         super(ref);
+    }
+
+    public SR() {
     }
 
     public void create(Host host, Map<String, String> deviceConfig, Type type, String contentType, boolean shared, int size) throws BadAPICallException {

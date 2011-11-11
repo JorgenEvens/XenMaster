@@ -32,6 +32,10 @@ public class XenApiEntity {
     protected String reference;
     protected String uuid;
     protected final transient String packageName = getClass().getPackage().getName();
+    
+    public XenApiEntity() {
+        
+    }
 
     public XenApiEntity(String ref) {
         this(ref, ref != null);
@@ -58,9 +62,7 @@ public class XenApiEntity {
     }
 
     public UUID getUUID() {
-        if (uuid == null || uuid.isEmpty()) {
-            return null;
-        }
+        uuid = value(uuid, "get_uuid");
         return UUID.fromString(uuid);
     }
 
@@ -199,6 +201,8 @@ public class XenApiEntity {
     public @interface Fill {
 
         boolean fillAPIObject() default false;
+        // If the values are not returned from a get_record operation, store them externally
+        boolean storeExternally() default false;
     }
 
     @Retention(RetentionPolicy.RUNTIME)

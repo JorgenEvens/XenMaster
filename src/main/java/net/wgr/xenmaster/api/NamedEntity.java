@@ -28,6 +28,9 @@ public class NamedEntity extends XenApiEntity {
         super(ref);
     }
 
+    public NamedEntity() {
+    }
+
     public String getDescription() {
         description = value(description, "get_name_description");
         return description;
