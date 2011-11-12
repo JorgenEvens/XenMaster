@@ -7,7 +7,6 @@
 package net.wgr.xenmaster.pool;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -15,13 +14,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import net.wgr.rmi.Remote;
 import net.wgr.utility.GlobalExecutorService;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -76,6 +73,11 @@ public class Pool implements Runnable {
         wpop.start();
         rmi.start();
         GlobalExecutorService.get().scheduleAtFixedRate(new AliveBroadcaster(), 0, 1, TimeUnit.SECONDS);
+    }
+    
+    public void stop() {
+        // Send "going down" msg to pool master or to friend if this is the master
+        run = false;
     }
 
     protected class AliveBroadcaster implements Runnable {

@@ -74,6 +74,7 @@ public class App implements Daemon {
     @Override
     public void stop() throws Exception {
         server.stop();
+        Pool.get().stop();
         GlobalExecutorService.get().shutdownNow();
     }
 

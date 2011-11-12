@@ -35,11 +35,11 @@ public class XMPacket {
         bb.put(Integer.valueOf(0b10110101).byteValue());
         bb.put(Integer.valueOf(0b1101_0000).byteValue());
 
-        short flags = 0;
+        byte flags = 0;
         flags += (alive ? 0b1 : 0b0);
         flags += (master ? 0b10 : 0b0);
 
-        bb.putShort(flags);
+        bb.put(flags);
         if (contents != null) {
             try {
                 bb.put(contents.getBytes("UTF-8"));
@@ -61,9 +61,9 @@ public class XMPacket {
             return;
         }
 
-        short flags = data[2];
-        alive = (flags & 0b1) == 1;
-        master = (flags & 0b01) == 1;
+        byte flags = data[2];
+        alive = (flags & 0b1) != 0;
+        master = (flags & 0b10) != 0;
 
         contents = new String(ArrayUtils.subarray(data, 3, length));
     }
