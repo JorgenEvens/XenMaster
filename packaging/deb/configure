@@ -9,7 +9,7 @@ BUILD="build.conf/build.conf"
 cat "$DEFAULTS" > $CONFIG
 
 for i in $*; do
-	echo $i | awk 'm = match( $0, /--([^=]+)="?(.+)"?/, r ) { print r[1] "=\"" r[2] "\"" }' >> $CONFIG
+	echo $i | gawk 'm = match( $0, /--([^=]+)="?(.+)"?/, r ) { print r[1] "=\"" r[2] "\"" }' >> $CONFIG
 done
 
 cat "$BUILD" >> $CONFIG

@@ -1,0 +1,17 @@
+Prerequisits
+#########################
+
+# ./configure
+#########################
+GNU awk is required to use the configure script.
+On debian you can install this using `apt-get install gawk`
+
+# ./build
+#########################
+To build XenMaster following packages are required and can be install
+using the preflight.sh script.
+
+ - openjdk-7-jdk
+ - maven2
+ - git
+ - dpkg
