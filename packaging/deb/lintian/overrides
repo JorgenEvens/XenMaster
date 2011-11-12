@@ -1,0 +1,5 @@
+# We use the jQuery from Google's CDN by default and use this one as fallback.
+# We cannot however be bothered checking which jQuery is available locally and adjusting to that version.
+xenmaster binary: embedded-javascript-library var/lib/xm/web/scripts/lib/jquery.js
+# This file is not meant to be executed locally, thus should not be executable
+xenmaster binary: script-not-executable var/lib/xm/store/setup/post-install.sh

@@ -1,0 +1,19 @@
+.\" Process this file with
+.\" groff -man -Tascii foo.1
+.\"
+.TH XENMASTER 1 "NOVEMBER 2011" Linux "User Manuals"
+.SH NAME
+xenmaster \- XenMaster daemon
+.SH SYNOPSIS
+.B xenmaster
+.SH DESCRIPTION
+.B xenmaster
+starts a XenMaster daemon with the settings provided in /etc/xm/settings.xml
+.SH FILES
+.I /etc/xm/settings.xml
+.RS
+The daemon configuration file.
+.SH BUGS
+Please report every bug to https://github.com/Double-U/XenMaster/issues . We appreciate your cooperation.
+.SH AUTHOR
+Wannes De Smet <double-u at secretpanda dot net>

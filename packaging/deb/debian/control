@@ -1,0 +1,18 @@
+Package: xenmaster
+Version: 0.1
+Section: admin
+Priority: optional
+Architecture: all
+Depends: openjdk-7-jre-headless, jsvc
+Maintainer: Jorgen Evens <jorgen.evens@gmail.com>
+Homepage: http://xen-master.org
+Vcs-Git: git://github.com/Double-U/XenMaster.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/xenmaster.git;a=summary
+Description: Xen needs a proper web based GUI. We're making it happen.
+ XenMaster aims to be the only thing you need to successfully
+ setup and manage your Xen infrastructure.
+ It runs on every platform, and doesn't require anything but 
+ Apache Cassandra to run properly.
+ .
+ Enjoy your coffee,
+ The XenMaster team
