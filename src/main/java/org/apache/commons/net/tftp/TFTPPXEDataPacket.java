@@ -74,7 +74,7 @@ public final class TFTPPXEDataPacket extends TFTPPacket {
         super(TFTPPacket.DATA, destination, port);
 
         this.blockNumber = blockNumber;
-        this.data = data;
+        this.data = data.clone();
         this.offset = offset;
         this.length = length;
     }
@@ -188,7 +188,7 @@ public final class TFTPPXEDataPacket extends TFTPPacket {
      * @param length The length of the data.
      ***/
     public void setData(byte[] data, int offset, int length) {
-        this.data = data;
+        this.data = data.clone();
         this.offset = offset;
         this.length = length;
     }

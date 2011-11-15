@@ -56,7 +56,7 @@ public class XMPacket {
         }
 
         // 101101011101 ~ 29/09  = birthday of initial commit
-        if (!(data[0] == 0b10110101 && data[1] == 0b1101_0000)) {
+        if (!(data[0] == (byte) 0b10110101 && data[1] == (byte) 0b1101_0000)) {
             Logger.getLogger(getClass()).debug("Illegal prefix for packet");
             return;
         }

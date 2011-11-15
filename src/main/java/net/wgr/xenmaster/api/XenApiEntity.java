@@ -32,9 +32,8 @@ public class XenApiEntity {
     protected String reference;
     protected String uuid;
     protected final transient String packageName = getClass().getPackage().getName();
-    
+
     public XenApiEntity() {
-        
     }
 
     public XenApiEntity(String ref) {
@@ -202,11 +201,62 @@ public class XenApiEntity {
 
         boolean fillAPIObject() default false;
         // If the values are not returned from a get_record operation, store them externally
+
         boolean storeExternally() default false;
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     public @interface ConstructorArgument {
+    }
+
+    public void persistFields() {
+        for (Field f : ReflectionUtils.getAllFields(getClass())) {
+            if (f.isAnnotationPresent(ConstructorArgument.class) && Map.class.isAssignableFrom(f.getType())) {
+                try {
+                    Fill fill = f.getAnnotation(Fill.class);
+                    if (fill.storeExternally()) {
+                        PersistedField pf = new PersistedField(reference, f.getName(), f.get(this));
+                        pf.insert();
+                    }
+                } catch (IllegalAccessException | IllegalArgumentException ex) {
+                    Logger.getLogger(getClass()).error("Failed to persist field", ex);
+                }
+            }
+        }
+    }
+
+    protected class PersistedField extends net.wgr.core.dao.Object {
+
+        protected String reference, name;
+        protected Object value;
+
+        @Override
+        public String getColumnFamily() {
+            return "xapiPersistence";
+        }
+
+        @Override
+        public String getKeyFieldName() {
+            return "reference";
+        }
+
+        public PersistedField(String reference, String name, Object value) {
+            this.reference = reference;
+            this.name = name;
+            this.value = value;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getReference() {
+            return reference;
+        }
+
+        public Object getValue() {
+            return value;
+        }
     }
 
     protected HashMap<String, Object> collectConstructorArgs() {
