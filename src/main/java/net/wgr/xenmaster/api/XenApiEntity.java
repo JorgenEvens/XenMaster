@@ -12,6 +12,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.wgr.core.ReflectionUtils;
@@ -225,8 +226,11 @@ public class XenApiEntity {
         }
     }
 
-    protected class PersistedField extends net.wgr.core.dao.Object {
+    protected static class PersistedField extends net.wgr.core.dao.Object {
 
+        private static List<PersistedField> getAllForReference(String reference) {
+            throw new UnsupportedOperationException("Not yet implemented");
+        }
         protected String reference, name;
         protected Object value;
 
@@ -357,7 +361,14 @@ public class XenApiEntity {
                 }
             }
 
+            List<PersistedField> persistedFields = null;
+
             if (value == null) {
+                if (f.isAnnotationPresent(Fill.class) && f.getAnnotation(Fill.class).storeExternally()) {
+                    if (persistedFields == null) {
+                        persistedFields = PersistedField.getAllForReference(this.reference);
+                    }
+                }
                 continue;
             }
 

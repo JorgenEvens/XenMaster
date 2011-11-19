@@ -65,6 +65,7 @@ public class SR extends NamedEntity {
         if (smConfig == null) {
             smConfig = new HashMap<>();
         }
+        persistFields();
         this.reference = (String) dispatch("create", host.getIDString(), deviceConfig, "" + size, name, description, type.toLowerCase(), contentType, shared, smConfig);
     }
 
