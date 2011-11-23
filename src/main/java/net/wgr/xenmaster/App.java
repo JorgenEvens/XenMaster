@@ -1,6 +1,7 @@
 package net.wgr.xenmaster;
 
 import net.wgr.core.access.Authorize;
+import net.wgr.core.data.DataPool;
 import net.wgr.server.application.DefaultApplication;
 import net.wgr.server.http.Server;
 import net.wgr.server.web.handling.ServerHook;
@@ -48,6 +49,7 @@ public class App implements Daemon {
 
     @Override
     public void start() throws Exception {
+        DataPool.simpleBoot(Settings.getInstance().getString("Cassandra.PoolName"), Settings.getInstance().getString("Cassandra.Host"), Settings.getInstance().getString("Cassandra.Keyspace"));
         Pool.get().boot();
 
         server = new Server();

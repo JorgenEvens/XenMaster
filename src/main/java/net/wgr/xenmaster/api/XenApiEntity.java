@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.wgr.core.ReflectionUtils;
+import net.wgr.core.data.DAObjectMatcher;
+import net.wgr.core.data.LazyQuery;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
 import net.wgr.xenmaster.monitoring.LogEntry;
@@ -228,15 +230,13 @@ public class XenApiEntity {
 
     protected static class PersistedField extends net.wgr.core.dao.Object {
 
-        private static List<PersistedField> getAllForReference(String reference) {
-            throw new UnsupportedOperationException("Not yet implemented");
-        }
         protected String reference, name;
         protected Object value;
+        protected static String COLUMN_FAMILY = "xapiPersistence";
 
         @Override
         public String getColumnFamily() {
-            return "xapiPersistence";
+            return COLUMN_FAMILY;
         }
 
         @Override
@@ -260,6 +260,23 @@ public class XenApiEntity {
 
         public Object getValue() {
             return value;
+        }
+
+        private static List<PersistedField> getAllForReference(final String reference) {
+            LazyQuery<PersistedField> lq = new LazyQuery(COLUMN_FAMILY, LazyQuery.Strategy.FIND_ALL);
+            lq.addMatcher(new DAObjectMatcher<PersistedField>(PersistedField.class) {
+
+                @Override
+                public boolean match(PersistedField object) {
+                    if (object.getReference().equals(reference)) {
+                        return true;
+                    }
+                    return false;
+                }
+            });
+
+            lq.run();
+            return new ArrayList<>(lq.getResults().values());
         }
     }
 
@@ -363,10 +380,17 @@ public class XenApiEntity {
 
             List<PersistedField> persistedFields = null;
 
+            // Some fields are persisted, check if there are any and load them
             if (value == null) {
                 if (f.isAnnotationPresent(Fill.class) && f.getAnnotation(Fill.class).storeExternally()) {
                     if (persistedFields == null) {
                         persistedFields = PersistedField.getAllForReference(this.reference);
+                    }
+
+                    for (PersistedField ps : persistedFields) {
+                        if (ps.getName().equals(f.getName())) {
+                            value = ps.getValue();
+                        }
                     }
                 }
                 continue;

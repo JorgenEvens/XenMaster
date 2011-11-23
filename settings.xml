@@ -39,12 +39,12 @@
                 <string>XenMaster</string>
             </entry>
             <entry>
-                <string>Server</string>
-                <string>172.16.222.215</string>
+                <string>Host</string>
+                <string>token.w-gr.net</string>
             </entry>
             <entry>
                 <string>PoolName</string>
-                <string>XenMaster</string>
+                <string>Main</string>
             </entry>
         </map>
     </entry>
