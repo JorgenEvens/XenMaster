@@ -51,7 +51,7 @@ public class Record {
         applyStatistics(utils.values());
 
         memoryUsage = (vmr.getActualMemory() / 1024*1024);
-        memoryTotal = (vm.getMaximumDynamicMemory() / 1024*1024);
+        memoryTotal = (int)(vm.getMaximumDynamicMemory() / 1024*1024);
 
         // In dom0, all memory is used by default
         if (memoryUsage / memoryTotal > 0.9 && isVM) {
