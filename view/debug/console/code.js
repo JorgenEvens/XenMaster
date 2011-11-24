@@ -46,28 +46,16 @@
 		xm = xm.getInstance();
 		
 		dom.find('.submit').click(function(){
-			var param = data.val().split(','),
-				args = [],
-				reference = null;
-			
-			for( var i=0; i<param.length; i++ ) {
-				param[i] = param[i].replace(/^\s+|\s+$/g,"");
-				if( param[i].length > 0 ) {
-					if( param[i].indexOf( '{' ) > -1 ) {
-						args.push( JSON.parse(param[i]) );
-					} else {
-						args.push( param[i] );
-					}
-					
-				}
-			}
+			var args = JSON.parse( '[' + data.val() + ']' ),
+				reference = null,
+				param;
 			
 			if( ref.val().length > 0 ) {
 				reference = ref.val();
 			}
 			
 			param = { args: args.length > 0 ? args : null, ref: reference };
-			console.log( param );
+			
 			xm.send('xen://' + cmd.val(), param, function( result ) {
 				console.log( result );
 				debug_pre.text('');

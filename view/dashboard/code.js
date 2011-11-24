@@ -28,7 +28,7 @@
 		
 		tpl.capture( 'click' );
 		tpl.bind( 'vm_clicked', function( e ) {
-			app.load( 'tpl://detail/vm', 'js://ui/template', function( vm, Template ) {
+			app.load( 'tpl://vm/detail', 'js://ui/template', function( vm, Template ) {
 				
 				var vm_ui = new Template({ resource: vm });
 				vm_ui.show( e.dataset.config );
