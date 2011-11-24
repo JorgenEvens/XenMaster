@@ -6,7 +6,7 @@
             <entry>
                 <!-- temporary measure until proper cfg backend is set up -->
                 <string>URL</string>
-                <string>http://172.16.222.216</string>
+                <string>http://192.168.177.142</string>
             </entry>
         </map>
     </entry>
@@ -40,7 +40,7 @@
             </entry>
             <entry>
                 <string>Host</string>
-                <string>token.w-gr.net</string>
+                <string>localhost</string>
             </entry>
             <entry>
                 <string>PoolName</string>

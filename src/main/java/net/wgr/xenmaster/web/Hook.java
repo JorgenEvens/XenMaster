@@ -168,7 +168,7 @@ public class Hook extends WebCommandHandler {
         for (ListIterator<Method> it = matches.listIterator(); it.hasNext();) {
             Method m = it.next();
             
-            if (m.getParameterTypes().length != args.length) {
+            if ((m.getParameterTypes().length > 0 && args == null) || (args != null && m.getParameterTypes().length != args.length)) {
                 it.remove();
             }
         }
