@@ -23,7 +23,7 @@ public class XMLRPC {
 
     protected XmlRpcClientConfigImpl cfg;
     protected XmlRpcClient client;
-    protected Logger logger = Logger.getLogger(getClass());
+    protected final Logger logger = Logger.getLogger(getClass());
 
     public XMLRPC(URL host){
         cfg = new XmlRpcClientConfigImpl();
@@ -37,7 +37,7 @@ public class XMLRPC {
             logger.debug("Called " + method);
             return (Map) client.execute(method, params);
         } catch (XmlRpcException ex) {
-            logger.debug("Call failed", ex);
+            logger.info("Call failed", ex);
         }
         return null;
     }

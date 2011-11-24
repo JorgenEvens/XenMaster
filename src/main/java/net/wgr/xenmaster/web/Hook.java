@@ -76,10 +76,16 @@ public class Hook extends WebCommandHandler {
                 return Integer.parseInt(value.toString());
             default:
                 if (type.isEnum()) {
+                    String ucase = value.toString().toUpperCase();
+                    boolean found = false;
                     for (Object enumType : type.getEnumConstants()) {
-                        if (enumType.toString().equals(value)) {
+                        if (enumType.toString().toUpperCase().equals(ucase)) {
+                            found = true;
                             return enumType;
                         }
+                    }
+                    if (!found) {
+                        throw new IllegalArgumentException("Argument value does not belong to enum values of " + type.getCanonicalName());
                     }
                 } else if (InetAddress.class.isAssignableFrom(type)) {
                     return InetAddress.getByName(value.toString());

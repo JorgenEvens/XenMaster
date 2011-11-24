@@ -6,7 +6,9 @@
  */
 package net.wgr.xenmaster.api;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
@@ -17,7 +19,8 @@ import net.wgr.xenmaster.controller.Controller;
  * @author double-u
  */
 public class PBD extends XenApiEntity {
-    
+
+    @Fill
     protected Map<String, Object> deviceConfig, otherConfig;
     protected boolean attached;
     protected String SR, host;
@@ -29,15 +32,15 @@ public class PBD extends XenApiEntity {
     public PBD(String ref) {
         super(ref);
     }
-    
+
     public void plug() throws BadAPICallException {
         dispatch("plug");
     }
-    
+
     public void unplug() throws BadAPICallException {
         dispatch("unplug");
     }
-    
+
     public void create(SR sr, Host host, Map<String, String> cfg) throws BadAPICallException {
         HashMap<String, Object> args = new HashMap<>();
         args.put("SR", sr.getReference());
@@ -51,6 +54,17 @@ public class PBD extends XenApiEntity {
 
     public SR getSR() {
         return new SR(SR);
+    }
+
+    public static List<PBD> getAll() throws BadAPICallException {
+        Map<String, Object> records = (Map) Controller.dispatch("PBD.get_all_records");
+        ArrayList<PBD> objects = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : records.entrySet()) {
+            PBD obj = new PBD(entry.getKey(), false);
+            obj.fillOut((Map) entry.getValue());
+            objects.add(obj);
+        }
+        return objects;
     }
 
     public boolean isAttached() {
@@ -67,5 +81,4 @@ public class PBD extends XenApiEntity {
         map.put("attached", "currently_attached");
         return map;
     }
-    
 }

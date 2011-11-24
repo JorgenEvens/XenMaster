@@ -28,7 +28,7 @@ public class SR extends NamedEntity {
     protected Map<String, String> currentOperations;
     protected long virtualAllocation, physicalUtilisation;
     protected boolean shared;
-    @Fill(storeExternally=true)
+    @Fill(storeExternally = true)
     protected Map<String, String> smConfig, otherConfig;
     protected String type, contentType;
     protected boolean localCache;
@@ -44,18 +44,18 @@ public class SR extends NamedEntity {
     public SR() {
     }
 
-    public void create(Host host, Map<String, String> deviceConfig, Type type, String contentType, boolean shared, int size) throws BadAPICallException {
+    public String create(Host host, Map<String, String> deviceConfig, Type type, String contentType, boolean shared, int size) throws BadAPICallException {
         if (host == null || deviceConfig == null || name == null || type == null) {
             throw new IllegalArgumentException("Some essential arguments haven't been supplied");
         }
-        create(host, deviceConfig, type.name().toLowerCase(), contentType, shared, size);
+        return create(host, deviceConfig, type.name().toLowerCase(), contentType, shared, size);
     }
 
-    public void create(Host host, iSCSI cfg, String contentType, boolean shared, int size) throws BadAPICallException {
-        create(host, cfg.toDeviceConfig(), cfg.getType().name().toLowerCase(), contentType, shared, size);
+    public String create(Host host, iSCSI cfg, String contentType, boolean shared, int size) throws BadAPICallException {
+        return create(host, cfg.toDeviceConfig(), cfg.getType().name().toLowerCase(), contentType, shared, size);
     }
 
-    protected void create(Host host, Map<String, String> deviceConfig, String type, String contentType, boolean shared, int size) throws BadAPICallException {
+    protected String create(Host host, Map<String, String> deviceConfig, String type, String contentType, boolean shared, int size) throws BadAPICallException {
         if (reference != null) {
             throw new IllegalArgumentException("Object reference is set");
         }
@@ -67,15 +67,23 @@ public class SR extends NamedEntity {
         }
         persistFields();
         this.reference = (String) dispatch("create", host.getIDString(), deviceConfig, "" + size, name, description, type.toLowerCase(), contentType, shared, smConfig);
+
+        return this.reference;
     }
 
-    public void introduce(Type type, String contentType, boolean shared) throws BadAPICallException {
+    public String introduce(Type type, String contentType, boolean shared) throws BadAPICallException {
         if (smConfig == null) {
             smConfig = new HashMap<>();
         }
-        
+
+        this.type = type.name().toLowerCase();
+        this.contentType = contentType;
+        this.shared = shared;
+
         persistFields();
-        this.reference = (String) Controller.dispatch("SR.introduce", UUID.randomUUID().toString(), name, description, type.name().toLowerCase(), contentType, shared, smConfig);
+        this.reference = (String) Controller.dispatch("SR.introduce", UUID.randomUUID().toString(), name, description, this.type, contentType, shared, smConfig);
+
+        return this.reference;
     }
 
     public String probe(Host host, iSCSI cfg) throws BadAPICallException {
@@ -96,7 +104,7 @@ public class SR extends NamedEntity {
     public void forget() throws BadAPICallException {
         dispatch("forget");
     }
-    
+
     public void update() throws BadAPICallException {
         dispatch("update");
     }
@@ -166,7 +174,7 @@ public class SR extends NamedEntity {
     protected Map<String, String> interpretation() {
         HashMap<String, String> map = (HashMap<String, String>) super.interpretation();
         map.put("localCache", "local_cache_enabled");
-        
+
         return map;
     }
 

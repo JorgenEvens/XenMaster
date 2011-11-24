@@ -31,9 +31,11 @@ public class Dispatcher {
             Logger.getLogger(getClass()).error(ex);
         }
     }
-    
+
     public static Dispatcher get() {
-        if (instance == null) instance = new Dispatcher();
+        if (instance == null) {
+            instance = new Dispatcher();
+        }
         return instance;
     }
 
@@ -45,6 +47,13 @@ public class Dispatcher {
     }
 
     protected Object execute(String methodName, List params) throws BadAPICallException {
+        // Preflight check
+        for (Object o : params) {
+            if (o == null) {
+                throw new BadAPICallException(methodName, params, "Illegal argument", "A null argument has been passed");
+            }
+        }
+        
         Map result = this.conn.executeCommand(methodName, params);
         if (result == null) {
             throw new BadAPICallException(methodName, params);
