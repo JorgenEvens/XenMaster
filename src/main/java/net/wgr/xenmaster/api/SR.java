@@ -73,6 +73,8 @@ public class SR extends NamedEntity {
         if (smConfig == null) {
             smConfig = new HashMap<>();
         }
+        
+        persistFields();
         this.reference = (String) Controller.dispatch("SR.introduce", UUID.randomUUID().toString(), name, description, type.name().toLowerCase(), contentType, shared, smConfig);
     }
 

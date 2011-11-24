@@ -32,11 +32,11 @@ public class VM extends NamedEntity {
     @ConstructorArgument
     protected int startupVCPUs, maxVCPUs;
     @ConstructorArgument
-    protected int minimumStaticMemory, minimumDynamicMemory;
+    protected long minimumStaticMemory, minimumDynamicMemory;
     @ConstructorArgument
     protected long maximumStaticMemory;
     @ConstructorArgument
-    protected int maximumDynamicMemory;
+    protected long maximumDynamicMemory;
     protected int domainId;
     @ConstructorArgument
     protected boolean template;
@@ -70,7 +70,12 @@ public class VM extends NamedEntity {
     protected Map<String, String> otherConfig;
     @ConstructorArgument
     protected String recommendations;
+    protected static int MEGABYTE = 1024 * 1024;
 
+    public VM() {
+        
+    }
+    
     public VM(String ref, boolean autoFill) {
         super(ref, autoFill);
     }
@@ -79,12 +84,8 @@ public class VM extends NamedEntity {
         super(ref);
     }
 
-    public void create(int maxVCPUs, long maxStaticMemMb, int minStaticMemMb, int maxDynMemMb, int minDynMemMb) throws BadAPICallException {
+    public void create(int maxVCPUs) throws BadAPICallException {
         this.maxVCPUs = maxVCPUs;
-        maximumStaticMemory = maxStaticMemMb * (1024 * 1024);
-        maximumDynamicMemory = maxDynMemMb * (1024 * 1024);
-        minimumDynamicMemory = minDynMemMb * (1024 * 1024);
-        minimumStaticMemory = minStaticMemMb * (1024 * 1024);
 
         if (startupVCPUs < 1 || maxVCPUs < 1 || startupVCPUs > maxVCPUs) {
             throw new IllegalArgumentException("VM CPU count is zero or startup VCPU count is larger than max VCPU count");
@@ -277,7 +278,7 @@ public class VM extends NamedEntity {
         this.guestMetrics = value(this.guestMetrics, "get_guest_metrics");
         return new GuestMetrics(this.guestMetrics);
     }
-    
+
     public static List<VM> getAll() throws BadAPICallException {
         Map<String, Object> records = (Map) Controller.dispatch("VM.get_all_records");
         ArrayList<VM> objects = new ArrayList<>();
@@ -313,14 +314,18 @@ public class VM extends NamedEntity {
         return VCPUparams;
     }
 
+    public void setMemoryLimits(long maxStaticMemMb, long minStaticMemMb, long maxDynMemMb, long minDynMemMb) throws BadAPICallException {
+        dispatch("set_memory_limits", minStaticMemMb * MEGABYTE, maxStaticMemMb * MEGABYTE, minDynMemMb * MEGABYTE, maxDynMemMb * MEGABYTE);
+    }
+
     public String getHVMBootPolicy() {
         return HVMbootPolicy;
     }
-    
+
     public void setDefaultHVMBootPolicy() throws BadAPICallException {
         setHVMBootPolicy("BIOS order");
     }
-    
+
     public void setHVMBootPolicy(String policy) throws BadAPICallException {
         HVMbootPolicy = setter(policy, "set_HVM_boot_policy");
     }
@@ -328,10 +333,10 @@ public class VM extends NamedEntity {
     public Map<String, String> getHVMBootParams() {
         return HVMbootParams;
     }
-    
+
     public void setHVMBootParams(Map<String, String> params) {
         HVMbootParams = params;
-    } 
+    }
 
     public String getPVargs() {
         return PVargs;
@@ -340,7 +345,7 @@ public class VM extends NamedEntity {
     public String getPVBootloader() {
         return PVbootloader;
     }
-    
+
     public void setPVBootloader(String bootloader) throws BadAPICallException {
         PVbootloader = setter(bootloader, "set_PV_bootloader");
     }
@@ -348,7 +353,7 @@ public class VM extends NamedEntity {
     public String getPVKernel() {
         return PVkernel;
     }
-    
+
     public void setPVKernel(String kernel) throws BadAPICallException {
         PVkernel = setter(kernel, "set_PV_kernel");
     }
@@ -356,7 +361,7 @@ public class VM extends NamedEntity {
     public String getPVRamdisk() {
         return PVramdisk;
     }
-    
+
     public void setPVRamdisk(String ramdisk) throws BadAPICallException {
         PVramdisk = setter(ramdisk, "set_PV_ramdisk");
     }
@@ -389,19 +394,27 @@ public class VM extends NamedEntity {
         return template;
     }
 
-    public int getMaxVCPUs() {
+    public int getMaximumVCPUs() {
         return maxVCPUs;
     }
 
-    public int getMaximumDynamicMemory() {
+    public long getMaximumDynamicMemory() {
         return maximumDynamicMemory;
+    }
+    
+    public void setMaximumDynamicMemory(long mdmMb) throws BadAPICallException {
+        this.maximumDynamicMemory = setter(mdmMb * MEGABYTE, "set_memory_dynamic_max");
     }
 
     public long getMaximumStaticMemory() {
         return value(maximumStaticMemory, "get_memory_static_max");
     }
+    
+    public void setMaximumStaticMemory(long msmMb) throws BadAPICallException {
+        this.maximumStaticMemory = setter(msmMb * MEGABYTE, "set_memory_static_max");
+    }
 
-    public int getMinimumStaticMemory() {
+    public long getMinimumStaticMemory() {
         return minimumStaticMemory;
     }
 
