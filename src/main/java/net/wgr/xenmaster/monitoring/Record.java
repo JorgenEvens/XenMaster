@@ -6,6 +6,7 @@
  */
 package net.wgr.xenmaster.monitoring;
 
+import com.lmax.disruptor.EventFactory;
 import java.util.Collection;
 import java.util.Map;
 import net.wgr.xenmaster.api.VM;
@@ -26,6 +27,7 @@ public class Record {
     protected int memoryUsage;
     protected int memoryTotal;
     protected String reference;
+    protected String xml;
     protected boolean vm;
 
     public Record(float CPUusage, int memoryUsage, int memoryTotal, String ref, boolean isVM) {
@@ -34,6 +36,9 @@ public class Record {
         this.memoryUsage = memoryUsage;
         this.reference = ref;
         this.vm = isVM;
+    }
+
+    public Record() {
     }
 
     public Record(String ref, boolean isVM) {
@@ -50,13 +55,24 @@ public class Record {
         Map<Integer, Double> utils = vmr.getVCPUutilisation();
         applyStatistics(utils.values());
 
-        memoryUsage = (vmr.getActualMemory() / 1024*1024);
-        memoryTotal = (int)(vm.getMaximumDynamicMemory() / 1024*1024);
+        memoryUsage = (vmr.getActualMemory() / 1024 * 1024);
+        memoryTotal = (int) (vm.getMaximumDynamicMemory() / 1024 * 1024);
 
         // In dom0, all memory is used by default
         if (memoryUsage / memoryTotal > 0.9 && isVM) {
             Logger.getLogger(getClass()).info("VM " + reference + " has less than 10% free memory and will start swapping, causing a severe performance impact");
         }
+    }
+    public final static EventFactory<Record> EVENT_FACTORY = new EventFactory<Record>() {
+
+        @Override
+        public Record newInstance() {
+            return new Record();
+        }
+    };
+
+    public String getReference() {
+        return reference;
     }
 
     protected final void applyStatistics(Collection<Double> values) {
@@ -89,5 +105,13 @@ public class Record {
                 Logger.getLogger(getClass()).error("Flawed maths", ex);
             }
         }
+    }
+
+    public boolean isVM() {
+        return vm;
+    }
+
+    public void setXML(String xml) {
+        this.xml = xml;
     }
 }

@@ -26,6 +26,7 @@ public class NFS {
         iso.setDescription("ISO repository : " + name);
         HashMap<String, String> cfg = new HashMap<>();
         cfg.put("location", target.getCanonicalHostName() + ":" + path);
+        iso.setSmConfig(cfg);
         String ref = iso.introduce(SR.Type.ISO, "iso", true);
 
         PBD pbd = new PBD(null);

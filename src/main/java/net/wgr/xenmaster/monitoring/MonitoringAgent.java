@@ -7,6 +7,10 @@
 package net.wgr.xenmaster.monitoring;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.lmax.disruptor.RingBuffer;
+import com.lmax.disruptor.SequenceBarrier;
+import com.lmax.disruptor.SingleThreadedClaimStrategy;
+import com.lmax.disruptor.SleepingWaitStrategy;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.List;
@@ -31,14 +35,21 @@ public class MonitoringAgent implements Runnable {
     protected Map<String, ParsedRecord> vmParsed, hostParsed;
     protected ConcurrentSkipListMap<String, String> data;
     protected TimeInfo timeInfo;
+    // Disrupting your pants
+    protected RingBuffer<Record> ringBuffer;
+    protected SequenceBarrier barrier;
+    protected final int RING_SIZE = 256;
     
     public MonitoringAgent() {
         vmData = ArrayListMultimap.create();
         hostData = ArrayListMultimap.create();
         data = new ConcurrentSkipListMap<>();
         NTPUDPClient nuc = new NTPUDPClient();
+        ringBuffer = new RingBuffer<>(Record.EVENT_FACTORY, new SingleThreadedClaimStrategy(RING_SIZE), new SleepingWaitStrategy());
+        barrier = ringBuffer.newBarrier();
+        
         try {
-            this.timeInfo = nuc.getTime(InetAddress.getByName("pool.ntp.org"));
+            timeInfo = nuc.getTime(InetAddress.getByName("pool.ntp.org"));
             timeInfo.computeDetails();
             Logger.getLogger(getClass()).info("It is now " + (System.currentTimeMillis() + timeInfo.getOffset()) + ". Your host has an offset of " + (timeInfo.getOffset() / 1000) + " seconds");
         } catch (IOException ex) {
