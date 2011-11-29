@@ -350,10 +350,20 @@ h2 {
 	float: left;
 	display: block;
 	height: 25px;
-	width: 60%;
 }
 
-#storage_list .repo li+li {
+#storage_list .repo li.selection {
+	width: 5%;
+}
+
+#storage_list .repo li.name {
+	float: left;
+	display: block;
+	height: 25px;
+	width: 55%;
+}
+
+#storage_list .repo li.location, #storage_list .repo li.type {
 	width: 20%;
 }
 

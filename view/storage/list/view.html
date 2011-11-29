@@ -1,13 +1,14 @@
 <div id="storage_list">
 	<ul>
-		<li>New</li>
-		<li>Detach</li>
-		<li>Remove</li>
+		<li data-action="sr_new">New</li>
+		<li data-action="sr_detach">Detach</li>
+		<li data-action="sr_remove">Remove</li>
 	</ul>
 	<div>
 		<div class="repo">
 			<header>
 				<ul>
+					<li class="selection" data-action="sr_select"><input type="checkbox" /></li>
 					<li class="name">Name</li>
 					<li class="location">Location</li>
 					<li class="type">Type</li>
