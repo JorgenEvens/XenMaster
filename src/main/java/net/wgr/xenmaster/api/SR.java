@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.wgr.xenmaster.api.helpers.iSCSI;
+import net.wgr.xenmaster.api.store.Store;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
 
@@ -32,6 +33,7 @@ public class SR extends NamedEntity {
     protected Map<String, String> smConfig, otherConfig;
     protected String type, contentType;
     protected boolean localCache;
+    public static final String ASSOCIATED_PBDS = "associatedSRPBDs";
 
     public SR(String ref, boolean autoFill) {
         super(ref, autoFill);
@@ -102,7 +104,19 @@ public class SR extends NamedEntity {
     }
 
     public void forget() throws BadAPICallException {
-        dispatch("forget");
+        try {
+            dispatch("forget");
+        } catch (BadAPICallException ex) {
+            if (ex.getErrorName().equals("SR_HAS_PBD")) {
+                for (String ref : Store.get().get(ASSOCIATED_PBDS, this.reference)) {
+                    PBD pbd = new PBD(ref, false);
+                    pbd.unplug();
+                }
+                forget();
+            } else {
+                throw ex;
+            }
+        }
     }
 
     public void update() throws BadAPICallException {

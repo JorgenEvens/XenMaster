@@ -41,7 +41,7 @@ public class PBD extends XenApiEntity {
         dispatch("unplug");
     }
 
-    public void create(SR sr, Host host, Map<String, String> cfg) throws BadAPICallException {
+    public String create(SR sr, Host host, Map<String, String> cfg) throws BadAPICallException {
         HashMap<String, Object> args = new HashMap<>();
         args.put("SR", sr.getReference());
         args.put("host", host.getReference());
@@ -50,6 +50,7 @@ public class PBD extends XenApiEntity {
             args.put("other_config", otherConfig);
         }
         this.reference = (String) dispatch("create", args);
+        return this.reference;
     }
 
     public SR getSR() {

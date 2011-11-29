@@ -1,3 +1,4 @@
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -6,6 +7,12 @@
     <artifactId>XenMaster</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+    
+    <!-- Misusing the SCM plugin for fetching the frontend -->
+    <scm>
+        <url>https://github.com/NoSTaBoNN/XenMaster-WebUI</url>
+        <connection>scm:git:git://github.com/NoSTaBoNN/XenMaster-WebUI.git</connection>
+    </scm>
 
     <name>XenMaster</name>
     <url>http://maven.apache.org</url>
@@ -18,6 +25,22 @@
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>checkout</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <checkoutDirectory>${basedir}/web</checkoutDirectory>
                 </configuration>
             </plugin>
             <plugin>

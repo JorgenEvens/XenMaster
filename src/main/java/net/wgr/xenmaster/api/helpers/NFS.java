@@ -11,6 +11,7 @@ import java.util.HashMap;
 import net.wgr.xenmaster.api.Host;
 import net.wgr.xenmaster.api.PBD;
 import net.wgr.xenmaster.api.SR;
+import net.wgr.xenmaster.api.store.Store;
 import net.wgr.xenmaster.controller.BadAPICallException;
 
 /**
@@ -34,8 +35,10 @@ public class NFS {
         String ref = iso.introduce(SR.Type.ISO, "iso", true);
 
         PBD pbd = new PBD(null);
-        pbd.create(iso, h, cfg);
+        String pbdRef = pbd.create(iso, h, cfg);
         pbd.plug();
+        
+        Store.get().put(SR.ASSOCIATED_PBDS, ref, pbdRef);
         
         return ref;
     }
