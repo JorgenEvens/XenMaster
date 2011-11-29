@@ -5,7 +5,7 @@
 		
 		var EntityProto = function(){},
 			
-			createMethod = function( name, returnType, list ){
+			createReturnBase = function( returnType, list ){
 				list = list || false;	
 				
 				var f = function(){};
@@ -31,7 +31,7 @@
 					
 					this.send( this.xm_resource, args, function( result ) {
 						var i = null;
-
+	
 						if( list ) {
 							for( i in result ) {
 								result[i] = new returnType( result[i] );
@@ -44,10 +44,31 @@
 					});
 				};
 				
+				return f;
+			},
+		
+			createMethod = function( name, resultType, list ) {
+				var f = createReturnBase( resultType, list );
+				
 				this.prototype[name] = function(){
 					var instance = new f();
 					instance.xm_resource = this.xm_resource + '.' + name;
 					instance.reference = this.reference;
+					
+					if( arguments.length > 0 ) {
+						return instance.go.apply( instance, arguments );
+					}
+					
+					return instance;
+				};
+			},
+			
+			createStaticMethod = function( name, resultType, list ) {
+				var f = createReturnBase( resultType, list );
+				
+				this[name] = function(){
+					var instance = new f();
+					instance.xm_resource = this.xm_resource + '.' + name;
 					
 					if( arguments.length > 0 ) {
 						return instance.go.apply( instance, arguments );
@@ -71,7 +92,11 @@
 					}
 				};
 				
+				Entity.xm_resource = 'xen://' + base;
+				
 				Entity.createMethod = createMethod;
+				
+				Entity.createStaticMethod = createStaticMethod;
 				
 				Entity.prototype = new EntityProto();
 				

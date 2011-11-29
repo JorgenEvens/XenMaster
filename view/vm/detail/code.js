@@ -37,7 +37,7 @@
 		changeVMState = function( state ) {
 			var vm = vm_data;
 			
-			app.load( 'js://api/vm', 'js://tools/notifier', function( VM, Notifier ) {
+			app.load( 'js://tools/notifier', function( Notifier ) {
 				var action = state[0],
 					args = state[1];
 				
