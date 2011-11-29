@@ -263,7 +263,7 @@ public class XenApiEntity {
         }
 
         private static List<PersistedField> getAllForReference(final String reference) {
-            LazyQuery<PersistedField> lq = new LazyQuery(COLUMN_FAMILY, LazyQuery.Strategy.FIND_ALL);
+            LazyQuery<PersistedField> lq = new LazyQuery(COLUMN_FAMILY, LazyQuery.ResultStrategy.FIND_ALL);
             lq.addMatcher(new DAObjectMatcher<PersistedField>(PersistedField.class) {
 
                 @Override

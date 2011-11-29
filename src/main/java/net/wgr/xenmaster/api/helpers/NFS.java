@@ -27,6 +27,10 @@ public class NFS {
         HashMap<String, String> cfg = new HashMap<>();
         cfg.put("location", target.getCanonicalHostName() + ":" + path);
         iso.setSmConfig(cfg);
+        // Provide type for backend
+        HashMap<String, String> otherCfg = new HashMap<>();
+        otherCfg.put("storageType", "nfs");
+        iso.setOtherConfig(otherCfg);
         String ref = iso.introduce(SR.Type.ISO, "iso", true);
 
         PBD pbd = new PBD(null);

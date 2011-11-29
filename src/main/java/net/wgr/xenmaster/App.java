@@ -77,6 +77,7 @@ public class App implements Daemon {
     public void stop() throws Exception {
         server.stop();
         Pool.get().stop();
+        DataPool.stop();
         GlobalExecutorService.get().shutdownNow();
     }
 
