@@ -1,0 +1,36 @@
+<div id="sr_create">
+	<label for="sr_name">Name:</label>
+	<input type="text" id="sr_name" name="name" />
+	
+	<label for="sr_type">Type:</label>
+	<select id="sr_type">
+		<option value="NFS">Network Filesystem</option>
+		<option value="iSCSI">iSCSI</option>
+	</select>
+	
+	<div class="nfs">
+		<label for="nfs_host">Host:</label>
+		<input type="text" id="nfs_host" name="host" />
+		
+		<label for="nfs_path">Path:</label>
+		<input type="text" id="nfs_path" name="path" />
+	</div>
+	<div class="iscsi">
+		<label for="iscsi_targetIQN">Target IQN:</label>
+		<input type="text" id="iscsi_targetIQN" name="targetIQN" />
+		
+		<label for="iscsi_target">Target:</label>
+		<input type="text" id="iscsi_target" name="target" />
+		
+		<label for="iscsi_port">Port:</label>
+		<input type="text" id="iscsi_port" name="port" />
+		
+		<label for="iscsi_user">Username:</label>
+		<input type="text" id="iscsi_user" name="user" />
+		
+		<label for="iscsi_password">Password:</label>
+		<input type="password" id="iscsi_password" name="password" />
+	</div>
+	<label>&nbsp;</label>
+	<input type="button" data-action="sr_create" value="Create" />
+</div>
