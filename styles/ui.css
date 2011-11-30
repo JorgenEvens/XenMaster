@@ -14,16 +14,20 @@ html {
 }
 
 body {
-	background: #F2F2F2;
+	background: #FAFAFA;
 	text-align: center;
 	font-family: Arial;
-	color: black;
+	color: #333;
 	font-size: 13px;
 	min-height: 100%;
 }
 
 body > * {
 	text-align: left;
+}
+
+table thead {
+	background-color: #F4F4F4;
 }
 
 #loading {
@@ -97,12 +101,18 @@ header .quick_access
 	background: #E6E6E6;
 	border: 1px solid #E6E6E6;
 	z-index: 999;
+	cursor: pointer;
+	padding-left: 9px;
+	background-image: url(../images/tri.png);
+	background-repeat: no-repeat;
+	background-position: 2px 15px;
 }
 
 header .quick_access span {
 	display: block;
 	text-transform: uppercase;
 	color: #F7931E;
+	text-shadow: 0 0 2px #FC3;
 	font-size: 22px;
 	font-family: Code;
 	padding: 5px 10px;
@@ -116,6 +126,26 @@ header .quick_access ul {
 header .quick_access:hover ul
 {
 	display: block;
+	font-family: Arial, sans-serif;
+	font-size: 16px;
+}
+
+header .quick_access:hover li
+{
+	display: block;
+	padding: 5px;
+}
+
+header .quick_access li:nth-child(odd) {
+	background-color: #ECECEC;
+}
+
+header .quick_access:hover li:hover {
+	color: #000;
+	background-color: #FAFAFA;
+	list-style-image: url(../images/tri.png);
+	list-style-position: inside;
+	list-style-type: square;
 }
 
 h1, h2, h3, h4, h5, h6,
@@ -153,7 +183,7 @@ h2 {
 }
 
 #dashboard th, #dashboard td {
-	border-bottom: 2px solid #E6E6E6;
+	border-bottom: 1px solid #BBB;
 }
 
 #dashboard h2.corner:before {
@@ -371,11 +401,14 @@ h2 {
 	background: #E6E6E6;
 }
 
-#sr_create label, #sr_create input, #sr_create select {
-	float: left;
-}
-
-#sr_create label {
-	clear: left;
-	width: 200px;
+footer {
+	text-align: right;
+	position: fixed;
+	bottom: 0px;
+	width: 850px;
+	padding: 5px;
+	border-color: #CCC;
+	border-width: 1px;
+	border-style: solid;
+	background-color: #FDFDFD;
 }
