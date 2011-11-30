@@ -6,7 +6,7 @@ package net.wgr.xenmaster.web;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import net.wgr.wcp.Command;
+import net.wgr.wcp.command.Command;
 import net.wgr.xenmaster.TestBase;
 import net.wgr.xenmaster.api.Host;
 import org.junit.Before;

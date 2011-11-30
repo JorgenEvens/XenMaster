@@ -21,8 +21,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import net.wgr.server.web.handling.WebCommandHandler;
 import net.wgr.utility.GlobalExecutorService;
-import net.wgr.wcp.Command;
-import net.wgr.wcp.CommandException;
+import net.wgr.wcp.command.Command;
+import net.wgr.wcp.command.CommandException;
+import net.wgr.wcp.command.Result;
 import net.wgr.xenmaster.api.XenApiEntity;
 import net.wgr.xenmaster.controller.Controller;
 import org.apache.commons.lang.StringUtils;
@@ -269,7 +270,7 @@ public class Hook extends WebCommandHandler {
         }
         
         if (current == null) {
-            current = "Success";
+            current = new Result(null, null, "EMPTY");
         }
         return current;
     }
