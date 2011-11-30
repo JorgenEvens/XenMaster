@@ -3,18 +3,12 @@
 		dom = $(tpl.dom);
 	
 	tpl.capture( 'click' );
-	
-	tpl.on( 'sr_new', function( e ){
-		console.log( arguments );
-	});
-	
-	
-	
+		
 	app.load( 'js://api/sr', function( SR ) {
 		
 		var base = dom.find('.repo header ul').clone();
 		
-		tpl.on( 'sr_remove', function( e ) {
+		tpl.on( 'sr_remove', function() {
 			dom.find( '.repo input:checked' ).each(function(){
 				var ref = $(this).val();
 				
@@ -26,7 +20,7 @@
 			});
 		});
 		
-		tpl.on( 'sr_detach', function( e ) {
+		tpl.on( 'sr_detach', function() {
 			dom.find( '.repo input:checked' ).each(function(){
 				var ref = $(this).val();
 				
@@ -35,6 +29,13 @@
 						console.log( result );
 					});
 				}
+			});
+		});
+		
+		tpl.on( 'sr_new', function(){
+			app.load( 'js://ui/template', 'tpl://storage/new', function( Template, tpl ){
+				var view = new Template({resource: tpl});
+					view.show( 'sr_create' );
 			});
 		});
 		
@@ -47,7 +48,7 @@
 				var row = base.clone(),
 					fields = row.find('li');
 				
-				fields.filter('.selection input').val( item.reference );
+				fields.filter('.selection').find('input').val( item.reference );
 				fields.filter('.name').text( item.name );
 				fields.filter('.location').text( item.otherConfig.location );
 				fields.filter('.type').text( item.type );

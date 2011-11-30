@@ -19,7 +19,8 @@
 				
 				f.prototype.go = function() {
 					var args = Util.argumentsToArray( arguments ),
-						callback = function(){};
+						callback = function(){},
+						i = null;
 						
 					if( typeof args[args.length-1] === 'function' ) {
 						callback = args.pop();
@@ -27,6 +28,13 @@
 					
 					if( args.length == 1 && Util.isArray( args[0] ) ) {
 						args = args[0];
+					}
+					
+					// Convert entities to their reference
+					for( i in args ) {					
+						if( args[i] instanceof EntityProto && args[i].reference ) {
+							args[i] = args[i].reference;
+						}
 					}
 					
 					this.send( this.xm_resource, args, function( result ) {
