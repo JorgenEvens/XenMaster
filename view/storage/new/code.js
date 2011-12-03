@@ -39,6 +39,9 @@
 					if( info.port ) {
 						info.port = parseFloat( info.port );
 					}
+					if( info.LUNs ) {
+						info.LUNs = info.LUNs.split(',');
+					}
 					
 					Helper.build(info, function( result ) {
 						console.log( 'iscsi result: ', result );

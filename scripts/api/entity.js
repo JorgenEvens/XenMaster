@@ -90,7 +90,6 @@
 				var Entity = function( data, callback ){			
 					this.xm_resource = 'xen://' + base;
 					
-					console.log( 'data is object ' + typeof data, data );
 					if( typeof data === 'object' ) {
 						this.attach( data );
 					} else if( data ) {

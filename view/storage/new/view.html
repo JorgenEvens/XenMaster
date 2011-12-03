@@ -16,8 +16,18 @@
 		<input type="text" id="nfs_path" name="path" />
 	</div>
 	<div class="iscsi">
+		<label for="iscsi_type">iSCSI Type:</label>
+		<select id="iscsi_type" name="type">
+			<option value="EXToISCSI">File-based iSCSI</option>
+			<option value="iSCSI">iSCSI Storage Repository</option>
+			<option value="LVMoISCSI">LVM-based iSCSI</option>
+		</select>
+		
 		<label for="iscsi_targetIQN">Target IQN:</label>
 		<input type="text" id="iscsi_targetIQN" name="targetIQN" />
+		
+		<label for="iscsi_lun">LUN (comma seperated):</label>
+		<input type="text" id="iscsi_lun" name="LUNs" />
 		
 		<label for="iscsi_target">Target:</label>
 		<input type="text" id="iscsi_target" name="target" />
