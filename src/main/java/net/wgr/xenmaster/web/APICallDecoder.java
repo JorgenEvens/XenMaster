@@ -6,6 +6,7 @@
  */
 package net.wgr.xenmaster.web;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
@@ -16,6 +17,7 @@ import com.google.gson.JsonParseException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import net.wgr.xenmaster.web.Hook.APICall;
@@ -26,6 +28,8 @@ import net.wgr.xenmaster.web.Hook.APICall;
  * @author double-u
  */
 public class APICallDecoder implements JsonDeserializer<Hook.APICall> {
+    
+    protected Gson gson = new Gson();
 
     @Override
     public APICall deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
@@ -45,13 +49,8 @@ public class APICallDecoder implements JsonDeserializer<Hook.APICall> {
                     if (e.getValue().isJsonArray()) {
                         JsonArray arr = e.getValue().getAsJsonArray();
                         ArrayList<Object> args = new ArrayList<>(arr.size());
-                        for (int i = 0; i < arr.size(); i++) {
-                            JsonElement value = arr.get(i);
-                            if (value.isJsonPrimitive()) {
-                                args.add(value.getAsString());
-                            } else if (value.isJsonObject()) {
-                                args.add(deserializeToMap(value.getAsJsonObject()));
-                            }
+                        for (Iterator<JsonElement> it = arr.iterator(); it.hasNext();) {
+                            args.add(deserialize(it.next()));
                         }
                         apic.args = args.toArray();
                     } else {
@@ -63,14 +62,31 @@ public class APICallDecoder implements JsonDeserializer<Hook.APICall> {
         return apic;
     }
 
+    protected Object deserialize(JsonElement json) {
+        if (json.isJsonPrimitive()) {
+            return json.getAsString();
+        } else if (json.isJsonObject()) {
+            return deserializeToMap(json.getAsJsonObject());
+        } else if (json.isJsonArray()) {
+            return deserializeToArray(json.getAsJsonArray());
+        }
+
+        return null;
+    }
+
+    protected Object[] deserializeToArray(JsonArray arr) {
+        ArrayList array = new ArrayList();
+        for (Iterator<JsonElement> it = arr.iterator(); it.hasNext();) {
+            array.add(deserialize(it.next()));
+        }
+        return array.toArray();
+    }
+
     protected Map<String, Object> deserializeToMap(JsonObject obj) {
         HashMap<String, Object> map = new HashMap<>();
         for (Entry<String, JsonElement> e : obj.entrySet()) {
-            if (e.getValue().isJsonPrimitive()) {
-                map.put(e.getKey(), e.getValue().getAsString());
-            } else if (e.getValue().isJsonObject()) {
-                map.put(e.getKey(), deserializeToMap(e.getValue().getAsJsonObject()));
-            }
+            Object value = deserialize(e.getValue());
+            map.put(e.getKey(), value);
         }
         return map;
     }

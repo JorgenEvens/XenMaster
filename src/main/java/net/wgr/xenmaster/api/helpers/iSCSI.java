@@ -8,14 +8,12 @@ package net.wgr.xenmaster.api.helpers;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.api.Host;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -47,6 +45,8 @@ public class iSCSI {
         }
         if (localIQN != null) {
             map.put("localIQN", localIQN);
+        } else {
+            map.put("localIQN", "iqn.2011-09.net.wgr.xenmaster." + Controller.getSession().getThisHost().getNameLabel());
         }
         if (user != null && password != null) {
             map.put("chapuser", user);

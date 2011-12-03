@@ -8,6 +8,7 @@ package net.wgr.xenmaster.web;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -35,46 +36,49 @@ import org.apache.log4j.Logger;
  * @author double-u
  */
 public class Hook extends WebCommandHandler {
-    
+
     protected ConcurrentHashMap<Integer, StoredValue> store;
     protected Class clazz = null;
     protected Object current = null;
     protected String className = "", commandName;
-    
+
     public Hook() {
         super("xen");
-        
+
         store = new ConcurrentHashMap<>();
         GlobalExecutorService.get().scheduleAtFixedRate(new Housekeeper(), 1, 5, TimeUnit.MINUTES);
         GlobalExecutorService.get().schedule(new Runnable() {
-            
+
             @Override
             public void run() {
                 Controller.getSession().loginWithPassword("root", "r00tme");
             }
         }, 0, TimeUnit.DAYS);
     }
-    
+
     public Object execute(Command cmd) {
         // Cleanup
         clazz = null;
         current = null;
         className = commandName = "";
-        
+
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(APICall.class, new APICallDecoder());
         Gson gson = builder.create();
         APICall apic = gson.fromJson(cmd.getData(), APICall.class);
-         
+
         return executeInstruction(cmd.getName(), apic.ref, apic.args);
     }
-    
+
     protected Object deserializeToTargetType(Object value, Class type) throws Exception {
-        switch (type.getSimpleName()) {
+        switch (type.getSimpleName().toLowerCase()) {
             case "boolean":
                 return Boolean.parseBoolean(value.toString());
+            case "integer":
             case "int":
                 return Integer.parseInt(value.toString());
+            case "long":
+                return Long.parseLong(value.toString());
             default:
                 if (type.isEnum()) {
                     String ucase = value.toString().toUpperCase();
@@ -88,6 +92,15 @@ public class Hook extends WebCommandHandler {
                     if (!found) {
                         throw new IllegalArgumentException("Argument value does not belong to enum values of " + type.getCanonicalName());
                     }
+                } else if (type.isArray()) {
+                    // FIXME : This can break all too easily
+                    Class t = type.getComponentType();
+                    Object[] src = (Object[]) value;
+                    Object[] arr = (Object[]) Array.newInstance(t, src.length);
+                    for (int i = 0; i < src.length; i++) {
+                        arr[i] = deserializeToTargetType(src[i], t);
+                    }
+                    return arr;
                 } else if (InetAddress.class.isAssignableFrom(type)) {
                     return InetAddress.getByName(value.toString());
                 } else if (XenApiEntity.class.isAssignableFrom(type)) {
@@ -98,10 +111,10 @@ public class Hook extends WebCommandHandler {
         }
         return value;
     }
-    
+
     protected <T> String createLocalObject(Class<T> clazz, Object[] args) throws Exception {
         T obj = clazz.newInstance();
-        
+
         if (args == null || args.length < 1 || args[0] == null || !(args[0] instanceof Map)) {
             throw new IllegalArgumentException("Illegal arguments map was given");
         }
@@ -115,15 +128,17 @@ public class Hook extends WebCommandHandler {
                 m.invoke(obj, deserializeToTargetType(entry.getValue(), m.getParameterTypes()[0]));
                 set = true;
             }
-            
-            if (!set) Logger.getLogger(getClass()).debug("Given field was not able to be set: " + entry.getKey());
+
+            if (!set) {
+                Logger.getLogger(getClass()).debug("Given field was not able to be set: " + entry.getKey());
+            }
         }
-        
+
         int ref = store.size();
         store.put(ref, new StoredValue(obj));
         return "LocalRef:" + ref;
     }
-    
+
     protected void determineClass(String ref, int index, String[] values) throws Exception {
         String s = values[index];
         int refOpen = s.indexOf('[');
@@ -136,7 +151,7 @@ public class Hook extends WebCommandHandler {
         } else {
             className += s + '.';
         }
-        
+
         if (refOpen != -1) {
             ref = s.substring(refOpen + 1, s.indexOf(']'));
         }
@@ -152,21 +167,21 @@ public class Hook extends WebCommandHandler {
             }
         }
     }
-    
+
     protected Object findAndCallMethod(String ref, String s, Object[] args) throws Exception {
         int open = s.indexOf('(');
         String methodName = (open != -1 ? s.substring(0, open) : s);
-        
+
         if (open != -1) {
             String argstr = s.substring(s.indexOf('(') + 1, s.indexOf(')'));
             argstr = argstr.replace(", ", ",");
             args = StringUtils.split(argstr, ',');
         }
-        
+
         if (current != null) {
             clazz = current.getClass();
         }
-        
+
         ArrayList<Method> matches = new ArrayList<>();
 
         // First find name matches
@@ -179,12 +194,12 @@ public class Hook extends WebCommandHandler {
         // Then param count matches
         for (ListIterator<Method> it = matches.listIterator(); it.hasNext();) {
             Method m = it.next();
-            
+
             if ((m.getParameterTypes().length > 0 && args == null) || (args != null && m.getParameterTypes().length != args.length)) {
                 it.remove();
             }
         }
-        
+
         if (matches.size() > 0 && matches.size() < 2) {
             parseAndExecuteMethod(matches.get(0), args);
         } else if (matches.isEmpty()) {
@@ -198,10 +213,10 @@ public class Hook extends WebCommandHandler {
             // We cannot match based on type information as we use the type information to cast the parameters
             return new CommandException("The function call was ambiguous with " + matches.size() + " matched methods", commandName);
         }
-        
+
         return null;
     }
-    
+
     protected void parseAndExecuteMethod(Method m, Object[] args) throws Exception {
         Class<?>[] types = m.getParameterTypes();
         if ((types != null && types.length != 0) && ((types.length > 0 && args == null) || (types.length != args.length))) {
@@ -211,13 +226,13 @@ public class Hook extends WebCommandHandler {
             for (int j = 0; j < types.length; j++) {
                 Class<?> type = types[j];
                 Object value = args[j];
-                
+
                 if (!(value instanceof String) || String.class.isAssignableFrom(type)) {
                     continue;
                 }
-                
+
                 String str = value.toString();
-                
+
                 if (str.startsWith("LocalRef:")) {
                     Integer localRef = Integer.parseInt(str.substring(str.indexOf(":") + 1));
                     if (!store.containsKey(localRef)) {
@@ -229,7 +244,7 @@ public class Hook extends WebCommandHandler {
                 }
             }
         }
-        
+
         try {
             if (Modifier.isStatic(m.getModifiers())) {
                 current = m.invoke(null, (Object[]) args);
@@ -250,13 +265,13 @@ public class Hook extends WebCommandHandler {
                 current = new CommandException(ex.getCause(), commandName);
             }
         }
-        
+
     }
-    
+
     protected Object executeInstruction(String command, String ref, Object[] args) {
         String[] split = StringUtils.split(command, '.');
         commandName = command;
-        
+
         for (int i = 0; i < split.length; i++) {
             String s = split[i];
             try {
@@ -273,31 +288,31 @@ public class Hook extends WebCommandHandler {
                 return new CommandException(ex, commandName);
             }
         }
-        
+
         if (current == null) {
             current = new Result(null, null, "EMPTY");
         }
         return current;
     }
-    
+
     public static class APICall {
-        
+
         public String ref;
         public Object[] args;
     }
-    
+
     public static class StoredValue {
-        
+
         public long lastAccess = System.currentTimeMillis();
         public Object value;
-        
+
         public StoredValue(Object value) {
             this.value = value;
         }
     }
-    
+
     protected class Housekeeper implements Runnable {
-        
+
         @Override
         public void run() {
             for (Iterator<Map.Entry<Integer, StoredValue>> it = store.entrySet().iterator(); it.hasNext();) {
