@@ -19,7 +19,7 @@
 			type = dom.find('#sr_type').val().toLowerCase();
 		
 		dom
-			.find('.' + type + ' input')
+			.find('.' + type + ' input, .' + type + ' select')
 			.each(function(){
 				var item = $(this);
 				if( item.val().length < 1 ) return;
