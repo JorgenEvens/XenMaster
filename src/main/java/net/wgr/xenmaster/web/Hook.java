@@ -183,7 +183,7 @@ public class Hook extends WebCommandHandler {
         if (matches.size() > 0 && matches.size() < 2) {
             parseAndExecuteMethod(matches.get(0), args);
         } else if (matches.isEmpty()) {
-            if (methodName.equals("new")) {
+            if (methodName.equals("build")) {
                 return createLocalObject(clazz, args);
             } else {
                 Logger.getLogger(getClass()).warn("Method not found " + s + " in " + commandName);
