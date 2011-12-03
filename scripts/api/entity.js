@@ -87,16 +87,17 @@
 			},
 		
 			Entity = function( base ) {
-				var Entity = function( data, callback ){
-					callback = callback || function(){};
-					
+				var Entity = function( data, callback ){			
 					this.xm_resource = 'xen://' + base;
-
+					
+					console.log( 'data is object ' + typeof data, data );
 					if( typeof data === 'object' ) {
 						this.attach( data );
 					} else if( data ) {
 						this.reference = data;
-						this.go(callback);
+						if( callback ) {
+							this.go( callback );
+						}
 					}
 				};
 				
@@ -141,7 +142,7 @@
 				}
 				
 				args = { args: args, ref: this.reference };
-				console.log( 'method:', method );
+				
 				if( callback ) {
 					xm.send( method, args, callback );
 				} else {
