@@ -54,6 +54,9 @@ public class SR extends NamedEntity {
     }
 
     public String create(Host host, iSCSI cfg, String contentType, boolean shared, int size) throws BadAPICallException {
+        if (cfg.getType() == null) {
+            throw new IllegalArgumentException("No iSCSI type was set");
+        }
         return create(host, cfg.toDeviceConfig(), cfg.getType().name().toLowerCase(), contentType, shared, size);
     }
 

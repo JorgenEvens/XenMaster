@@ -8,12 +8,15 @@ package net.wgr.xenmaster.api.helpers;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.api.Host;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -29,6 +32,7 @@ public class iSCSI {
     protected int port = 3260;
     protected boolean useDiscoveryNumber;
     protected Type type;
+    protected Integer[] luns;
 
     public static enum Type {
 
@@ -48,13 +52,20 @@ public class iSCSI {
             map.put("chapuser", user);
             map.put("chappassword", password);
         }
+        if (luns != null) {
+            map.put("LUNid", StringUtils.join(luns, ','));
+        }
         map.put("port", "" + port);
-        if (useDiscoveryNumber) map.put("usediscoverynumber", Boolean.toString(useDiscoveryNumber));
+        if (useDiscoveryNumber) {
+            map.put("usediscoverynumber", Boolean.toString(useDiscoveryNumber));
+        }
         return map;
     }
-    
+
     public List<String> getAvailableIQNs(Host host) throws BadAPICallException {
-        if (target == null) throw new IllegalArgumentException("Target is not set");
+        if (target == null) {
+            throw new IllegalArgumentException("Target is not set");
+        }
         try {
             Controller.dispatch("SR.create", host.getReference(), this.toDeviceConfig(), "0", "", "", "iSCSI", "user", true, new HashMap<>());
         } catch (BadAPICallException ex) {
@@ -81,6 +92,14 @@ public class iSCSI {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Integer[] getLUNs() {
+        return luns;
+    }
+
+    public void setLUNs(Integer[] luns) {
+        this.luns = luns;
     }
 
     public int getPort() {

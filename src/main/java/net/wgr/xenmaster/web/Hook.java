@@ -65,7 +65,7 @@ public class Hook extends WebCommandHandler {
         builder.registerTypeAdapter(APICall.class, new APICallDecoder());
         Gson gson = builder.create();
         APICall apic = gson.fromJson(cmd.getData(), APICall.class);
-        
+         
         return executeInstruction(cmd.getName(), apic.ref, apic.args);
     }
     
