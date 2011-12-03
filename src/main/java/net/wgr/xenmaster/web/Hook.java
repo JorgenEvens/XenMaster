@@ -107,13 +107,18 @@ public class Hook extends WebCommandHandler {
         }
         for (Map.Entry<String, Object> entry : ((Map<String, Object>) args[0]).entrySet()) {
             String methodName = "set" + entry.getKey().toLowerCase();
+            boolean set = false;
             for (Method m : clazz.getMethods()) {
-                if (!m.getName().toLowerCase().equals(methodName)) {
+                if (!m.getName().toLowerCase().equals(methodName) || m.getParameterTypes().length != 1) {
                     continue;
                 }
-                m.invoke(obj, entry.getValue());
+                m.invoke(obj, deserializeToTargetType(entry.getValue(), m.getParameterTypes()[0]));
+                set = true;
             }
+            
+            if (!set) Logger.getLogger(getClass()).debug("Given field was not able to be set: " + entry.getKey());
         }
+        
         int ref = store.size();
         store.put(ref, new StoredValue(obj));
         return "LocalRef:" + ref;
