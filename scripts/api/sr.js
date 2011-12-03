@@ -6,10 +6,14 @@
 		
 		SR.createStaticMethod( 'getAll', SR, true );
 		
+		SR.createStaticMethod( 'build', SR );
+		
+		SR.createMethod( 'create' );
+		
 		SR.createMethod( 'destroy' );
 		
 		SR.createMethod( 'forget' );
-
+		
 		ready( SR );
 	});
 });

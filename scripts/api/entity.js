@@ -141,7 +141,7 @@
 				}
 				
 				args = { args: args, ref: this.reference };
-				
+				console.log( 'args', args );
 				if( callback ) {
 					xm.send( method, args, callback );
 				} else {

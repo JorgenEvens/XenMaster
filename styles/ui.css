@@ -401,6 +401,15 @@ h2 {
 	background: #E6E6E6;
 }
 
+#sr_create label, #sr_create input, #sr_create select {
+	float: left;
+}
+
+#sr_create label {
+	clear: left;
+	width: 200px;
+}
+
 footer {
 	text-align: right;
 	position: fixed;

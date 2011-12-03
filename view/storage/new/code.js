@@ -36,16 +36,20 @@
 						console.log( 'iso mount result: ', r );
 					});
 				} else if ( type == 'iscsi' ) {
+					info.port = parseFloat( info.port );
+					
 					Helper.build(info, function( result ) {
 						console.log( 'iscsi result: ', result );
 						app.load( 'js://api/sr', function( SR ){
-							SR.create( host, result, 'user', true, 0, function( r ) {
-								console.log( 'sr result ', r );
+							SR.build({ name: name }, function( new_sr ) {
+								new_sr.create( host, result, 'user', true, 0, function( r ) {
+									console.log( 'sr result ', r );
+								});
 							});
+							
 						});
 					});
 				}
-				
 			});
 		});
 		
