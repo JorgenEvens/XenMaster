@@ -36,7 +36,9 @@
 						console.log( 'iso mount result: ', r );
 					});
 				} else if ( type == 'iscsi' ) {
-					info.port = parseFloat( info.port );
+					if( info.port ) {
+						info.port = parseFloat( info.port );
+					}
 					
 					Helper.build(info, function( result ) {
 						console.log( 'iscsi result: ', result );
