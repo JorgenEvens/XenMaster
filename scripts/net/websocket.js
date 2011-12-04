@@ -175,7 +175,7 @@
 			this.sent[ options.tag ] = options.callback;
 			delete options.callback;
 		}
-		
+		console.log( options );
 		this.socket.send( window.JSON ? JSON.stringify( options ) : options.toSource() );
 	};
 	

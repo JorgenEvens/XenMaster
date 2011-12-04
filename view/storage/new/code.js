@@ -6,8 +6,86 @@
 		showFields = function(){
 			dom.find( '> div' ).hide();
 			dom.find( '.' + dom.find('#sr_type').val().toLowerCase() ).show();
+		},
+		
+		creation = {};
+		
+	creation.nfs = function( name, host, data ) {
+		app.load( 'js://api/helpers/nfs', function( Session, NFS ) {
+			NFS.mountISORepository( name, data.host, data.path, host, function(r){
+				console.log( 'iso mount result: ', r );
+			});
+		});
+	};
+	
+	creation.iscsi = function( name, host, data ) {
+		app.load( 'js://api/helpers/iscsi', 'js://api/sr',
+				function( iSCSI, SR ){
+			var iscsi = null,
+				sr = null,
+			
+				handler = function(){
+					if( !iscsi || !sr ) return;
+					
+					sr.create( host, iscsi, 'user', true, 0,
+							function( r ) {
+						console.log( 'sr result ', r );
+					});
+				};
+			
+			if( data.port ) {
+				data.port = parseFloat( data.port );
+			}
+			if( data.LUNs ) {
+				data.LUNs = data.LUNs.split(',');
+			}
+			
+			iSCSI.build( data, function( result ) {
+				iscsi = result;
+				handler();
+			});
+			
+			SR.build({name: name}, function( result ) {
+				sr = result;
+				handler();
+			});
+		});
+	};
+	
+	creation.partition = function( name, host, data ) {
+		app.load( 'js://api/sr', function( SR ) {
+			SR.build({name: name}, function( sr ) {
+				sr.create( host, data, 'Ext', 'user', true, 0, function( result ){
+					console.log( result );
+				});
+			});
+		});
+	};
+	
+	creation.directory = function( name, host, data ) {
+		app.load( 'js://api/sr', function( SR ) {
+			SR.build({name: name}, function( sr ) {
+				sr.create( host, data, 'File', 'user', true, 0, function( result ){
+					console.log( result );
+				});
+			});
+		});
+	};
+	
+	creation.lvm = function( name, host, data ) {
+		data = {
+			device: data.volumes
 		};
 		
+		app.load( 'js://api/sr', function( SR ) {
+			SR.build({name: name}, function( sr ) {
+				sr.create( host, data, 'Lvm', 'user', true, 0, function( result ){
+					console.log( result );
+				});
+			});
+		});
+	};
+	
 	dom.find('select').change(showFields);
 	showFields();
 	
@@ -27,33 +105,12 @@
 			info[item.attr('name')] = item.val();
 		});
 		
-		app.load( 'js://api/session', 'js://api/helpers/' + type,
-				function( Session, Helper ) {
+		console.log( 'info', info );
+		
+		app.load( 'js://api/session', function( Session, Helper ) {
 			Session.getThisHost(function( host ){
-				
-				if( type == 'nfs' ) {
-					Helper.mountISORepository( name, info.host, info.path, host, function(r){
-						console.log( 'iso mount result: ', r );
-					});
-				} else if ( type == 'iscsi' ) {
-					if( info.port ) {
-						info.port = parseFloat( info.port );
-					}
-					if( info.LUNs ) {
-						info.LUNs = info.LUNs.split(',');
-					}
-					
-					Helper.build(info, function( result ) {
-						console.log( 'iscsi result: ', result );
-						app.load( 'js://api/sr', function( SR ){
-							SR.build({ name: name }, function( new_sr ) {
-								new_sr.create( host, result, 'user', true, 0, function( r ) {
-									console.log( 'sr result ', r );
-								});
-							});
-							
-						});
-					});
+				if( typeof creation[ type ] === 'function' ) {
+					creation[type]( name, host, info );
 				}
 			});
 		});
