@@ -67,7 +67,7 @@
 	this.capture( ['click','keydown'] );
 	
 	this.bind( 'ui_alternate', function( e ){
-		console.log( e );
+		//console.log( e );
 	});
 	
 	this.bind('vm_device_selected',function( e ){
@@ -100,7 +100,6 @@
 		showDetail( 'general' );
 		
 		app.load('js://graphics/graph/linechart', function( Linechart ) {
-			
 			var chart = new Linechart({
 				canvas: canvas.get(0),
 				dataset: [99,33,66,33,33,12,23,12,12,12,12,12,21,45,32,66,77],

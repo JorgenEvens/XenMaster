@@ -1,4 +1,4 @@
-(function( $ ){
+(function(){
 	
 	/*
 	 * An application instance.
@@ -230,7 +230,7 @@
 		
 		if( this.notification ) {
 			for( i in this.content ) {
-				break;
+				break; // TODO: Weird piece of code
 			}
 			this.notification.style.opacity = i != null ? '1' : '0';
 		}
@@ -289,11 +289,26 @@
 	};
 	
 	Buffer.prototype.retrieve = function( resource, callback ) {
-		$.ajax({
-			url: resource,
-			dataType: 'text',
-			success: callback
-		});
+		var req = null;
+		try {
+			req = new XMLHttpRequest();
+		} catch( ex ) {
+			// TODO: Internet Explorer
+		}
+		
+		if( !req ) {
+			throw 'Your browser does not support XMLHttpRequest';
+		};
+		
+		req.open( 'GET', resource );
+		
+		req.onreadystatechange = function() {
+			if( req.readyState == 4 && req.status == 200 ) { // TODO: Catch 304 -> not changed
+				callback( req.responseText );
+			}
+		};
+		
+		req.send( null );
 	};
 	
-}( jQuery ));
+}());

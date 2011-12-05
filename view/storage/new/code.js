@@ -103,6 +103,7 @@
 				if( item.val().length < 1 ) return;
 				
 			info[item.attr('name')] = item.val();
+			item.val('');
 		});
 		
 		console.log( 'info', info );

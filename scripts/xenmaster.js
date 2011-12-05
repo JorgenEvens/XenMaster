@@ -1,6 +1,6 @@
 DEBUG = document.location.toString().indexOf('debug') > -1;
 
-(function( $, undefined ){
+(function( undefined ){
 	
 	var init_app = function() {
 		/*
@@ -28,11 +28,20 @@ DEBUG = document.location.toString().indexOf('debug') > -1;
 		});
 	},
 	
+	loaded = false,
+	
 	// Instances of this application.
 	MASTER = null,
 	M = null;
 	
-	$(document).ready(function(){
+	// TODO: Make sure this change is correct
+	// OLD: $(document).ready(function(){
+	var onload = window.onload;
+	window.onload = (function(){
+		if( onload ) {
+			onload();
+		}
+		
 		MASTER = new Application({
 			'proxy': 'resources.php',
 			'base': '/code',
@@ -50,7 +59,10 @@ DEBUG = document.location.toString().indexOf('debug') > -1;
 			xm.open();
 			
 			xm.onopen = function(){
-				init_app();
+				if( !loaded ) {
+					loaded = true;
+					init_app();
+				}
 			};
 			// Instance generated
 			// TODO: attach error handlers.
@@ -58,4 +70,4 @@ DEBUG = document.location.toString().indexOf('debug') > -1;
 		
 	});
 	
-}( jQuery ));
+}());

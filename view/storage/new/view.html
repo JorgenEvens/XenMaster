@@ -4,11 +4,15 @@
 	
 	<label for="sr_type">Type:</label>
 	<select id="sr_type">
-		<option value="NFS">Network Filesystem</option>
-		<option value="iSCSI">iSCSI</option>
-		<option value="partition">Local Partition</option>
-		<option value="directory">Local Directory</option>
-		<option value="lvm">LVM</option>
+		<optgroup label="Remote Datastore">
+			<option value="NFS">Network Filesystem</option>
+			<option value="iSCSI">iSCSI</option>
+		</optgroup>
+		<optgroup label="Local Datastore">
+			<option value="partition">Partition</option>
+			<option value="directory">Directory</option>
+			<option value="lvm">LVM</option>
+		</optgroup>
 	</select>
 	
 	<div class="nfs">
