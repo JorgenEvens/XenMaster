@@ -1,20 +1,21 @@
 <div id="storage_list">
-	<ul>
-		<li data-action="sr_new">New</li>
-		<li data-action="sr_detach">Detach</li>
-		<li data-action="sr_remove">Remove</li>
-	</ul>
-	<div>
-		<div class="repo">
-			<header>
-				<ul>
-					<li class="selection" data-action="sr_select"><input type="checkbox" /></li>
-					<li class="name">Name</li>
-					<li class="location">Location</li>
-					<li class="type">Type</li>
-				</ul>
-			</header>
-		</div>
+	<div class="w80">
+    	<h2 class="corner top left">Available Storage Repositories</h2>
+		<table class="data repo">
+			<thead>
+				<tr>
+					<td class="selection" data-action="sr_select"><input type="checkbox" /></td>
+					<td class="name">Name</td>
+					<td class="location">Location</td>
+					<td class="type">Type</td>
+				</tr>
+			</thead>
+		</table>
 		<div class="placeholder sr_create"></div>
+	</div>
+    <div class="w20 action-buttons">
+		<input type="button" data-action="sr_new" value="New" />
+		<input type="button" data-action="sr_detach" value="Detach" />
+		<input type="button" data-action="sr_remove" value="Remove" />
 	</div>
 </div>

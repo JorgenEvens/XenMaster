@@ -6,7 +6,7 @@
 		
 	app.load( 'js://api/sr', function( SR ) {
 		
-		var base = dom.find('.repo header ul').clone();
+		var base = dom.find('.repo tr:first').clone();
 		
 		tpl.on( 'sr_remove', function() {
 			dom.find( '.repo input:checked' ).each(function(){
@@ -39,19 +39,19 @@
 			});
 		});
 		
-		base.find('li').filter(':not(.selection)').html('');
+		base.find('td').filter(':not(.selection)').html('');
 		
 		SR.getAll( function( result ) {
 			for( item in result ) {
 				item = result[item];
 				
 				var row = base.clone(),
-					fields = row.find('li');
+					fields = row.find('td');
 				
 				fields.filter('.selection').find('input').val( item.reference );
-				fields.filter('.name').text( item.name );
-				fields.filter('.location').text( item.otherConfig.location );
-				fields.filter('.type').text( item.type );
+				fields.filter('.name').html( item.name );
+				fields.filter('.location').html( item.otherConfig.location );
+				fields.filter('.type').html( item.type );
 				
 				dom.find('.repo').append( row );
 			}
