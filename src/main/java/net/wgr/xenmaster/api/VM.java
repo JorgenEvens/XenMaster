@@ -87,6 +87,8 @@ public class VM extends NamedEntity {
     public void create(int maxVCPUs) throws BadAPICallException {
         this.maxVCPUs = maxVCPUs;
 
+        if (startupVCPUs == 0) startupVCPUs = maxVCPUs;
+        
         if (startupVCPUs < 1 || maxVCPUs < 1 || startupVCPUs > maxVCPUs) {
             throw new IllegalArgumentException("VM CPU count is zero or startup VCPU count is larger than max VCPU count");
         }
@@ -314,7 +316,7 @@ public class VM extends NamedEntity {
         return VCPUparams;
     }
 
-    public void setMemoryLimits(long maxStaticMemMb, long minStaticMemMb, long maxDynMemMb, long minDynMemMb) throws BadAPICallException {
+    public void setMemoryLimits(double maxStaticMemMb, double minStaticMemMb, double maxDynMemMb, double minDynMemMb) throws BadAPICallException {
         dispatch("set_memory_limits", minStaticMemMb * MEGABYTE, maxStaticMemMb * MEGABYTE, minDynMemMb * MEGABYTE, maxDynMemMb * MEGABYTE);
     }
 
@@ -398,20 +400,28 @@ public class VM extends NamedEntity {
         return maxVCPUs;
     }
 
+    public int getStartupVCPUs() {
+        return value(startupVCPUs, "getVCPUs_at_startup");
+    }
+
+    public void setStartupVCPUs(int startupVCPUs) throws BadAPICallException {
+        this.startupVCPUs = setter(startupVCPUs, "set_VCPUs_at_startup");
+    }
+
     public long getMaximumDynamicMemory() {
         return maximumDynamicMemory;
     }
     
-    public void setMaximumDynamicMemory(long mdmMb) throws BadAPICallException {
-        this.maximumDynamicMemory = setter(mdmMb * MEGABYTE, "set_memory_dynamic_max");
+    public void setMaximumDynamicMemory(double mdmMb) throws BadAPICallException {
+        this.maximumDynamicMemory = setter((long) mdmMb * MEGABYTE, "set_memory_dynamic_max");
     }
 
     public long getMaximumStaticMemory() {
         return value(maximumStaticMemory, "get_memory_static_max");
     }
     
-    public void setMaximumStaticMemory(long msmMb) throws BadAPICallException {
-        this.maximumStaticMemory = setter(msmMb * MEGABYTE, "set_memory_static_max");
+    public void setMaximumStaticMemory(double msmMb) throws BadAPICallException {
+        this.maximumStaticMemory = setter((long) msmMb * MEGABYTE, "set_memory_static_max");
     }
 
     public long getMinimumStaticMemory() {

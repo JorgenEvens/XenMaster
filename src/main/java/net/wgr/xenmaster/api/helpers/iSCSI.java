@@ -46,7 +46,7 @@ public class iSCSI {
         if (localIQN != null) {
             map.put("localIQN", localIQN);
         } else {
-            map.put("localIQN", "iqn.2011-09.net.wgr.xenmaster." + Controller.getSession().getThisHost().getNameLabel());
+            map.put("localIQN", "iqn.2011-09.net.wgr.xenmaster:" + Controller.getSession().getThisHost().getNameLabel());
         }
         if (user != null && password != null) {
             map.put("chapuser", user);
