@@ -79,6 +79,8 @@ public class Hook extends WebCommandHandler {
                 return Integer.parseInt(value.toString());
             case "long":
                 return Long.parseLong(value.toString());
+            case "double":
+                return Double.parseDouble(value.toString());
             default:
                 if (type.isEnum()) {
                     String ucase = value.toString().toUpperCase();
