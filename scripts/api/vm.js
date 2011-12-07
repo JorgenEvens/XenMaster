@@ -6,6 +6,8 @@
 		
 		VM.createStaticMethod( 'build', VM );
 		
+		VM.createStaticMethod( 'getAll', VM, true );
+		
 		VM.createMethod( 'create' );
 		
 		VM.createMethod( 'destroy' );

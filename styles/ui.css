@@ -307,6 +307,10 @@ h2.corner:before {
 	background-image: url('../images/icon/external.png');
 }
 
+#vm_detail ul.hardware li.add {
+	background-image: url('../images/icon/add.png');
+}
+
 #vm_detail .tab_host {
 	overflow: hidden;
 	border: 1px solid #E6E6E6;
@@ -363,11 +367,24 @@ h2.corner:before {
 	width: 300px;
 }
 
-label, input, select, textarea {
+#debug_console textarea {
+	width: 600px;
+	height: 50px;
+}
+
+#debug_console .submit {
+	clear: left;
+}
+
+#debug_console pre {
+	clear: left;
+}
+
+form label, input, select, textarea {
 	float: left;
 }
 
-label {
+form label {
 	clear: left;
 	width: 200px;
 }

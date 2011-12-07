@@ -14,7 +14,7 @@
 
 			this.dom = $(res.view).get(0);
 			
-			this.action = options.action || function(){ return defaultHandler.apply( this, arguments ); };
+			this.action = options.action || defaultHandler;
 			this.capture( options.events );
 			this.onshow = function(){};
 			

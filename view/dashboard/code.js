@@ -2,9 +2,10 @@
 	var tpl = this,
 		record = $(tpl.dom).find('.vm_template' ).remove();
 	
-	app.load( 'js://api/session', 'js://ui/dataset', function( Session, Dataset ) {
+	app.load( 'js://api/vm', 'js://ui/dataset', function( VM, Dataset ) {
 		
-		Session.getThisHost().getResidentVMs(function( result ){
+		// Session[].getThisHost.getResidentVMs
+		VM.getAll(function( result ){
 			var r = null,
 				vm = null,
 				i = null,
@@ -12,6 +13,7 @@
 			
 			for( i in result ) {
 				vm = result[i];
+				if( vm.template ) continue;
 				
 				r = record.clone();
 				

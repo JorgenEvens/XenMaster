@@ -74,6 +74,17 @@
 		showDetail( e.source.dataset.devicetype );
 	});
 	
+	this.bind('vm_device_add', function( e ) {
+		app.load( 'tpl://vm/device/new', 'js://ui/template', 'js://tools/notifier', function( tpl_add, Template, N ) {
+			var view = new Template({ resource: tpl_add });
+			view.bind( 'vm_device_ready', function( e ) {
+				console.log( e.dataset[0] );
+			});
+			view.show( 'vm_detail_panel' );
+			
+		});
+	});
+	
 	this.bind( 'vm_state', function( e ){
 		changeVMState( VMState[e.source.dataset.state] );
 	});
