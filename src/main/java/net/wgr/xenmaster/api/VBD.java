@@ -27,7 +27,7 @@ public class VBD extends XenApiEntity {
     @ConstructorArgument
     protected boolean bootable, empty;
     @ConstructorArgument
-    protected Mode mode;
+    protected Mode mode = Mode.RW;
     @ConstructorArgument
     protected Type type;
     protected boolean attached;
@@ -84,7 +84,7 @@ public class VBD extends XenApiEntity {
         }
     }
 
-    public String create(VM vm, VDI vdi) throws BadAPICallException {
+    public String create(VM vm, VDI vdi, String deviceName) throws BadAPICallException {
         this.VM = vm.getReference();
         if (vdi == null) {
             empty = true;
