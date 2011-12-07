@@ -4,6 +4,8 @@
 		
 		var VM = new Entity( 'VM' );
 		
+		VM.createStaticMethod( 'build', VM );
+		
 		VM.createMethod( 'create' );
 		
 		VM.createMethod( 'destroy' );

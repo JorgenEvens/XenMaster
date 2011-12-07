@@ -363,11 +363,11 @@ h2.corner:before {
 	width: 300px;
 }
 
-#sr_create label, #sr_create input, #sr_create select {
+label, input, select, textarea {
 	float: left;
 }
 
-#sr_create label {
+label {
 	clear: left;
 	width: 200px;
 }
