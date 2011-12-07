@@ -6,7 +6,9 @@
  */
 package net.wgr.xenmaster.api;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
@@ -23,9 +25,13 @@ public class VBD extends XenApiEntity {
     @ConstructorArgument
     protected String VDI;
     @ConstructorArgument
-    protected String deviceName, userFriendlyName;
+    protected String deviceName;
+    @ConstructorArgument
+    protected int deviceIndex;
     @ConstructorArgument
     protected boolean bootable, empty;
+    @ConstructorArgument
+    protected boolean unpluggable = true;
     @ConstructorArgument
     protected Mode mode = Mode.RW;
     @ConstructorArgument
@@ -46,9 +52,8 @@ public class VBD extends XenApiEntity {
     @Fill
     @ConstructorArgument
     protected Map<String, String> otherConfig;
-    
+
     public VBD() {
-        
     }
 
     public VBD(String ref, boolean autoFill) {
@@ -114,6 +119,17 @@ public class VBD extends XenApiEntity {
         metrics = value(metrics, "get_metrics");
         return new VBDMetrics(metrics);
     }
+    
+    public static List<VBD> getAll() throws BadAPICallException {
+        Map<String, Object> records = (Map) Controller.dispatch("VBD.get_all_records");
+        ArrayList<VBD> objects = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : records.entrySet()) {
+            VBD pif = new VBD(entry.getKey(), false);
+            pif.fillOut((Map) entry.getValue());
+            objects.add(pif);
+        }
+        return objects;
+    }
 
     public boolean isBootable() {
         return bootable;
@@ -159,6 +175,14 @@ public class VBD extends XenApiEntity {
         return supportedQosAlgorithms;
     }
 
+    public int getDeviceIndex() {
+        return value(deviceIndex, "get_userdevice");
+    }
+
+    public void setDeviceIndex(int deviceIndex) throws BadAPICallException {
+        this.deviceIndex = setter(deviceIndex, "set_userdevice");
+    } 
+
     public Type getType() {
         return type;
     }
@@ -172,7 +196,7 @@ public class VBD extends XenApiEntity {
         HashMap<String, String> map = new HashMap<>();
         map.put("attached", "currently_attached");
         map.put("deviceName", "device");
-        map.put("userFriendlyName", "userdevice");
+        map.put("deviceIndex", "userdevice");
         map.put("qosAlgorithm", "qos_algorithm_type");
         return map;
     }

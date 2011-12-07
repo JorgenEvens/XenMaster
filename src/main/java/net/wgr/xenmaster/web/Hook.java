@@ -163,6 +163,10 @@ public class Hook extends WebCommandHandler {
         if (ref != null && clazz != null) {
             if (ref.startsWith("LocalRef:")) {
                 Integer localRef = Integer.parseInt(ref.substring(ref.indexOf(":") + 1));
+                if (store.get(localRef) == null) {
+                    current = new IllegalStateException("LocalRef has expired : " + localRef);
+                    return;
+                }
                 current = store.get(localRef).value;
             } else {
                 Constructor c = clazz.getConstructor(String.class, boolean.class);
