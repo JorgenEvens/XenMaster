@@ -34,6 +34,10 @@ public class VDI extends NamedEntity {
     @ConstructorArgument
     protected Map<String, String> otherConfig;
     protected final static int megabyte = 1024 * 1024;
+    
+    public VDI() {
+        
+    }
 
     public VDI(String ref, boolean autoFill) {
         super(ref, autoFill);

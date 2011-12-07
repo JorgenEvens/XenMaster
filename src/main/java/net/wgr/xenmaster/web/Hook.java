@@ -20,6 +20,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import net.wgr.core.ReflectionUtils;
 import net.wgr.server.web.handling.WebCommandHandler;
 import net.wgr.utility.GlobalExecutorService;
 import net.wgr.wcp.command.Command;
@@ -187,7 +188,7 @@ public class Hook extends WebCommandHandler {
         ArrayList<Method> matches = new ArrayList<>();
 
         // First find name matches
-        for (Method m : clazz.getDeclaredMethods()) {
+        for (Method m : ReflectionUtils.getAllMethods(clazz)) {
             if (m.getName().equals(methodName) && Modifier.isPublic(m.getModifiers())) {
                 matches.add(m);
             }

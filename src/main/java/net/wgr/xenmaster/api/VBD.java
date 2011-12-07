@@ -46,6 +46,10 @@ public class VBD extends XenApiEntity {
     @Fill
     @ConstructorArgument
     protected Map<String, String> otherConfig;
+    
+    public VBD() {
+        
+    }
 
     public VBD(String ref, boolean autoFill) {
         super(ref, autoFill);

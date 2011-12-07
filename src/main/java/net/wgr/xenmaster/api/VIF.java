@@ -31,6 +31,10 @@ public class VIF extends XenApiEntity {
     protected Map<String, String> runtimeProperties;
     protected String metrics;
     
+    public VIF() {
+        
+    }
+    
     public VIF(String ref, boolean autoFill) {
         super(ref, autoFill);
     }
