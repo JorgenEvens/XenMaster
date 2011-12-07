@@ -108,12 +108,10 @@ public class XenApiEntity {
         if (obj == null) {
             Logger.getLogger(getClass()).error("Setter failed", new IllegalArgumentException("No value provided for setter"));
         }
-        if (reference != null && !reference.isEmpty() && name == null) {
-            if (obj == null) {
-                throw new IllegalArgumentException("Null value is not allowed for " + name);
-            } else {
-                dispatch(getAPIName() + "." + name, obj);
-            }
+        if (reference != null && !reference.isEmpty() && name != null && !name.isEmpty()) {
+            dispatch(name, obj);
+        } else {
+            Logger.getLogger(getClass()).warn("Entity has no reference and/or setter name is not provided");
         }
 
         return obj;
