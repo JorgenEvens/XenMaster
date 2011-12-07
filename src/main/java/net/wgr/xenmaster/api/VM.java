@@ -84,7 +84,7 @@ public class VM extends NamedEntity {
         super(ref);
     }
 
-    public void create(int maxVCPUs) throws BadAPICallException {
+    public String create(int maxVCPUs) throws BadAPICallException {
         this.maxVCPUs = maxVCPUs;
 
         if (startupVCPUs == 0) startupVCPUs = maxVCPUs;
@@ -98,6 +98,7 @@ public class VM extends NamedEntity {
         ctorArgs.put("PV_legacy_args", "");
 
         this.reference = (String) dispatch("create", ctorArgs);
+        return this.reference;
     }
 
     public void destroy() throws BadAPICallException {
