@@ -47,11 +47,12 @@ public class VIF extends XenApiEntity {
         dispatch("unplug");
     }
     
-    public void create(String deviceName, Network network) throws BadAPICallException {
+    public String create(String deviceName, Network network) throws BadAPICallException {
         this.deviceName = deviceName;
         this.network = network.getReference();
 
         this.reference = (String) dispatch("create", collectConstructorArgs());
+        return this.reference;
     }
     
     public void destroy() throws BadAPICallException {

@@ -80,7 +80,7 @@ public class VBD extends XenApiEntity {
         }
     }
 
-    public void create(VM vm, VDI vdi) throws BadAPICallException {
+    public String create(VM vm, VDI vdi) throws BadAPICallException {
         this.VM = vm.getReference();
         if (vdi == null) {
             empty = true;
@@ -89,6 +89,7 @@ public class VBD extends XenApiEntity {
         }
 
         this.reference = (String) Controller.dispatch("VBD.create", collectConstructorArgs());
+        return this.reference;
     }
 
     public void destroy() throws BadAPICallException {

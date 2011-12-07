@@ -57,7 +57,7 @@ public class VDI extends NamedEntity {
         return vbds;
     }
 
-    public void create(double sizeInMb, Type type, SR repo, boolean shareable, boolean readOnly) throws BadAPICallException {
+    public String create(double sizeInMb, Type type, SR repo, boolean shareable, boolean readOnly) throws BadAPICallException {
         this.virtualSize = (int) (sizeInMb * (megabyte));
         this.type = type;
         this.SR = repo.getReference();
@@ -65,6 +65,7 @@ public class VDI extends NamedEntity {
         this.readOnly = readOnly;
         
         this.reference = (String) dispatch("create", collectConstructorArgs());
+        return this.reference;
     }
     
     public VDI snapshot() throws BadAPICallException {
