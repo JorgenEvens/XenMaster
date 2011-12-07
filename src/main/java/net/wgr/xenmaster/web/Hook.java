@@ -148,7 +148,7 @@ public class Hook extends WebCommandHandler {
         if (refOpen != -1) {
             className = s.substring(0, refOpen);
             clazz = Class.forName("net.wgr.xenmaster.api." + className);
-        } else if (index == values.length - 2) {
+        } else if (index == values.length - 2 || values.length == 1) {
             className += s;
             clazz = Class.forName("net.wgr.xenmaster.api." + className);
         } else {

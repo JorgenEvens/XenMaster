@@ -99,7 +99,7 @@ public class iSCSI {
     }
 
     public void setLUNs(Integer[] luns) {
-        this.luns = luns;
+        this.luns = luns.clone();
     }
 
     public int getPort() {

@@ -280,7 +280,7 @@ public class XenApiEntity {
         }
     }
 
-    protected HashMap<String, Object> collectConstructorArgs() {
+    protected Map<String, Object> collectConstructorArgs() {
         HashMap<String, Object> args = new HashMap<>();
         Map<String, String> interpretation = interpretation();
 
@@ -441,8 +441,8 @@ public class XenApiEntity {
                             }
                         } else if (f.isAnnotationPresent(Fill.class)) {
                             Object casted = f.getType().cast(value);
-                            if (XenApiEntity.class.isAssignableFrom(f.getType()) && f.getAnnotation(Fill.class).fillAPIObject()) {
-                            }
+                            /*if (XenApiEntity.class.isAssignableFrom(f.getType()) && f.getAnnotation(Fill.class).fillAPIObject()) {
+                            }*/
                             f.set(this, casted);
                         }
                         break;

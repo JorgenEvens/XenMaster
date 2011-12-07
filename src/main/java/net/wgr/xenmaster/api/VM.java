@@ -93,7 +93,7 @@ public class VM extends NamedEntity {
             throw new IllegalArgumentException("VM CPU count is zero or startup VCPU count is larger than max VCPU count");
         }
 
-        HashMap<String, Object> ctorArgs = collectConstructorArgs();
+        Map<String, Object> ctorArgs = collectConstructorArgs();
         // Not putting legacy args in the model, we don't do legacy
         ctorArgs.put("PV_legacy_args", "");
 
