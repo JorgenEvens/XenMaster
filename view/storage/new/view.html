@@ -1,66 +1,94 @@
-<div id="sr_create">
-	<label for="sr_name">Name:</label>
-	<input type="text" id="sr_name" name="name" />
+<form id="sr_create">
+	<div class="form_line">
+		<label for="sr_name">Name:</label>
+		<input type="text" id="sr_name" name="name" />
+	</div>
 	
-	<label for="sr_type">Type:</label>
-	<select id="sr_type">
-		<optgroup label="Remote Datastore">
-			<option value="NFS">Network Filesystem</option>
-			<option value="iSCSI">iSCSI</option>
-		</optgroup>
-		<optgroup label="Local Datastore">
-			<option value="partition">Partition</option>
-			<option value="directory">Directory</option>
-			<option value="lvm">LVM</option>
-		</optgroup>
-	</select>
+	<div class="form_line">
+		<label for="sr_type">Type:</label>
+		<select id="sr_type">
+			<optgroup label="Remote Datastore">
+				<option value="NFS">Network Filesystem</option>
+				<option value="iSCSI">iSCSI</option>
+			</optgroup>
+			<optgroup label="Local Datastore">
+				<option value="partition">Partition</option>
+				<option value="directory">Directory</option>
+				<option value="lvm">LVM</option>
+			</optgroup>
+		</select>
+	</div>
 	
 	<div class="nfs">
-		<label for="nfs_host">Host:</label>
-		<input type="text" id="nfs_host" name="host" />
+		<div class="form_line">
+			<label for="nfs_host">Host:</label>
+			<input type="text" id="nfs_host" name="host" />
+		</div>
 		
-		<label for="nfs_path">Path:</label>
-		<input type="text" id="nfs_path" name="path" />
+		<div class="form_line">
+			<label for="nfs_path">Path:</label>
+			<input type="text" id="nfs_path" name="path" />
+		</div>
 	</div>
 	<div class="iscsi">
-		<label for="iscsi_type">iSCSI Type:</label>
-		<select id="iscsi_type" name="type">
-			<option value="EXToISCSI">File-based iSCSI</option>
-			<option value="iSCSI">iSCSI Storage Repository</option>
-			<option value="LVMoISCSI">LVM-based iSCSI</option>
-		</select>
+		<div class="form_line">
+			<label for="iscsi_type">iSCSI Type:</label>
+			<select id="iscsi_type" name="type">
+				<option value="EXToISCSI">File-based iSCSI</option>
+				<option value="iSCSI">iSCSI Storage Repository</option>
+				<option value="LVMoISCSI">LVM-based iSCSI</option>
+			</select>
+		</div>
 		
-		<label for="iscsi_targetIQN">Target IQN:</label>
-		<input type="text" id="iscsi_targetIQN" name="targetIQN" />
+		<div class="form_line">
+			<label for="iscsi_targetIQN">Target IQN:</label>
+			<input type="text" id="iscsi_targetIQN" name="targetIQN" />
+		</div>
 		
-		<label for="iscsi_lun">LUN (comma seperated):</label>
-		<input type="text" id="iscsi_lun" name="LUNs" />
+		<div class="form_line">
+			<label for="iscsi_lun">LUN (comma seperated):</label>
+			<input type="text" id="iscsi_lun" name="LUNs" />
+		</div>
 		
-		<label for="iscsi_target">Target:</label>
-		<input type="text" id="iscsi_target" name="target" />
+		<div class="form_line">
+			<label for="iscsi_target">Target:</label>
+			<input type="text" id="iscsi_target" name="target" />
+		</div>
 		
-		<label for="iscsi_port">Port:</label>
-		<input type="text" id="iscsi_port" name="port" />
+		<div class="form_line">
+			<label for="iscsi_port">Port:</label>
+			<input type="text" id="iscsi_port" name="port" />
+		</div>
 		
-		<label for="iscsi_user">Username:</label>
-		<input type="text" id="iscsi_user" name="user" />
+		<div class="form_line">
+			<label for="iscsi_user">Username:</label>
+			<input type="text" id="iscsi_user" name="user" />
+		</div>
 		
-		<label for="iscsi_password">Password:</label>
-		<input type="password" id="iscsi_password" name="password" />
+		<div class="form_line">
+			<label for="iscsi_password">Password:</label>
+			<input type="password" id="iscsi_password" name="password" />
+		</div>
 	</div>
 	<div class="partition">
-		<label for="partition_device">Device:</label>
-		<input type="text" id="partition_device" name="device" />
+		<div class="form_line">
+			<label for="partition_device">Device:</label>
+			<input type="text" id="partition_device" name="device" />
+		</div>
 	</div>
 	<div class="directory">
-		<label for="directory_path">Directory path:</label>
-		<input type="text" id="directory_path" name="location" />
+		<div class="form_line">
+			<label for="directory_path">Directory path:</label>
+			<input type="text" id="directory_path" name="location" />
+		</div>
 	</div>
 	<div class="lvm">
-		<label for="lvm_volumes">Volume Group Devices (comma seperated):</label>
-		<input type="text" id="lvm_volumes" name="volumes" />
+		<div class="form_line">
+			<label for="lvm_volumes">Volume Group Devices (comma seperated):</label>
+			<input type="text" id="lvm_volumes" name="volumes" />
+		</div>
 	</div>
 	
 	<label>&nbsp;</label>
 	<input type="button" data-action="sr_create" value="Create" />
-</div>
+</form>

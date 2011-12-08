@@ -1,4 +1,16 @@
 <div id="vm_device_add">
 	
-	<h3 data-action="vm_device_create">New Device wizard</h3>
+	<h3>Create a device</h3>
+	
+	<div class="form_line">
+		<label for="vm_device_type">Devicetype:</label>
+		<select id="vm_device_type" name="device_type" data-action=device_type_selected>
+			<option value=""> - select devicetype - </option>
+			<optgroup label="Storage">
+				<option value="harddisk">Harddisk</option>
+			</optgroup>
+		</select>
+	</div>
+	
+	<div class="placeholder vm_device_config"></div>
 </div>

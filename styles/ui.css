@@ -380,12 +380,18 @@ h2.corner:before {
 	clear: left;
 }
 
-form label, input, select, textarea {
+.form_line {
+	overflow: hidden;
+}
+
+.form_line label,
+.form_line input,
+.form_line select,
+.form_line textarea {
 	float: left;
 }
 
-form label {
-	clear: left;
+.form_line label {
 	width: 200px;
 }
 

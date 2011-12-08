@@ -1,4 +1,5 @@
 (function(){
+	var global = this;
 	
 	Util = function(){};
 	
@@ -28,6 +29,33 @@
 		} else {
 			target['on'+event] = listener;
 		}
+	};
+	
+	Util.chain = function(){
+		var args = null,
+			instance, splice, concat;
+		
+		if( arguments.length > 0 || this == global ) {
+			splice = Array.prototype.splice;
+			concat = Array.prototype.concat;
+			
+			instance = new Util.chain();
+			args = concat( [0,0], Util.argumentsToArray( arguments ) );
+			splice.apply( instance, args );
+			return instance;
+		}
+	};
+	
+	Util.chain.prototype = [];
+	
+	Util.chain.prototype.start = function() {
+		var counter = 0,
+			next = function(){
+				return this[counter++].apply(context,arguments);
+			},
+			context = {next:next};
+		
+		next.apply(null,arguments);
 	};
 	
 }());
