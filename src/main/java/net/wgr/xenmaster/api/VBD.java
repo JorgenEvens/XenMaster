@@ -27,7 +27,7 @@ public class VBD extends XenApiEntity {
     @ConstructorArgument
     protected String deviceName;
     @ConstructorArgument
-    protected int deviceIndex;
+    protected int deviceIndex = -1;
     @ConstructorArgument
     protected boolean bootable, empty;
     @ConstructorArgument
@@ -96,6 +96,7 @@ public class VBD extends XenApiEntity {
         } else {
             this.VDI = vdi.getReference();
         }
+        if (this.deviceIndex == -1) this.deviceIndex = vm.getNextAvailableDeviceIndex();
 
         this.reference = (String) Controller.dispatch("VBD.create", collectConstructorArgs());
         return this.reference;
