@@ -19,6 +19,10 @@
 		});
 	});
 	
+	this.onshow = function(){
+		$('#dev_name').val( tpl.vm.name );
+	};
+
 	tpl.capture('click');
 	
 	tpl.on( 'dev_create', function() {
@@ -41,7 +45,7 @@
 			function( VDI, VBD ) {
 				this.VBD = VBD;
 				
-				VDI.build({}, this.next );
+				VDI.build({name:data.name}, this.next );
 			},
 			function( vdi ) {
 				vdi.create( data.size, 'USER', data.repo, true, false, this.next );
@@ -55,7 +59,7 @@
 				vbd.create( tpl.vm, this.vdi, '', this.next );
 			},
 			function( vbd ) {
-				tpl.vm.VBDs.push(vbd);
+				tpl.vm.VBDs.push(vbd.reference);
 				tpl.action( 'device_ready', vbd );
 			}
 		).start();

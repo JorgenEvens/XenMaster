@@ -15,8 +15,9 @@
 		
 		app.load( 'tpl://vm/device/' + type, 'js://ui/template', function( tpl_dev, Template ){
 			var config = new Template({resource: tpl_dev});
-			config.show('vm_device_config');
 			config.vm = tpl.vm;
+			
+			config.show('vm_device_config');
 			
 			config.on( 'device_ready', function( e ){
 				deviceReady( e.dataset );

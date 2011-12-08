@@ -11,6 +11,8 @@
 		 * Get a content panel for the specific piece of hardware.
 		 */
 		showDetail = function( detail ) {
+			if( !detail ) return;
+			
 			app.load( 'tpl://vm/detail/' + detail, 'js://ui/template', 'js://tools/notifier', function( tpl_detail, Template, N ) {
 				
 				var view = new Template({ resource: tpl_detail });
@@ -48,13 +50,42 @@
 					Notifier.publish( vm.name, 'State changed to <b>' + state[2] + '</b>' );
 				});
 			});
+		},
+		
+		/*
+		 * Load VDIs for VBDs and display them.
+		 */
+		loadVBDs = function() {
+			dom.find('.hardware .harddisk').remove();
+			app.load( 'js://api/vbd', function( VBD ){
+				var i = null,
+					add = $('.hardware .add');
+				
+				for( i in vm_data.VBDs ) {
+					(new VBD(vm_data.VBDs[i])).getVDI(function( vdi ){
+						var alternateName = 'HDD ( ' + (vdi.virtualSize/(1024*1024)) + 'MB )';
+						
+						$('<li></li>')
+							.addClass('disk')
+							.attr('data-devicetype','disk')
+							.text( vdi.name||alternateName )
+							.insertBefore( add );
+					});
+				}
+			});
+			
+			
+			
+			for( i in vm_data.VBDs ) {
+				
+			}
 		};
 	
 	/*
 	 * Setup template
 	 */
-	dom.find( 'ul.hardware li' )
-		.click( function() {
+	dom.find( 'ul.hardware' )
+		.delegate( 'li', 'click', function() {
 			dom
 				.find( 'ul.hardware li' )
 				.removeClass( 'selected' );
@@ -109,6 +140,8 @@
 		show.call(this);
 		vm_data = vm;
 		
+		loadVBDs();
+		
 		dom
 			.find('.vm_name')
 			.text( vm.name );
@@ -131,5 +164,7 @@
 				}
 			});
 		});
+		
+		this.load
 	};
 });
