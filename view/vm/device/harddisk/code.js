@@ -39,7 +39,7 @@
 				app.load( 'js://api/vdi', 'js://api/vbd', this.next );
 			},
 			function( VDI, VBD ) {
-				this.VBD;
+				this.VBD = VBD;
 				
 				VDI.build({}, this.next );
 			},
@@ -52,11 +52,11 @@
 				this.VBD.build({mode:'RW',type:'DISK'}, this.next);
 			},
 			function( vbd ) {
-				vbd.create( tpl.vm, this.vdi, this.next );
+				vbd.create( tpl.vm, this.vdi, '', this.next );
 			},
 			function( vbd ) {
 				tpl.vm.VBDs.push(vbd);
-				this.action( 'device_ready', device );
+				tpl.action( 'device_ready', vbd );
 			}
 		).start();
 		

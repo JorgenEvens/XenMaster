@@ -1,6 +1,7 @@
 (function( $, app ){
 	
-	var dom = $(this.dom),
+	var tpl = this,
+		dom = $(this.dom),
 		actions = dom.find('h2 li'),
 		canvas = dom.find('canvas.graph'),
 		vm_data = null,
@@ -80,7 +81,7 @@
 			view.bind( 'vm_device_ready', function( e ) {
 				// TODO: Further implement
 				console.log( 'New Device', e.dataset );
-				tpl.show();
+				tpl.show( vm_data );
 			});
 			view.vm = vm_data;
 			
