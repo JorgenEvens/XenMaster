@@ -24,6 +24,10 @@ public class PBD extends XenApiEntity {
     protected Map<String, Object> deviceConfig, otherConfig;
     protected boolean attached;
     protected String SR, host;
+    
+    public PBD() {
+        
+    }
 
     public PBD(String ref, boolean autoFill) {
         super(ref, autoFill);

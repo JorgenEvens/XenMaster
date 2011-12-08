@@ -271,6 +271,19 @@ public class VM extends NamedEntity {
         CollectionUtils.addAll(arrr, result);
         return arrr;
     }
+    
+    public int[] getFreeDeviceIndexes() throws BadAPICallException {
+        Object[] result = (Object[]) dispatch("get_allowed_VBD_devices");
+        int[] indexes = new int[result.length];
+        for (int i = 0; i < result.length; i++) {
+            indexes[i] = Integer.parseInt(result[i].toString());
+        }
+        return indexes;
+    }
+    
+    public int getNextAvailableDeviceIndex() throws BadAPICallException {
+        return getFreeDeviceIndexes()[0];
+    }
 
     public VMMetrics getMetrics() {
         this.metrics = value(this.metrics, "get_vm_metrics");
