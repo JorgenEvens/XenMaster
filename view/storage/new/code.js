@@ -4,7 +4,7 @@
 		dom = $(tpl.dom),
 		
 		showFields = function(){
-			dom.find( '> div' ).hide();
+			dom.find( '> div:not(.form_line)' ).hide();
 			dom.find( '.' + dom.find('#sr_type').val().toLowerCase() ).show();
 		},
 		
