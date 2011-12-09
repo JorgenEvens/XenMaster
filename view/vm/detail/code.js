@@ -110,8 +110,6 @@
 		app.load( 'tpl://vm/device/new', 'js://ui/template', 'js://tools/notifier', function( tpl_add, Template, N ) {
 			var view = new Template({ resource: tpl_add });
 			view.bind( 'vm_device_ready', function( e ) {
-				// TODO: Further implement
-				console.log( 'New Device', e.dataset );
 				tpl.show( vm_data );
 			});
 			view.vm = vm_data;

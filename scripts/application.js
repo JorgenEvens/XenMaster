@@ -229,9 +229,6 @@
 		var i = null;
 		
 		if( this.notification ) {
-			for( i in this.content ) {
-				break; // TODO: Weird piece of code
-			}
 			this.notification.style.opacity = i != null ? '1' : '0';
 		}
 	};

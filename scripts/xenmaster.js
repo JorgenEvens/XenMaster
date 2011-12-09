@@ -34,8 +34,6 @@ DEBUG = document.location.toString().indexOf('debug') > -1;
 	MASTER = null,
 	M = null;
 	
-	// TODO: Make sure this change is correct
-	// OLD: $(document).ready(function(){
 	var onload = window.onload;
 	window.onload = (function(){
 		if( onload ) {
@@ -53,7 +51,7 @@ DEBUG = document.location.toString().indexOf('debug') > -1;
 		/*
 		 * Setup a connection with backend
 		 */
-		M.load( 'js://net/xmconnection', function( XmCon ){
+		M.load( 'js://net/xmconnection', 'js://tools/notifier', function( XmCon, Notifier ){
 			
 			var xm = new XmCon(document.location.host + '/wwscp');
 			xm.open();
@@ -64,8 +62,11 @@ DEBUG = document.location.toString().indexOf('debug') > -1;
 					init_app();
 				}
 			};
-			// Instance generated
-			// TODO: attach error handlers.
+			
+			xm.onerror = function() {
+				Notifier.publish( 'XenMaster', 'Unable to connect to XenMaster api. Retry in 5s' );
+				window.setTimeout(function(){ xm.open(); }, 5000 );
+			};
 		});
 		
 	});

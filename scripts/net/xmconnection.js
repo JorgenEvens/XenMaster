@@ -12,7 +12,21 @@
 		},
 		sendRaw,
 		proto = function(){};
-		proto.prototype = Socket.prototype;
+		proto.prototype = Socket.prototype,
+		
+		createCallback = function( callback ) {
+			// Result parsing
+			return function( data ){
+				console.log( data );
+				if( data.type == 'ERROR' ) {
+					app.load( 'js://tools/notifier', function( Notifier ) {
+						Notifier.publish( 'XenMaster', 'Request to backend failed!' );
+					});
+				} else {
+					callback( data.result );
+				}
+			};
+		};
 		
 		XmConnection.prototype = new proto();
 		
@@ -52,11 +66,7 @@
 			}
 			
 			if( callback ) {
-				callback = (function( callback ){
-					return function( data ) {
-						callback( data.result );
-					};
-				})( callback );
+				callback = createCallback( callbackc );
 			}
 			
 			sendRaw.call( this, {
