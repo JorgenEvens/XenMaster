@@ -1,5 +1,5 @@
 (function( ready ){
-	var path = 'http://ajax.googleapis.com/ajax/libs/jQuery/1.6.4/jQuery.min.js',
+	var path = 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js',
 		local = 'scripts/lib/jquery.lib.js',
 		head = Util.head,
 		script = null,

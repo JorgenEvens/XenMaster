@@ -247,7 +247,6 @@
 		
 		// Clear buffer
 		this.content = {};
-		
 
 		for( uri in content ) {
 			parts = uri.split( '://' );
@@ -290,7 +289,7 @@
 		try {
 			req = new XMLHttpRequest();
 		} catch( ex ) {
-			// TODO: Internet Explorer
+			req = new ActiveXObject("Microsoft.XMLHTTP");
 		}
 		
 		if( !req ) {
@@ -300,7 +299,7 @@
 		req.open( 'GET', resource );
 		
 		req.onreadystatechange = function() {
-			if( req.readyState == 4 && req.status == 200 ) { // TODO: Catch 304 -> not changed
+			if( req.readyState == 4 && req.status == 200 ) {
 				callback( req.responseText );
 			}
 		};

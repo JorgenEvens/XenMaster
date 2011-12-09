@@ -8,7 +8,11 @@
 			dom.find( '.' + dom.find('#sr_type').val().toLowerCase() ).show();
 		},
 		
-		creation = {};
+		creation = {},
+		
+		clearFields = function() {
+			dom.find('input,select,textarea').val('');
+		};
 		
 	creation.nfs = function( name, host, data ) {
 		app.load( 'js://api/helpers/nfs', function( NFS ) {
@@ -29,6 +33,7 @@
 					
 					sr.create( host, iscsi, 'user', true, 0,
 							function( r ) {
+						clearFields();
 						console.log( 'sr result ', r );
 					});
 				};
@@ -56,6 +61,7 @@
 		app.load( 'js://api/sr', function( SR ) {
 			SR.build({name: name}, function( sr ) {
 				sr.create( host, data, 'Ext', 'user', true, 0, function( result ){
+					clearFields();
 					console.log( result );
 				});
 			});
@@ -66,6 +72,7 @@
 		app.load( 'js://api/sr', function( SR ) {
 			SR.build({name: name}, function( sr ) {
 				sr.create( host, data, 'File', 'user', true, 0, function( result ){
+					clearFields();
 					console.log( result );
 				});
 			});
@@ -80,6 +87,7 @@
 		app.load( 'js://api/sr', function( SR ) {
 			SR.build({name: name}, function( sr ) {
 				sr.create( host, data, 'Lvm', 'user', true, 0, function( result ){
+					clearFields();
 					console.log( result );
 				});
 			});
@@ -103,10 +111,7 @@
 				if( item.val().length < 1 ) return;
 				
 			info[item.attr('name')] = item.val();
-			item.val('');
 		});
-		
-		console.log( 'info', info );
 		
 		app.load( 'js://api/session', function( Session, Helper ) {
 			Session.getThisHost(function( host ){
