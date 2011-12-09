@@ -466,3 +466,11 @@ footer {
 	border-style: solid;
 	background-color: #FDFDFD;
 }
+
+.placeholder .overlay {
+	position: absolute;
+	width: 100%;
+	left: 0;
+	bottom: 0;
+	background: white;
+}

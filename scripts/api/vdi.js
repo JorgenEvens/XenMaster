@@ -7,6 +7,16 @@
 		
 		VDI.createMethod( 'create', VDI );
 		
+		VDI.prototype.getVBDs = function() {
+			var args = arguments,
+				me = this;
+			app.load( 'js://api/vbd', function( VBD ) {
+				VDI.createMethod( 'getVBDs', VBD );
+				VDI.prototype.getVBDs.apply( me, args );
+			});
+		};
+		
 		ready( VDI );
+		
 	});
 });

@@ -11,7 +11,7 @@
 		creation = {};
 		
 	creation.nfs = function( name, host, data ) {
-		app.load( 'js://api/helpers/nfs', function( Session, NFS ) {
+		app.load( 'js://api/helpers/nfs', function( NFS ) {
 			NFS.mountISORepository( name, data.host, data.path, host, function(r){
 				console.log( 'iso mount result: ', r );
 			});
