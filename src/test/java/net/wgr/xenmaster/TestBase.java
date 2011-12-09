@@ -6,6 +6,8 @@
  */
 package net.wgr.xenmaster;
 
+import java.net.URL;
+import net.wgr.settings.Settings;
 import net.wgr.xenmaster.controller.Controller;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
@@ -25,6 +27,7 @@ public class TestBase {
         root.setLevel(Level.INFO);
         root.addAppender(new ConsoleAppender(new TTCCLayout()));
         
+        Controller.build(new URL(Settings.getInstance().getString("Xen.URL")));
         Controller.getSession().loginWithPassword("root", "r00tme");
     }
 }

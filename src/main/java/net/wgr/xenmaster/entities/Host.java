@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
  * @author double-u
  */
 public class Host extends net.wgr.core.dao.Object {
-    
+
     @Required
     protected UUID id;
     protected String macAddress;
@@ -31,17 +31,23 @@ public class Host extends net.wgr.core.dao.Object {
     protected int port = 80;
     protected String userName, password;
     protected boolean useSSL, active;
+    
+    public final static String COLUMN_FAMILY = "xenHosts";
+
+    public Host(InetAddress address) {
+        this.address = address;
+    }
 
     @Override
     public String getColumnFamily() {
-        return "xen-hosts";
+        return COLUMN_FAMILY;
     }
 
     @Override
     public String getKeyFieldName() {
         return "id";
     }
-    
+
     public UUID getId() {
         return id;
     }
@@ -49,11 +55,11 @@ public class Host extends net.wgr.core.dao.Object {
     public String getMacAddress() {
         return macAddress;
     }
-    
+
     public InetAddress getAddress() {
         return address;
     }
-    
+
     public void setAddress(InetAddress address) {
         this.address = address;
     }
@@ -89,20 +95,20 @@ public class Host extends net.wgr.core.dao.Object {
     public void setUserName(String userName) {
         this.userName = userName;
     }
-    
+
     public Connection connect() {
         try {
             URL url = new URL("http://" + address.getCanonicalHostName() + ":" + port);
-            return new Connection();
+            return new Connection(url);
         } catch (MalformedURLException ex) {
             Logger.getLogger(getClass()).error(ex);
         }
         return null;
     }
     
-    public Collection<Host> getAll() {
+    public static Collection<Host> getAll() {
         Collection<Host> hosts;
-        hosts = Retrieval.getRowsAs(Host.class, Retrieval.getAllRowsFromColumnFamily(getColumnFamily())).values();
+        hosts = Retrieval.getRowsAs(Host.class, Retrieval.getAllRowsFromColumnFamily(COLUMN_FAMILY)).values();
         return hosts;
     }
 

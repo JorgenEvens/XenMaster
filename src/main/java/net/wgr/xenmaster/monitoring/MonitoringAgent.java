@@ -19,10 +19,14 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
 import net.wgr.settings.Settings;
 import net.wgr.utility.GlobalExecutorService;
+import net.wgr.xenmaster.api.Event;
+import net.wgr.xenmaster.controller.BadAPICallException;
+import net.wgr.xenmaster.controller.Controller;
 import net.wgr.xenmaster.entities.Host;
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 
 /**
  * 
@@ -30,6 +34,7 @@ import org.apache.log4j.Logger;
  * @author double-u
  */
 public class MonitoringAgent implements Runnable {
+
     protected boolean lazy = false;
     protected ArrayListMultimap<String, Record> vmData, hostData;
     protected Map<String, ParsedRecord> vmParsed, hostParsed;
@@ -39,46 +44,68 @@ public class MonitoringAgent implements Runnable {
     protected RingBuffer<Record> ringBuffer;
     protected SequenceBarrier barrier;
     protected final int RING_SIZE = 256;
-    
-    public MonitoringAgent() {
+    private static MonitoringAgent instance;
+
+    private MonitoringAgent() {
         vmData = ArrayListMultimap.create();
         hostData = ArrayListMultimap.create();
         data = new ConcurrentSkipListMap<>();
         NTPUDPClient nuc = new NTPUDPClient();
         ringBuffer = new RingBuffer<>(Record.EVENT_FACTORY, new SingleThreadedClaimStrategy(RING_SIZE), new SleepingWaitStrategy());
         barrier = ringBuffer.newBarrier();
-        
+
+        try {
+            // todo this should always take place on pool masters, make it so instead of just host index 0
+            Controller.switchToNextAvailableContext();
+            Event.register(null);
+        } catch (BadAPICallException ex) {
+            Logger.getLogger(getClass()).error("Failed to register to events", ex);
+        }
+
         try {
             timeInfo = nuc.getTime(InetAddress.getByName("pool.ntp.org"));
             timeInfo.computeDetails();
-            Logger.getLogger(getClass()).info("It is now " + (System.currentTimeMillis() + timeInfo.getOffset()) + ". Your host has an offset of " + (timeInfo.getOffset() / 1000) + " seconds");
+            Logger.getLogger(getClass()).info("It is now " + new DateTime(System.currentTimeMillis() + timeInfo.getOffset()).toString("MM/dd/yyyy hh:mm:ss.S") + ". Your host has an offset of " + (timeInfo.getOffset() / 1000) + " seconds");
         } catch (IOException ex) {
             Logger.getLogger(getClass()).warn("NTP time retrieval failed", ex);
         }
     }
-    
+
+    public static MonitoringAgent get() {
+        if (instance == null) {
+            instance = new MonitoringAgent();
+        }
+        return instance;
+    }
+
+    public void boot() {
+        schedule();
+    }
+
     protected void schedule() {
-        int interval = (int)((double) Settings.getInstance().get("Monitoring.Interval") * 1000);
+        int interval = (int) ((double) Settings.getInstance().get("Monitoring.Interval") * 1000);
         GlobalExecutorService.get().scheduleAtFixedRate(this, interval, interval, TimeUnit.MILLISECONDS);
     }
-    
+
     public List<Record> requestVMData(String ref, int start, int delta, int end) {
         return null;
     }
-    
+
     public List<Record> requestHostData(String ref, int start, int delta, int end) {
         return null;
     }
 
     @Override
     public void run() {
-        Host h = new Host();
-        
-        for (Host host : h.getAll()) {
+        for (Host host : Host.getAll()) {
             String ref = host.getId().toString();
             Record r = new Record(ref, true);
             hostData.put(ref, r);
         }
+        try {
+            List<Event> events = Event.nextEvents();
+        } catch (BadAPICallException ex) {
+            Logger.getLogger(getClass()).error("Failed to retrieve latest events", ex);
+        }
     }
-    
 }

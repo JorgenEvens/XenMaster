@@ -27,7 +27,6 @@ import net.wgr.wcp.command.Command;
 import net.wgr.wcp.command.CommandException;
 import net.wgr.wcp.command.Result;
 import net.wgr.xenmaster.api.XenApiEntity;
-import net.wgr.xenmaster.controller.Controller;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -48,13 +47,6 @@ public class Hook extends WebCommandHandler {
 
         store = new ConcurrentHashMap<>();
         GlobalExecutorService.get().scheduleAtFixedRate(new Housekeeper(), 1, 5, TimeUnit.MINUTES);
-        GlobalExecutorService.get().schedule(new Runnable() {
-
-            @Override
-            public void run() {
-                Controller.getSession().loginWithPassword("root", "r00tme");
-            }
-        }, 0, TimeUnit.DAYS);
     }
 
     public Object execute(Command cmd) {

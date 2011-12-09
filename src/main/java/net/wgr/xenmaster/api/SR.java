@@ -115,7 +115,7 @@ public class SR extends NamedEntity {
                     PBD pbd = new PBD(ref, false);
                     pbd.unplug();
                 }
-                forget();
+                dispatch("forget");
             } else {
                 throw ex;
             }

@@ -1,5 +1,7 @@
 package net.wgr.xenmaster;
 
+import java.net.InetAddress;
+import java.net.URL;
 import net.wgr.core.access.Authorize;
 import net.wgr.core.data.DataPool;
 import net.wgr.server.application.DefaultApplication;
@@ -7,6 +9,9 @@ import net.wgr.server.http.Server;
 import net.wgr.server.web.handling.ServerHook;
 import net.wgr.settings.Settings;
 import net.wgr.utility.GlobalExecutorService;
+import net.wgr.xenmaster.controller.Controller;
+import net.wgr.xenmaster.entities.Host;
+import net.wgr.xenmaster.monitoring.MonitoringAgent;
 import net.wgr.xenmaster.pool.Pool;
 import net.wgr.xenmaster.setup.debian.Bootstrapper;
 import net.wgr.xenmaster.web.Hook;
@@ -42,6 +47,7 @@ public class App implements Daemon {
                 Settings.loadFromFile(context.getArguments()[0]);
             }
         }
+        
         Logger root = Logger.getRootLogger();
         root.setLevel(Level.INFO);
         root.addAppender(new ConsoleAppender(new TTCCLayout()));
@@ -49,8 +55,12 @@ public class App implements Daemon {
 
     @Override
     public void start() throws Exception {
+        Controller.build(new URL(Settings.getInstance().getString("Xen.URL")));
+        Controller.getSession().loginWithPassword("root", "r00tme");
+        
         DataPool.simpleBoot(Settings.getInstance().getString("Cassandra.PoolName"), Settings.getInstance().getString("Cassandra.Host"), Settings.getInstance().getString("Cassandra.Keyspace"));
         Pool.get().boot();
+        MonitoringAgent.get().boot();
 
         server = new Server();
         server.boot();

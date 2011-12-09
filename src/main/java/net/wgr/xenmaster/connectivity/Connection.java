@@ -6,11 +6,9 @@
  */
 package net.wgr.xenmaster.connectivity;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
-import net.wgr.settings.Settings;
 import net.wgr.xenmaster.api.Session;
 
 /**
@@ -23,10 +21,6 @@ public class Connection {
     protected final XMLRPC xmlRpc;
     protected final Session session = new Session();
     protected URL url;
-
-    public Connection() throws MalformedURLException {
-        this(new URL(Settings.getInstance().getString("Xen.URL")));
-    }
 
     public Connection(URL url) {
         this.url = url;

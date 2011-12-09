@@ -7,6 +7,7 @@
 package net.wgr.xenmaster.controller;
 
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,28 +23,20 @@ import org.apache.log4j.Logger;
 public class Dispatcher {
 
     protected Connection conn;
-    private static Dispatcher instance;
 
-    private Dispatcher() {
-        try {
-            this.conn = new Connection();
-        } catch (MalformedURLException ex) {
-            Logger.getLogger(getClass()).error(ex);
-        }
+    public Dispatcher(URL xen) {
+        this.conn = new Connection(xen);
     }
-
-    public static Dispatcher get() {
-        if (instance == null) {
-            instance = new Dispatcher();
-        }
-        return instance;
+    
+    public Dispatcher(Connection conn) {
+        this.conn = conn;
     }
 
     public Object dispatch(String methodName, Object[] params) throws BadAPICallException {
         ArrayList list = new ArrayList();
         CollectionUtils.addAll(list, params);
+        
         return execute(methodName, list);
-
     }
 
     protected Object execute(String methodName, List params) throws BadAPICallException {
@@ -53,7 +46,7 @@ public class Dispatcher {
                 throw new BadAPICallException(methodName, params, "Illegal argument", "A null argument has been passed");
             }
         }
-        
+
         Map result = this.conn.executeCommand(methodName, params);
         if (result == null) {
             throw new BadAPICallException(methodName, params);
