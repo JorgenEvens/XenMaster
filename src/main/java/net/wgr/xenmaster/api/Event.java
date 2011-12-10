@@ -21,14 +21,14 @@ import net.wgr.xenmaster.controller.Controller;
  * @author double-u
  */
 public class Event extends XenApiEntity {
-    
+
     protected int id;
     protected Date timestamp;
     protected String eventClass;
     protected UUID subject;
-    
+    protected static int connectionIndex;
+
     public Event() {
-        
     }
 
     public Event(String ref, boolean autoFill) {
@@ -38,21 +38,35 @@ public class Event extends XenApiEntity {
     public Event(String ref) {
         super(ref);
     }
-    
+
     public static void register(List<String> eventClasses) throws BadAPICallException {
-        if (eventClasses == null) eventClasses = new ArrayList<>();
+        if (eventClasses == null) {
+            eventClasses = new ArrayList<>();
+        }
         Controller.dispatch("event.register", eventClasses);
     }
-    
+
+    public static void register() throws BadAPICallException {
+        ArrayList<String> eventClasses = new ArrayList<>();
+        eventClasses.add("*");
+        Controller.dispatch("event.register", eventClasses);
+    }
+
     public static void unregister(List<String> eventClasses) throws BadAPICallException {
-        if (eventClasses == null) eventClasses = new ArrayList<>();
+        if (eventClasses == null) {
+            eventClasses = new ArrayList<>();
+        }
         Controller.dispatch("event.unregister", eventClasses);
     }
-    
+
     public static List<Event> nextEvents() throws BadAPICallException {
+        if (connectionIndex == 0) connectionIndex = Controller.getLocal().getDispatcher().getConnections().requestNewConnection();
         ArrayList<Event> events = new ArrayList<>();
-        Object[] result = (Object[]) Controller.dispatch("event.next");
-        if (result == null) return events;
+        Object obj = Controller.dispatchOn("event.next", connectionIndex);
+        Object[] result = (Object[]) obj;
+        if (result == null) {
+            return events;
+        }
         for (Object o : result) {
             Event event = new Event();
             event.fillOut((Map<String, Object>) o);
@@ -68,6 +82,4 @@ public class Event extends XenApiEntity {
         map.put("subject", "obj_uuid");
         return map;
     }
-    
-    
 }

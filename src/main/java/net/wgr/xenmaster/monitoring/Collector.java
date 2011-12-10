@@ -10,7 +10,7 @@ import com.lmax.disruptor.EventHandler;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.concurrent.ConcurrentHashMap;
-import net.wgr.xenmaster.connectivity.Connection;
+import net.wgr.xenmaster.connectivity.Connections;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
@@ -23,10 +23,10 @@ import org.apache.log4j.Logger;
 public class Collector implements EventHandler<Record> {
 
     protected long lastUpdate;
-    protected Connection conn;
+    protected Connections conn;
     protected static ConcurrentHashMap<String, URLConnection> connections = new ConcurrentHashMap<>();
 
-    public Collector(Connection conn) {
+    public Collector(Connections conn) {
         this.conn = conn;
     }
 

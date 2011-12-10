@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.UUID;
 import net.wgr.core.dao.Required;
 import net.wgr.core.data.Retrieval;
-import net.wgr.xenmaster.connectivity.Connection;
+import net.wgr.xenmaster.connectivity.Connections;
 import org.apache.log4j.Logger;
 
 /**
@@ -96,10 +96,10 @@ public class Host extends net.wgr.core.dao.Object {
         this.userName = userName;
     }
 
-    public Connection connect() {
+    public Connections connect() {
         try {
             URL url = new URL("http://" + address.getCanonicalHostName() + ":" + port);
-            return new Connection(url);
+            return new Connections(url);
         } catch (MalformedURLException ex) {
             Logger.getLogger(getClass()).error(ex);
         }

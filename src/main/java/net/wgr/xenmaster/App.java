@@ -1,6 +1,5 @@
 package net.wgr.xenmaster;
 
-import java.net.InetAddress;
 import java.net.URL;
 import net.wgr.core.access.Authorize;
 import net.wgr.core.data.DataPool;
@@ -10,7 +9,6 @@ import net.wgr.server.web.handling.ServerHook;
 import net.wgr.settings.Settings;
 import net.wgr.utility.GlobalExecutorService;
 import net.wgr.xenmaster.controller.Controller;
-import net.wgr.xenmaster.entities.Host;
 import net.wgr.xenmaster.monitoring.MonitoringAgent;
 import net.wgr.xenmaster.pool.Pool;
 import net.wgr.xenmaster.setup.debian.Bootstrapper;
@@ -61,6 +59,7 @@ public class App implements Daemon {
         DataPool.simpleBoot(Settings.getInstance().getString("Cassandra.PoolName"), Settings.getInstance().getString("Cassandra.Host"), Settings.getInstance().getString("Cassandra.Keyspace"));
         Pool.get().boot();
         MonitoringAgent.get().boot();
+        MonitoringAgent.get().start();
 
         server = new Server();
         server.boot();

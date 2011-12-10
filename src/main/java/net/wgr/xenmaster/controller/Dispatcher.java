@@ -6,14 +6,12 @@
  */
 package net.wgr.xenmaster.controller;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import net.wgr.xenmaster.connectivity.Connection;
+import net.wgr.xenmaster.connectivity.Connections;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.log4j.Logger;
 
 /**
  * 
@@ -22,24 +20,28 @@ import org.apache.log4j.Logger;
  */
 public class Dispatcher {
 
-    protected Connection conn;
+    protected Connections conn;
 
     public Dispatcher(URL xen) {
-        this.conn = new Connection(xen);
+        this.conn = new Connections(xen);
     }
-    
-    public Dispatcher(Connection conn) {
+
+    public Dispatcher(Connections conn) {
         this.conn = conn;
     }
 
     public Object dispatch(String methodName, Object[] params) throws BadAPICallException {
-        ArrayList list = new ArrayList();
-        CollectionUtils.addAll(list, params);
-        
-        return execute(methodName, list);
+        return dispatch(methodName, params, 0);
     }
 
-    protected Object execute(String methodName, List params) throws BadAPICallException {
+    public Object dispatch(String methodName, Object[] params, int connection) throws BadAPICallException {
+        ArrayList list = new ArrayList();
+        CollectionUtils.addAll(list, params);
+
+        return execute(methodName, list, connection);
+    }
+
+    protected Object execute(String methodName, List params, int connection) throws BadAPICallException {
         // Preflight check
         for (Object o : params) {
             if (o == null) {
@@ -47,7 +49,7 @@ public class Dispatcher {
             }
         }
 
-        Map result = this.conn.executeCommand(methodName, params);
+        Map result = this.conn.executeCommand(methodName, params, connection);
         if (result == null) {
             throw new BadAPICallException(methodName, params);
         }
@@ -71,6 +73,10 @@ public class Dispatcher {
     }
 
     public Object dispatchWithSession(String methodName, Object[] params) throws BadAPICallException {
+        return dispatchWithSession(methodName, params, 0);
+    }
+
+    public Object dispatchWithSession(String methodName, Object[] params, int connection) throws BadAPICallException {
         if (conn.getSession().getReference() == null) {
             throw new Error("Session has not been initialized");
         }
@@ -78,10 +84,10 @@ public class Dispatcher {
         list.add(conn.getSession().getReference());
         CollectionUtils.addAll(list, params);
 
-        return execute(methodName, list);
+        return execute(methodName, list, connection);
     }
 
-    public Connection getConnection() {
+    public Connections getConnections() {
         return conn;
     }
 }

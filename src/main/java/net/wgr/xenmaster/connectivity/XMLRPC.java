@@ -22,10 +22,10 @@ import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 public class XMLRPC {
 
     protected XmlRpcClientConfigImpl cfg;
-    protected XmlRpcClient client;
+    protected final XmlRpcClient client;
     protected final Logger logger = Logger.getLogger(getClass());
 
-    public XMLRPC(URL host){
+    public XMLRPC(URL host) {
         cfg = new XmlRpcClientConfigImpl();
         cfg.setServerURL(host);
         client = new XmlRpcClient();
@@ -34,8 +34,10 @@ public class XMLRPC {
 
     public Map execute(String method, List params) {
         try {
-            logger.debug("Called " + method);
-            return (Map) client.execute(method, params);
+            synchronized (client) {
+                logger.debug("Called " + method);
+                return (Map) client.execute(method, params);
+            }
         } catch (XmlRpcException ex) {
             logger.info("Call failed", ex);
         }

@@ -10,7 +10,7 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import net.wgr.xenmaster.connectivity.Connection;
+import net.wgr.xenmaster.connectivity.Connections;
 import net.wgr.xenmaster.entities.Host;
 import net.wgr.xenmaster.manager.Preflight;
 
@@ -23,7 +23,7 @@ public class DefaultWorker implements Friend {
     protected long lastSeen;
     protected InetAddress address;
     protected boolean master;
-    protected HashMap<Host, Connection> connections;
+    protected HashMap<Host, Connections> connections;
     protected Set<Friend> friends;
 
     public DefaultWorker() {
@@ -46,7 +46,7 @@ public class DefaultWorker implements Friend {
     @Override
     public void loadInHosts(Set<Host> hosts) throws IllegalHostsException {
         // Always use a rubber
-        Map<Host, Connection> conns = Preflight.checkHosts(hosts);
+        Map<Host, Connections> conns = Preflight.checkHosts(hosts);
         connections.putAll(conns);
     }
 

@@ -27,20 +27,19 @@ public class Controller {
             return new Controller();
         }
     };
-    
     protected final static ConcurrentHashMap<UUID, Controller> instances = new ConcurrentHashMap<>();
     protected Dispatcher dispatcher;
 
     private Controller(URL xenHost) {
         this.dispatcher = buildDispatcher(xenHost);
     }
-
+    
     private Controller() {
     }
-
+    
     protected final Dispatcher buildDispatcher(URL xenHost) {
         Dispatcher d = new Dispatcher(xenHost);
-        d.getConnection().getSession().addListener(new SAL());
+        d.getConnections().getSession().addListener(new SAL());
         return d;
     }
 
@@ -57,9 +56,9 @@ public class Controller {
     }
 
     public static Controller getLocal() {
-        if (instance == null) {
-            Logger.getLogger(Controller.class).warn("Controller is not initialized");
-            return null;
+        if (instance.get() == null) {
+            Logger.getLogger(Controller.class).warn("Controller is not initialized, switching to next available");
+            switchToNextAvailableContext();
         }
         return instance.get();
     }
@@ -77,7 +76,11 @@ public class Controller {
         if (instances.size() < 1) {
             Logger.getLogger(Controller.class).error("No host context available");
         } else {
-            instance.set(instances.values().iterator().next());
+            if (instances.values().iterator().hasNext()) {
+                instance.set(instances.values().iterator().next());
+            } else {
+                Logger.getLogger(Controller.class).info("No more available contexts");
+            }
         }
     }
 
@@ -86,7 +89,7 @@ public class Controller {
     }
 
     public static Session getSession() {
-        return Controller.getLocal().getDispatcher().getConnection().getSession();
+        return Controller.getLocal().getDispatcher().getConnections().getSession();
     }
 
     public static Object dispatch(String methodName, Object... params) throws BadAPICallException {
@@ -95,6 +98,15 @@ public class Controller {
             switchToNextAvailableContext();
         }
         return Controller.getLocal().getDispatcher().dispatchWithSession(methodName, params);
+    }
+    
+    public static Object dispatchOn(String methodName, int connection, Object... params) throws BadAPICallException {
+        if (Controller.getLocal() == null) {
+            Logger.getLogger(Controller.class).warn("Local Host context not set, switching to next available one");
+            switchToNextAvailableContext();
+        }
+        Logger.getLogger(Controller.class).debug("Dispatching call " + methodName + " to connection #" + connection);
+        return Controller.getLocal().getDispatcher().dispatchWithSession(methodName, params, connection);
     }
 
     protected class SAL implements Session.SessionActivityListener {

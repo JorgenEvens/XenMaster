@@ -21,7 +21,6 @@ import net.wgr.settings.Settings;
 import net.wgr.utility.GlobalExecutorService;
 import net.wgr.xenmaster.api.Event;
 import net.wgr.xenmaster.controller.BadAPICallException;
-import net.wgr.xenmaster.controller.Controller;
 import net.wgr.xenmaster.entities.Host;
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
@@ -35,7 +34,7 @@ import org.joda.time.DateTime;
  */
 public class MonitoringAgent implements Runnable {
 
-    protected boolean lazy = false;
+    protected boolean lazy = false, run;
     protected ArrayListMultimap<String, Record> vmData, hostData;
     protected Map<String, ParsedRecord> vmParsed, hostParsed;
     protected ConcurrentSkipListMap<String, String> data;
@@ -45,6 +44,7 @@ public class MonitoringAgent implements Runnable {
     protected SequenceBarrier barrier;
     protected final int RING_SIZE = 256;
     private static MonitoringAgent instance;
+    protected Thread eventHandler;
 
     private MonitoringAgent() {
         vmData = ArrayListMultimap.create();
@@ -55,9 +55,8 @@ public class MonitoringAgent implements Runnable {
         barrier = ringBuffer.newBarrier();
 
         try {
-            // todo this should always take place on pool masters, make it so instead of just host index 0
-            Controller.switchToNextAvailableContext();
-            Event.register(null);
+            // todo this should always take place on pool masters, explicitly set context
+            Event.register();
         } catch (BadAPICallException ex) {
             Logger.getLogger(getClass()).error("Failed to register to events", ex);
         }
@@ -80,6 +79,20 @@ public class MonitoringAgent implements Runnable {
 
     public void boot() {
         schedule();
+        eventHandler = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                while (run) {
+                    try {
+                        List<Event> events = Event.nextEvents();
+                    } catch (BadAPICallException ex) {
+                        Logger.getLogger(getClass()).error("Failed to retrieve latest events", ex);
+                    }
+                }
+            }
+        });
+        eventHandler.setName("EventListener");
     }
 
     protected void schedule() {
@@ -102,10 +115,14 @@ public class MonitoringAgent implements Runnable {
             Record r = new Record(ref, true);
             hostData.put(ref, r);
         }
-        try {
-            List<Event> events = Event.nextEvents();
-        } catch (BadAPICallException ex) {
-            Logger.getLogger(getClass()).error("Failed to retrieve latest events", ex);
-        }
+    }
+    
+    public void start() {
+        run = true;
+        eventHandler.start();
+    }
+    
+    public void stop() {
+        run = false;
     }
 }

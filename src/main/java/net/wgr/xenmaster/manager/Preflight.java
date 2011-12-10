@@ -9,7 +9,7 @@ package net.wgr.xenmaster.manager;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import net.wgr.xenmaster.connectivity.Connection;
+import net.wgr.xenmaster.connectivity.Connections;
 import net.wgr.xenmaster.entities.Host;
 import org.apache.log4j.Logger;
 
@@ -20,11 +20,11 @@ import org.apache.log4j.Logger;
  */
 public class Preflight {
     
-    public static Map<Host, Connection> checkHosts(Set<Host> hosts) {
-        HashMap<Host, Connection> conns = new HashMap<>();
+    public static Map<Host, Connections> checkHosts(Set<Host> hosts) {
+        HashMap<Host, Connections> conns = new HashMap<>();
         for (Host host : hosts) {
             try {
-                Connection c = host.connect();
+                Connections c = host.connect();
                 if (c != null) {
                     conns.put(host, c);
                 } else {
