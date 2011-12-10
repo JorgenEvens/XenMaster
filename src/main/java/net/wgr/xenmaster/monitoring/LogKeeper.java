@@ -37,10 +37,11 @@ public class LogKeeper {
     public void write(LogEntry le) {
         backlog.add(le);
         try {
+            Emitter.emit(le);
             le.insert(this);
             backlog.remove(le);
         } catch (Exception ex) {
-            Logger.getLogger(getClass()).error("LogKeeper failed to write log entry.");
+            Logger.getLogger(getClass()).error("LogKeeper failed to write log entry",ex);
         }
     }
 

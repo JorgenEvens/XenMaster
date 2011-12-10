@@ -6,11 +6,17 @@
  */
 package net.wgr.xenmaster.monitoring;
 
+import net.wgr.wcp.Commander;
+import net.wgr.wcp.Scope;
+import net.wgr.wcp.command.Command;
+
 /**
- * Emits requested monitoring data "formally and with authority" ~ Mac Dictionary
+ * Issues requested monitoring data "formally and with authority"
  * @created Oct 30, 2011
  * @author double-u
  */
 public class Emitter {
-    
+    public static void emit(LogEntry le) {
+        Commander.getInstance().commandeer(new Command("log", "write", le), new Scope(Scope.Target.ALL));
+    }
 }

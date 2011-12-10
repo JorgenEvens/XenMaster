@@ -86,6 +86,9 @@ public class MonitoringAgent implements Runnable {
                 while (run) {
                     try {
                         List<Event> events = Event.nextEvents();
+                        for (Event event : events) {
+                            LogKeeper.log(new LogEntry(event.getReference(), event.getReference(), "Operation " + event.getOperation(), null, LogEntry.Level.INFORMATION));
+                        }
                     } catch (BadAPICallException ex) {
                         Logger.getLogger(getClass()).error("Failed to retrieve latest events", ex);
                     }

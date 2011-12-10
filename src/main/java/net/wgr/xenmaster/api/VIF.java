@@ -21,6 +21,7 @@ public class VIF extends XenApiEntity {
     protected String deviceName;
     @ConstructorArgument
     protected String network;
+    @ConstructorArgument
     protected String VM;
     protected String MAC;
     protected int MTU;
@@ -51,7 +52,8 @@ public class VIF extends XenApiEntity {
         dispatch("unplug");
     }
     
-    public String create(String deviceName, Network network) throws BadAPICallException {
+    public String create(VM vm, String deviceName, Network network) throws BadAPICallException {
+        this.VM = vm.getReference();
         this.deviceName = deviceName;
         this.network = network.getReference();
 

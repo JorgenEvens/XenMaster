@@ -73,9 +73,8 @@ public class VM extends NamedEntity {
     protected static int MEGABYTE = 1024 * 1024;
 
     public VM() {
-        
     }
-    
+
     public VM(String ref, boolean autoFill) {
         super(ref, autoFill);
     }
@@ -87,8 +86,10 @@ public class VM extends NamedEntity {
     public String create(int maxVCPUs) throws BadAPICallException {
         this.maxVCPUs = maxVCPUs;
 
-        if (startupVCPUs == 0) startupVCPUs = maxVCPUs;
-        
+        if (startupVCPUs == 0) {
+            startupVCPUs = maxVCPUs;
+        }
+
         if (startupVCPUs < 1 || maxVCPUs < 1 || startupVCPUs > maxVCPUs) {
             throw new IllegalArgumentException("VM CPU count is zero or startup VCPU count is larger than max VCPU count");
         }
@@ -271,7 +272,7 @@ public class VM extends NamedEntity {
         CollectionUtils.addAll(arrr, result);
         return arrr;
     }
-    
+
     public int[] getFreeDeviceIndexes() throws BadAPICallException {
         Object[] result = (Object[]) dispatch("get_allowed_VBD_devices");
         int[] indexes = new int[result.length];
@@ -280,7 +281,7 @@ public class VM extends NamedEntity {
         }
         return indexes;
     }
-    
+
     public int getNextAvailableDeviceIndex() throws BadAPICallException {
         return getFreeDeviceIndexes()[0];
     }
@@ -301,7 +302,22 @@ public class VM extends NamedEntity {
         for (Map.Entry<String, Object> entry : records.entrySet()) {
             VM vm = new VM(entry.getKey(), false);
             vm.fillOut((Map) entry.getValue());
-            objects.add(vm);
+            if (!vm.isTemplate()) {
+                objects.add(vm);
+            }
+        }
+        return objects;
+    }
+    
+    public static List<VM> getTemplates() throws BadAPICallException {
+        Map<String, Object> records = (Map) Controller.dispatch("VM.get_all_records");
+        ArrayList<VM> objects = new ArrayList<>();
+        for (Map.Entry<String, Object> entry : records.entrySet()) {
+            VM vm = new VM(entry.getKey(), false);
+            vm.fillOut((Map) entry.getValue());
+            if (vm.isTemplate()) {
+                objects.add(vm);
+            }
         }
         return objects;
     }
@@ -425,7 +441,7 @@ public class VM extends NamedEntity {
     public long getMaximumDynamicMemory() {
         return maximumDynamicMemory;
     }
-    
+
     public void setMaximumDynamicMemory(double mdmMb) throws BadAPICallException {
         this.maximumDynamicMemory = setter((long) mdmMb * MEGABYTE, "set_memory_dynamic_max");
     }
@@ -433,7 +449,7 @@ public class VM extends NamedEntity {
     public long getMaximumStaticMemory() {
         return value(maximumStaticMemory, "get_memory_static_max");
     }
-    
+
     public void setMaximumStaticMemory(double msmMb) throws BadAPICallException {
         this.maximumStaticMemory = setter((long) msmMb * MEGABYTE, "set_memory_static_max");
     }

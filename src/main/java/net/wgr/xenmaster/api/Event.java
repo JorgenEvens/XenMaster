@@ -26,6 +26,7 @@ public class Event extends XenApiEntity {
     protected Date timestamp;
     protected String eventClass;
     protected UUID subject;
+    protected String operation;
     protected static int connectionIndex;
 
     public Event() {
@@ -73,6 +74,38 @@ public class Event extends XenApiEntity {
             events.add(event);
         }
         return events;
+    }
+
+    public String getEventClass() {
+        return eventClass;
+    }
+
+    public void setEventClass(String eventClass) {
+        this.eventClass = eventClass;
+    }
+
+    public String getOperation() {
+        return operation;
+    }
+
+    public void setOperation(String operation) {
+        this.operation = operation;
+    }
+
+    public UUID getSubject() {
+        return subject;
+    }
+
+    public void setSubject(UUID subject) {
+        this.subject = subject;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Date timestamp) {
+        this.timestamp = timestamp;
     }
 
     @Override

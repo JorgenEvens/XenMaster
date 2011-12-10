@@ -47,7 +47,7 @@ public class App implements Daemon {
         }
         
         Logger root = Logger.getRootLogger();
-        root.setLevel(Level.INFO);
+        root.setLevel(Level.toLevel(Settings.getInstance().getString("Logging.Level")));
         root.addAppender(new ConsoleAppender(new TTCCLayout()));
     }
 

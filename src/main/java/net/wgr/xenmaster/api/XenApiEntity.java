@@ -194,7 +194,7 @@ public class XenApiEntity {
         }
 
         LogKeeper.log(new LogEntry(reference, getClass().getCanonicalName(), title, ex.getMessage(), level));
-        Logger.getLogger(getClass()).error(title, ex);
+        //Logger.getLogger(getClass()).error(title, ex);
     }
 
     @Retention(RetentionPolicy.RUNTIME)
