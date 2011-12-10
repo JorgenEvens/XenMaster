@@ -74,7 +74,17 @@
 				}
 			});
 			
-			
+			vm_data.getVIFs(function( vifs ){
+				for( i in vifs ) {
+					i = vifs[i];
+					
+					$('<li></li>')
+						.addClass('nic')
+						.attr('data-devicetype','nic')
+						.text( i.name )
+						.insertBefore( add );
+				}
+			});	
 			
 			for( i in vm_data.VBDs ) {
 				

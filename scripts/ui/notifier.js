@@ -3,6 +3,7 @@
 	var view = null,
 		callback = function( app_key, message ) {
 			view.show( app_key, message );
+			console.log( app_key, message );
 		};
 	
 	app.load( 'tpl://global/notification', 'js://ui/template', 'js://tools/notifier',

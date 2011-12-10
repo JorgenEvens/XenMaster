@@ -105,7 +105,7 @@
 			callback = this.sent[ data.tag ],
 			hook_list = this.hooks[ data.handler ],
 			i = null;
-		//console.log( $.extend(true, {},data) );
+		
 		if( callback ) {
 			callback( data );
 		};

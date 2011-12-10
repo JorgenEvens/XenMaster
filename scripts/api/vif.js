@@ -3,6 +3,10 @@
 		
 		var VIF = new Entity( 'VIF' );
 		
+		VIF.createStaticMethod( 'build', VIF );
+		
+		VIF.createMethod( 'create', VIF );
+		
 		ready( VIF );
 	});
 });
