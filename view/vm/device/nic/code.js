@@ -76,7 +76,7 @@
 				VIF.build(data, this.next );
 			},
 			function( vif ) {
-				vif.create( tpl.vm, device_name, network, this.next );
+				vif.create( tpl.vm, device, network, this.next );
 			},
 			function( vif ) {
 				tpl.vm.VIFs.push(vif.reference);
