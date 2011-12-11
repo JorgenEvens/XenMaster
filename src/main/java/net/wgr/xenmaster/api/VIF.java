@@ -32,7 +32,8 @@ public class VIF extends XenApiEntity {
     protected int statusCode;
     protected String statusDetail;
     @Fill
-    protected Map<String, String> runtimeProperties;
+    @ConstructorArgument
+    protected Map<String, String> runtimeProperties, otherConfig;
     protected String metrics;
     protected final static String XEN_MAC_ADDRESS_PREFIX = "00:16:3e";
 
@@ -60,7 +61,7 @@ public class VIF extends XenApiEntity {
         this.deviceName = deviceName;
         this.network = network.getReference();
         if (this.MAC == null || this.MAC.isEmpty()) this.MAC = generateMACAddress();
-        this.MTU = network.getMTU();
+        if (this.MTU == 0) this.MTU = network.getMTU();
 
         this.reference = (String) dispatch("create", collectConstructorArgs());
         return this.reference;
@@ -72,10 +73,6 @@ public class VIF extends XenApiEntity {
 
     public String getMAC() {
         return MAC;
-    }
-
-    public void setMAC(String MAC) throws BadAPICallException {
-        this.MAC = setter(MAC, "set_MAC");
     }
 
     public int getMTU() {
