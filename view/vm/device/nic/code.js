@@ -62,11 +62,8 @@
 			}
 		});
 		
-		network = data.network;
-		device = data.device_name;
-		
+		network = data.network;		
 		delete data.network;
-		delete data.device_name;
 		
 		Util.chain(
 			function(){
@@ -76,7 +73,7 @@
 				VIF.build(data, this.next );
 			},
 			function( vif ) {
-				vif.create( tpl.vm, device, network, this.next );
+				vif.create( tpl.vm, network, this.next );
 			},
 			function( vif ) {
 				tpl.vm.VIFs.push(vif.reference);
