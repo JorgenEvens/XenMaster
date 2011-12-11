@@ -61,6 +61,9 @@
 				var i = null,
 					add = $('.hardware .add');
 				
+				add.siblings('.disk')
+					.remove();
+				
 				for( i in vm_data.VBDs ) {
 					(new VBD(vm_data.VBDs[i])).getVDI(function( vdi ){
 						var alternateName = 'HDD ( ' + (vdi.virtualSize/(1024*1024)) + 'MB )';
@@ -93,11 +96,12 @@
 					var Network = this.Network,
 						add = this.add;
 					
+					add.siblings('.nic')
+						.remove();
+					
 					for( i in vifs ) {
 						(function( vif ){
-							console.log( Network );
 							new Network( vif.network, function( net ) {
-								console.log( net );
 								alternateName = 'NIC ' + vif.deviceIndex + ': ' + net.name;
 								
 								$('<li></li>')

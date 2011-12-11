@@ -41,7 +41,6 @@
 	});
 	
 	this.onshow = function(){
-		$('#dev_name').val( tpl.vm.name );
 		$('#dev_mac').val( generateMAC() );
 	};
 
