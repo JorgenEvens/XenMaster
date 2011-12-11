@@ -122,7 +122,7 @@
 			go: function( callback ) {
 				var me = this;
 				
-				xm.send( this.xm_resource, function( result ){
+				this.send( this.xm_resource, function( result ){
 					me.attach( result );
 					callback( me );
 				});

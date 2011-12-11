@@ -68,28 +68,50 @@
 						$('<li></li>')
 							.addClass('disk')
 							.attr('data-devicetype','disk')
-							.text( vdi.name||alternateName )
-							.insertBefore( add );
+							.insertBefore( add )
+							.text( vdi.name||alternateName );
 					});
 				}
 			});
-			
-			vm_data.getVIFs(function( vifs ){
-				for( i in vifs ) {
-					i = vifs[i];
+		},
+		
+		/*
+		 * Load VIF information and display it.
+		 */
+		loadVIFs = function(){
+			Util.chain(
+				function(){
+					app.load( 'js://api/network', this.next );
+				},
+				function( Network ){
+					this.add = $('.hardware .add');
+					this.Network = Network;
 					
-					$('<li></li>')
-						.addClass('nic')
-						.attr('data-devicetype','nic')
-						.text( i.name )
-						.insertBefore( add );
+					vm_data.getVIFs( this.next );
+				},
+				function( vifs ) {
+					var Network = this.Network,
+						add = this.add;
+					
+					for( i in vifs ) {
+						(function( vif ){
+							console.log( Network );
+							new Network( vif.network, function( net ) {
+								console.log( net );
+								alternateName = 'NIC ' + vif.deviceIndex + ': ' + net.name;
+								
+								$('<li></li>')
+									.addClass('nic')
+									.attr('data-devicetype','nic')
+									.insertBefore( add )
+									.text( i.name||alternateName );
+							});
+						}(vifs[i]));
+					}
 				}
-			});	
-			
-			for( i in vm_data.VBDs ) {
-				
-			}
+			).start();
 		};
+		
 	
 	/*
 	 * Setup template
@@ -149,6 +171,7 @@
 		vm_data = vm;
 		
 		loadVBDs();
+		loadVIFs();
 		
 		dom
 			.find('.vm_name')
@@ -172,7 +195,5 @@
 				}
 			});
 		});
-		
-		this.load
 	};
 });

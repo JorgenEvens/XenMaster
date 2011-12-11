@@ -77,6 +77,7 @@
 			},
 			function( vif ) {
 				tpl.vm.VIFs.push(vif.reference);
+				tpl.action( 'device_ready', vif );
 			}
 		).start();
 		

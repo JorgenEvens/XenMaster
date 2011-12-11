@@ -274,6 +274,7 @@ h2.corner:before {
 	padding: 7px 0 7px 30px;
 	background-repeat: no-repeat;
 	height: 10px;
+	overflow: hidden;
 }
 
 #vm_detail ul.hardware li.selected {
