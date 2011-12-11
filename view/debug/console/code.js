@@ -57,7 +57,7 @@
 			param = { args: args.length > 0 ? args : null, ref: reference };
 			
 			xm.send('xen://' + cmd.val(), param, function( result ) {
-				console.log( result );
+				if( console ) console.log( result );
 				debug_pre.text('');
 				print( result );			
 			});

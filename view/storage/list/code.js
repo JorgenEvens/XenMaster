@@ -14,7 +14,7 @@
 				
 				if( ref.length > 0 ) {
 					(new SR(ref)).destroy(function( result ){
-						console.log( result );
+						if( console ) console.log( result );
 					});
 				}
 			});
@@ -26,7 +26,7 @@
 				
 				if( ref.length > 0 ) {
 					(new SR(ref)).destroy(function( result ){
-						console.log( result );
+						if( console ) console.log( result );
 					});
 				}
 			});

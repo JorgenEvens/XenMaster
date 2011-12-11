@@ -5,7 +5,7 @@
 			
 			this.element = element;
 			
-			this.id = now.getMilliseconds() + '.' + now.getSeconds();
+			this.id = now.getMilliseconds() + '.' + Math.round(Math.random()*now.getSeconds()*100);
 			this.data = {};
 			
 			element.dataset.dsid = this.id;

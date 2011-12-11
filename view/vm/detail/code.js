@@ -109,7 +109,7 @@
 	this.capture( ['click','keydown'] );
 	
 	this.bind( 'ui_alternate', function( e ){
-		//console.log( e );
+
 	});
 	
 	this.bind('vm_device_selected',function( e ){

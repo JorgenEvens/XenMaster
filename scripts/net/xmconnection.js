@@ -17,7 +17,6 @@
 		createCallback = function( callback ) {
 			// Result parsing
 			return function( data ){
-				console.log( data );
 				if( data.type == 'ERROR' ) {
 					app.load( 'js://tools/notifier', function( Notifier ) {
 						Notifier.publish( 'XenMaster', 'Request to backend failed! ' + data.result.message );

@@ -44,7 +44,7 @@
 				handler = function( e ) { return me.capture.handler.call( me, e ); };
 			
 			for( i in events ) {
-				$(this.dom).bind( events[i], handler );
+				$(this.dom).on( events[i], handler );
 			};
 		};
 		

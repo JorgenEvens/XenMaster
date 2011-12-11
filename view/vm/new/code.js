@@ -22,7 +22,7 @@
 		
 		app.load( 'js://api/vm', function( VM ){
 			VM.build(info,function( vm ) {
-				vm.create(cpus,function( resp ) {
+				vm.create(cpus,function( vm ) {
 					console.log( resp );
 				});
 			});

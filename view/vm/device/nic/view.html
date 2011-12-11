@@ -5,13 +5,23 @@
 	</div>	
 
 	<div class="form_line">
-		<label for="dev_mac">Mac address (optional):</label>
-		<input type="text" value="1024" name="mac" id="dev_mac"/>
+		<label for="dev_network">Network:</label>
+		<select id="dev_network" data-action="network_select" name="network"></select>
 	</div>
 	
 	<div class="form_line">
-		<label for="dev_network">Network:</label>
-		<select id="dev_network" name="network"></select>
+		<label for="dev_device">Device name (optional):</label>
+		<input type="text" value="" name="device_name" id="dev_device"/>
+	</div>
+	
+	<div class="form_line">
+		<label for="dev_mac">Mac address:</label>
+		<input type="text" value="" name="mac" id="dev_mac"/>
+	</div>
+	
+	<div class="form_line">
+		<label for="dev_mtu">MTU:</label>
+		<input id="dev_mtu" name="mtu" />
 	</div>
 	
 	<div class="form_line">

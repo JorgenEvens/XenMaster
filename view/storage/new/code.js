@@ -17,7 +17,7 @@
 	creation.nfs = function( name, host, data ) {
 		app.load( 'js://api/helpers/nfs', function( NFS ) {
 			NFS.mountISORepository( name, data.host, data.path, host, function(r){
-				console.log( 'iso mount result: ', r );
+				if( console ) console.log( 'iso mount result: ', r );
 			});
 		});
 	};
@@ -34,7 +34,7 @@
 					sr.create( host, iscsi, 'user', true, 0,
 							function( r ) {
 						clearFields();
-						console.log( 'sr result ', r );
+						if( console ) console.log( 'sr result ', r );
 					});
 				};
 			
@@ -62,7 +62,7 @@
 			SR.build({name: name}, function( sr ) {
 				sr.create( host, data, 'Ext', 'user', true, 0, function( result ){
 					clearFields();
-					console.log( result );
+					if( console ) console.log( result );
 				});
 			});
 		});
@@ -73,7 +73,7 @@
 			SR.build({name: name}, function( sr ) {
 				sr.create( host, data, 'File', 'user', true, 0, function( result ){
 					clearFields();
-					console.log( result );
+					if( console ) console.log( result );
 				});
 			});
 		});
@@ -88,7 +88,7 @@
 			SR.build({name: name}, function( sr ) {
 				sr.create( host, data, 'Lvm', 'user', true, 0, function( result ){
 					clearFields();
-					console.log( result );
+					if( console ) console.log( result );
 				});
 			});
 		});
