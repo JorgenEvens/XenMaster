@@ -96,7 +96,7 @@ public class VBD extends XenApiEntity {
         } else {
             this.VDI = vdi.getReference();
         }
-        if (this.deviceIndex == -1) this.deviceIndex = vm.getNextAvailableDeviceIndex();
+        if (this.deviceIndex == -1) this.deviceIndex = vm.getNextAvailableVBDIndex();
 
         this.reference = (String) Controller.dispatch("VBD.create", collectConstructorArgs());
         return this.reference;

@@ -273,7 +273,7 @@ public class VM extends NamedEntity {
         return arrr;
     }
 
-    public int[] getFreeDeviceIndexes() throws BadAPICallException {
+    public int[] getFreeVBDIndexes() throws BadAPICallException {
         Object[] result = (Object[]) dispatch("get_allowed_VBD_devices");
         int[] indexes = new int[result.length];
         for (int i = 0; i < result.length; i++) {
@@ -282,8 +282,21 @@ public class VM extends NamedEntity {
         return indexes;
     }
 
-    public int getNextAvailableDeviceIndex() throws BadAPICallException {
-        return getFreeDeviceIndexes()[0];
+    public int getNextAvailableVBDIndex() throws BadAPICallException {
+        return getFreeVBDIndexes()[0];
+    }
+    
+     public int[] getFreeVIFIndexes() throws BadAPICallException {
+        Object[] result = (Object[]) dispatch("get_allowed_VIF_devices");
+        int[] indexes = new int[result.length];
+        for (int i = 0; i < result.length; i++) {
+            indexes[i] = Integer.parseInt(result[i].toString());
+        }
+        return indexes;
+    }
+
+    public int getNextAvailableVIFIndex() throws BadAPICallException {
+        return getFreeVBDIndexes()[0];
     }
 
     public VMMetrics getMetrics() {
