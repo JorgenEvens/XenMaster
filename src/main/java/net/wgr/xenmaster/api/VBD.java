@@ -27,7 +27,7 @@ public class VBD extends XenApiEntity {
     @ConstructorArgument
     protected String deviceName;
     @ConstructorArgument
-    protected int deviceIndex = -1;
+    protected int deviceIndex;
     @ConstructorArgument
     protected boolean bootable, empty;
     @ConstructorArgument
@@ -54,6 +54,7 @@ public class VBD extends XenApiEntity {
     protected Map<String, String> otherConfig;
 
     public VBD() {
+        this.deviceIndex = -1;
     }
 
     public VBD(String ref, boolean autoFill) {

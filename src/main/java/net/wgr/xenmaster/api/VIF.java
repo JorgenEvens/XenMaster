@@ -19,7 +19,7 @@ import net.wgr.xenmaster.controller.BadAPICallException;
 public class VIF extends XenApiEntity {
 
     @ConstructorArgument
-    protected int deviceIndex = -1;
+    protected int deviceIndex;
     @ConstructorArgument
     protected String network;
     @ConstructorArgument
@@ -40,6 +40,7 @@ public class VIF extends XenApiEntity {
     protected final static String XEN_MAC_ADDRESS_PREFIX = "00:16:3e";
 
     public VIF() {
+        this.deviceIndex = -1;
     }
 
     public VIF(String ref, boolean autoFill) {

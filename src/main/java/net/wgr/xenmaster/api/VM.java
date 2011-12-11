@@ -296,7 +296,7 @@ public class VM extends NamedEntity {
     }
 
     public int getNextAvailableVIFIndex() throws BadAPICallException {
-        return getFreeVBDIndexes()[0];
+        return getFreeVIFIndexes()[0];
     }
 
     public VMMetrics getMetrics() {
