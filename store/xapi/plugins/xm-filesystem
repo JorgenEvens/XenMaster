@@ -28,7 +28,7 @@ def disks( session, args ):
 	devices = os.listdir( "/dev/" )
 	
 	for dev in devices:
-		if( dev.startswith( "sda" ) or dev.startswith( "hda" ) or dev.startswith( "md" ) ):
+		if( dev.startswith( "sd" ) or dev.startswith( "hd" ) or dev.startswith( "md" ) ):
 			disks.append( dev );
 
 	return json.dumps(disks)
