@@ -23,5 +23,18 @@ def browse( session, args ):
 
 	return json.dumps(files)
 
+def disks( session, args ):
+	disks = []
+	devices = os.listdir( "/dev/" )
+	
+	for dev in devices:
+		if( dev.startswith( "sda" ) or dev.startswith( "hda" ) or dev.startswith( "md" ) ):
+			disks.append( dev );
+
+	return json.dumps(disks)
+
 if __name__ == "__main__":
-	XenAPIPlugin.dispatch({"browse":browse})
+	XenAPIPlugin.dispatch({
+		"browse":	browse,
+		"disks":	disks
+	})
