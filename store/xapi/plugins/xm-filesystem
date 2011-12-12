@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+
+import os
+import simplejson as json
+import XenAPIPlugin
+import stat
+
+def browse( session, args ):
+	files = []
+	folder = "/"
+	if( "folder" in args ):
+		folder = args["folder"]
+
+	filenames = os.listdir( folder )
+	for file in filenames:
+		try:
+			files.append({
+				"path": file,
+				"dir": stat.S_ISDIR( os.stat( folder + "/" + file ).st_mode )
+			})
+		except OSError:
+			pass
+
+	return json.dumps(files)
+
+if __name__ == "__main__":
+	XenAPIPlugin.dispatch({"browse":browse})
