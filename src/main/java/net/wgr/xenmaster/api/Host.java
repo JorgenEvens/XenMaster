@@ -100,6 +100,10 @@ public class Host extends XenApiEntity {
         return new PCPU((String) hostCPUs[number]);
     }
     
+    public String callPlugin(String pluginName, String methodName, Map<String, String> args) throws BadAPICallException {
+        return (String) dispatch("call_plugin", pluginName, methodName, args);
+    }
+    
     public static List<Host> getAll() throws BadAPICallException {
         Map<String, Object> records = (Map) Controller.dispatch("host.get_all_records");
         ArrayList<Host> objects = new ArrayList<>();
