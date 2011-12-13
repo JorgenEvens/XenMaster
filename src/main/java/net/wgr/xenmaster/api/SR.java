@@ -125,6 +125,26 @@ public class SR extends NamedEntity {
     public void update() throws BadAPICallException {
         dispatch("update");
     }
+    
+    public List<VDI> getVDIs() throws BadAPICallException {
+        Object[] vdis = (Object[]) dispatch("get_VDIs");
+        ArrayList<VDI> VDIs = new ArrayList<>();
+        for (Object ref: vdis) {
+            VDIs.add(new VDI(ref.toString()));
+        }
+        
+        return VDIs;
+    }
+    
+     public List<PBD> getPBDs() throws BadAPICallException {
+        Object[] pbds = (Object[]) dispatch("get_PBDs");
+        ArrayList<PBD> PBDs = new ArrayList<>();
+        for (Object ref: pbds) {
+            PBDs.add(new PBD(ref.toString()));
+        }
+        
+        return PBDs;
+    }
 
     public static List<SR> getAll() throws BadAPICallException {
         Object[] srs = (Object[]) Controller.dispatch("SR.get_all");
