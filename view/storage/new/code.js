@@ -16,7 +16,8 @@
 		
 	creation.nfs = function( name, host, data ) {
 		var description = type == 'iso' ? 'ISO Repository: ' + name : name,
-			type = dom.find('#sr_content').val();
+			type = data.content;
+		delete data.content;
 		
 		Util.chain(
 			function(){
