@@ -18,15 +18,16 @@
 			</optgroup>
 		</select>
 	</div>
-	<div class="form_line">
-		<label for="sr_content">Content:</label>
-		<select id="sr_content">
-			<option value="user">Datastore</option>
-			<option value="iso">ISO repository</option>
-		</select>
-	</div>
 	
 	<div class="nfs">
+		<div class="form_line">
+			<label for="nfs_content">Content:</label>
+			<select id="nfs_content" name="content">
+				<option value="File">Datastore</option>
+				<option value="ISO">ISO repository</option>
+			</select>
+		</div>
+	
 		<div class="form_line">
 			<label for="nfs_host">Host:</label>
 			<input type="text" id="nfs_host" name="host" />

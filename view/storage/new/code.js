@@ -14,8 +14,10 @@
 			dom.find('input,select,textarea').val('');
 		};
 		
-	creation.nfs = function( name, host, data, type ) {
-		var description = type == 'iso' ? 'ISO Repository: ' + name : name;
+	creation.nfs = function( name, host, data ) {
+		var description = type == 'iso' ? 'ISO Repository: ' + name : name,
+			type = dom.find('#sr_content').val();
+		
 		Util.chain(
 			function(){
 				app.load( 'js://api/sr', this.next );
@@ -33,7 +35,7 @@
 				}, this.next );
 			},
 			function( sr ) {
-				sr.introduce( type.toUpperCase(), type, true, this.next );
+				sr.introduce( type, type=='ISO'?'iso':'user', true, this.next );
 			},
 			function( sr ) {
 				console.log( 'sr created: ', sr );
@@ -41,7 +43,7 @@
 		).start();
 	};
 	
-	creation.iscsi = function( name, host, data, type ) {
+	creation.iscsi = function( name, host, data ) {
 		app.load( 'js://api/helpers/iscsi', 'js://api/sr',
 				function( iSCSI, SR ){
 			var iscsi = null,
@@ -50,7 +52,7 @@
 				handler = function(){
 					if( !iscsi || !sr ) return;
 					
-					sr.create( host, iscsi, type, true, 0,
+					sr.create( host, iscsi, 'user', true, 0,
 							function( r ) {
 						clearFields();
 						if( console ) console.log( 'sr result ', r );
@@ -79,7 +81,7 @@
 	creation.partition = function( name, host, data, typye ) {
 		app.load( 'js://api/sr', function( SR ) {
 			SR.build({name: name}, function( sr ) {
-				sr.create( host, data, 'Ext', type, true, 0, function( result ){
+				sr.create( host, data, 'Ext', 'user', true, 0, function( result ){
 					clearFields();
 					if( console ) console.log( result );
 				});
@@ -87,10 +89,10 @@
 		});
 	};
 	
-	creation.directory = function( name, host, data, type ) {
+	creation.directory = function( name, host, data ) {
 		app.load( 'js://api/sr', function( SR ) {
 			SR.build({name: name}, function( sr ) {
-				sr.create( host, data, 'File', type, true, 0, function( result ){
+				sr.create( host, data, 'File', 'user', true, 0, function( result ){
 					clearFields();
 					if( console ) console.log( result );
 				});
@@ -98,14 +100,14 @@
 		});
 	};
 	
-	creation.lvm = function( name, host, data, type ) {
+	creation.lvm = function( name, host, data ) {
 		data = {
 			device: data.volumes
 		};
 		
 		app.load( 'js://api/sr', function( SR ) {
 			SR.build({name: name}, function( sr ) {
-				sr.create( host, data, 'Lvm', type, true, 0, function( result ){
+				sr.create( host, data, 'Lvm', 'user', true, 0, function( result ){
 					clearFields();
 					if( console ) console.log( result );
 				});
@@ -121,8 +123,7 @@
 	tpl.on( 'sr_create', function() {
 		var info = {},
 			name = dom.find('#sr_name').val(),
-			type = dom.find('#sr_type').val().toLowerCase(),
-			content_type = dom.find('#sr_content').val().toLowerCase();
+			type = dom.find('#sr_type').val().toLowerCase();
 		
 		dom
 			.find('.' + type + ' input, .' + type + ' select')
@@ -136,7 +137,7 @@
 		app.load( 'js://api/session', function( Session, Helper ) {
 			Session.getThisHost(function( host ){
 				if( typeof creation[ type ] === 'function' ) {
-					creation[type]( name, host, info, content_type );
+					creation[type]( name, host, info );
 				}
 			});
 		});
