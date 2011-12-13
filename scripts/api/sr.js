@@ -1,6 +1,6 @@
 (function( ready, app ){
-	app.load( 'js://api/entity',
-			function( Entity ){
+	app.load( 'js://api/entity', 'js://api/vdi',
+			function( Entity, VDI ){
 		
 		var SR = new Entity( 'SR' );
 		
@@ -13,6 +13,8 @@
 		SR.createMethod( 'destroy' );
 		
 		SR.createMethod( 'forget' );
+		
+		SR.createMethod( 'getVDIs', VDI, true );
 		
 		ready( SR );
 	});
