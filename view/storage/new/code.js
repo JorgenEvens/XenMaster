@@ -36,7 +36,11 @@
 				}, this.next );
 			},
 			function( sr ) {
-				sr.introduce( type, type=='ISO'?'iso':'user', true, this.next );
+				sr.create( host, {
+					server: data.host,
+					serverpath: data.path,
+					location: data.host + ':' + data.path
+				}, type, type=='ISO'?'iso':'user', true, 0, this.next );
 			},
 			function( sr ) {
 				console.log( 'sr created: ', sr );
