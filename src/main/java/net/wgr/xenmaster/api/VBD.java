@@ -31,9 +31,9 @@ public class VBD extends XenApiEntity {
     @ConstructorArgument
     protected boolean bootable, empty;
     @ConstructorArgument
-    protected boolean unpluggable = true;
+    protected boolean unpluggable;
     @ConstructorArgument
-    protected Mode mode = Mode.RW;
+    protected Mode mode;
     @ConstructorArgument
     protected Type type;
     protected boolean attached;
@@ -55,6 +55,8 @@ public class VBD extends XenApiEntity {
 
     public VBD() {
         this.deviceIndex = -1;
+        this.mode = Mode.RW;
+        this.unpluggable = true;
     }
 
     public VBD(String ref, boolean autoFill) {

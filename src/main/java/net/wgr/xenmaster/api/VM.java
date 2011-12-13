@@ -24,11 +24,11 @@ public class VM extends NamedEntity {
     @ConstructorArgument
     protected int userVersion = 1;
     @ConstructorArgument
-    protected ShutdownAction actionsAfterReboot = ShutdownAction.RESTART;
+    protected ShutdownAction actionsAfterReboot;
     @ConstructorArgument
-    protected ShutdownAction actionsAfterShutdown = ShutdownAction.DESTROY;
+    protected ShutdownAction actionsAfterShutdown;
     @ConstructorArgument
-    protected CrashedAction actionsAfterCrash = CrashedAction.COREDUMP_AND_RESTART;
+    protected CrashedAction actionsAfterCrash;
     @ConstructorArgument
     protected int startupVCPUs, maxVCPUs;
     @ConstructorArgument
@@ -73,6 +73,9 @@ public class VM extends NamedEntity {
     protected static int MEGABYTE = 1024 * 1024;
 
     public VM() {
+        this.actionsAfterReboot = ShutdownAction.RESTART;
+        this.actionsAfterShutdown = ShutdownAction.DESTROY;
+        this.actionsAfterCrash = CrashedAction.COREDUMP_AND_RESTART;
     }
 
     public VM(String ref, boolean autoFill) {
