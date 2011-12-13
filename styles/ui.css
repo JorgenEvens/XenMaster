@@ -300,6 +300,10 @@ h2.corner:before {
 	background-image: url('../images/icon/disk.png');
 }
 
+#vm_detail ul.hardware li.harddisk {
+	background-image: url('../images/icon/harddisk.png');
+}
+
 #vm_detail ul.hardware li.nic {
 	background-image: url('../images/icon/nic.png');
 }

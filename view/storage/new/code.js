@@ -14,15 +14,15 @@
 			dom.find('input,select,textarea').val('');
 		};
 		
-	creation.nfs = function( name, host, data ) {
+	creation.nfs = function( name, host, data, type ) {
 		app.load( 'js://api/helpers/nfs', function( NFS ) {
-			NFS.mountISORepository( name, data.host, data.path, host, function(r){
+			NFS.mount( name, data.host, data.path, host, type, function(r){
 				if( console ) console.log( 'iso mount result: ', r );
 			});
 		});
 	};
 	
-	creation.iscsi = function( name, host, data ) {
+	creation.iscsi = function( name, host, data, type ) {
 		app.load( 'js://api/helpers/iscsi', 'js://api/sr',
 				function( iSCSI, SR ){
 			var iscsi = null,
@@ -31,7 +31,7 @@
 				handler = function(){
 					if( !iscsi || !sr ) return;
 					
-					sr.create( host, iscsi, 'user', true, 0,
+					sr.create( host, iscsi, type, true, 0,
 							function( r ) {
 						clearFields();
 						if( console ) console.log( 'sr result ', r );
@@ -57,10 +57,10 @@
 		});
 	};
 	
-	creation.partition = function( name, host, data ) {
+	creation.partition = function( name, host, data, typye ) {
 		app.load( 'js://api/sr', function( SR ) {
 			SR.build({name: name}, function( sr ) {
-				sr.create( host, data, 'Ext', 'user', true, 0, function( result ){
+				sr.create( host, data, 'Ext', type, true, 0, function( result ){
 					clearFields();
 					if( console ) console.log( result );
 				});
@@ -68,10 +68,10 @@
 		});
 	};
 	
-	creation.directory = function( name, host, data ) {
+	creation.directory = function( name, host, data, type ) {
 		app.load( 'js://api/sr', function( SR ) {
 			SR.build({name: name}, function( sr ) {
-				sr.create( host, data, 'File', 'user', true, 0, function( result ){
+				sr.create( host, data, 'File', type, true, 0, function( result ){
 					clearFields();
 					if( console ) console.log( result );
 				});
@@ -79,14 +79,14 @@
 		});
 	};
 	
-	creation.lvm = function( name, host, data ) {
+	creation.lvm = function( name, host, data, type ) {
 		data = {
 			device: data.volumes
 		};
 		
 		app.load( 'js://api/sr', function( SR ) {
 			SR.build({name: name}, function( sr ) {
-				sr.create( host, data, 'Lvm', 'user', true, 0, function( result ){
+				sr.create( host, data, 'Lvm', type, true, 0, function( result ){
 					clearFields();
 					if( console ) console.log( result );
 				});
@@ -102,7 +102,8 @@
 	tpl.on( 'sr_create', function() {
 		var info = {},
 			name = dom.find('#sr_name').val(),
-			type = dom.find('#sr_type').val().toLowerCase();
+			type = dom.find('#sr_type').val().toLowerCase(),
+			content_type = dom.find('#sr_content').val().toLowerCase();
 		
 		dom
 			.find('.' + type + ' input, .' + type + ' select')
@@ -116,7 +117,7 @@
 		app.load( 'js://api/session', function( Session, Helper ) {
 			Session.getThisHost(function( host ){
 				if( typeof creation[ type ] === 'function' ) {
-					creation[type]( name, host, info );
+					creation[type]( name, host, info, content_type );
 				}
 			});
 		});

@@ -66,11 +66,12 @@
 				
 				for( i in vm_data.VBDs ) {
 					(new VBD(vm_data.VBDs[i])).getVDI(function( vdi ){
-						var alternateName = 'HDD ( ' + (vdi.virtualSize/(1024*1024)) + 'MB )';
+						var alternateName = 'HDD ( ' + (vdi.virtualSize/(1024*1024)) + 'MB )',
+							type = vdi.type=='iso' ? 'disk' : 'harddisk';
 						
 						$('<li></li>')
-							.addClass('disk')
-							.attr('data-devicetype','disk')
+							.addClass(type)
+							.attr('data-devicetype',type)
 							.insertBefore( add )
 							.text( vdi.name||alternateName );
 					});
