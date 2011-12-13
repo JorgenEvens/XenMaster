@@ -42,7 +42,6 @@
 				
 				for( i in vdis ) {
 					i = vdis[i];
-					if( !i.name ) continue;
 					images[i.reference] = i;
 					
 					$('<option></option>')

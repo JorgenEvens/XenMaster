@@ -33,7 +33,7 @@
 				}, this.next );
 			},
 			function( sr ) {
-				sr.introduce( type, type, true, this.next );
+				sr.introduce( type.toUpperCase(), type, true, this.next );
 			},
 			function( sr ) {
 				console.log( 'sr created: ', sr );
