@@ -41,6 +41,11 @@ echo 'Make SSL comms start on boot';
 
 update-rc.d xapissl defaults;
 
+echo 'Installing XAPI plugins';
+
+wget http://#{bootstrap-server-address}/setup/plugins.tar.gz -O /root/xapi-plugins.tar.gz;
+tar -C /etc/xapi.d/plugins -xvzf /root/xapi-plugins.tar.gz;
+
 echo 'Saying hi to bootstrap server';
 
 mv /etc/motd.tail /etc/motd.tail.default;
