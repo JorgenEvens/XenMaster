@@ -7,39 +7,6 @@
     <artifactId>XenMaster</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    
-    <!-- Misusing the SCM plugin for fetching the frontend -->
-    <scm>
-        <url>https://github.com/NoSTaBoNN/XenMaster-WebUI</url>
-        <connection>scm:git:git://github.com/NoSTaBoNN/XenMaster-WebUI.git</connection>
-    </scm>
-    
-    <profiles>
-        <profile>
-            <id>web-dl</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-scm-plugin</artifactId>
-                        <version>1.5</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>checkout</goal>
-                                </goals>
-                                <phase>package</phase>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <checkoutDirectory>${basedir}/web</checkoutDirectory>
-                            <skip></skip>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
     <name>XenMaster</name>
     <url>http://maven.apache.org</url>
@@ -179,6 +146,11 @@
             <groupId>com.lmax</groupId>
             <artifactId>disruptor</artifactId>
             <version>2.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.3</version>
         </dependency>
     </dependencies>
 </project>

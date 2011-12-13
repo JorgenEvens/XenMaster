@@ -23,23 +23,4 @@
                 <goal>findbugs:findbugs</goal>
             </goals>
         </action>
-        <action>
-            <actionName>build</actionName>
-            <goals>
-                <goal>install</goal>
-            </goals>
-            <activatedProfiles>
-                <activatedProfile>web-dl</activatedProfile>
-            </activatedProfiles>
-        </action>
-        <action>
-            <actionName>rebuild</actionName>
-            <goals>
-                <goal>clean</goal>
-                <goal>install</goal>
-            </goals>
-            <activatedProfiles>
-                <activatedProfile>web-dl</activatedProfile>
-            </activatedProfiles>
-        </action>
     </actions>
