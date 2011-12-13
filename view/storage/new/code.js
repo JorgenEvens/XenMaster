@@ -15,11 +15,30 @@
 		};
 		
 	creation.nfs = function( name, host, data, type ) {
-		app.load( 'js://api/helpers/nfs', function( NFS ) {
-			NFS.mount( name, data.host, data.path, host, type, function(r){
-				if( console ) console.log( 'iso mount result: ', r );
-			});
-		});
+		var description = type == 'iso' ? 'ISO Repository: ' + name : name;
+		Util.chain(
+			function(){
+				app.load( 'js://api/sr', this.next );
+			},
+			function( SR ) {
+				SR.build({
+					name: name,
+					description: description,
+					smconfig: {
+						location: data.host + ':' + data.path
+					},
+					otherConfig: {
+						storageType: 'nfs'
+					}
+				}, this.next );
+			},
+			function( sr ) {
+				sr.introduce( type, type, true, this.next );
+			},
+			function( sr ) {
+				console.log( 'sr created: ', sr );
+			}
+		).start();
 	};
 	
 	creation.iscsi = function( name, host, data, type ) {

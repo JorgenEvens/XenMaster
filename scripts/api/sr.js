@@ -16,6 +16,8 @@
 		
 		SR.createMethod( 'getVDIs', VDI, true );
 		
+		SR.createMethod( 'introduce', SR );
+		
 		ready( SR );
 	});
 });
