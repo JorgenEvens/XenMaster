@@ -22,7 +22,7 @@ import net.wgr.xenmaster.controller.BadAPICallException;
 public class NFS {
 
     public static String mountISORepository(String name, InetAddress target, String path, Host h) throws BadAPICallException {
-        SR iso = new SR(null);
+        SR iso = new SR();
         iso.setName(name);
         iso.setDescription("ISO repository : " + name);
         HashMap<String, String> cfg = new HashMap<>();
@@ -40,6 +40,19 @@ public class NFS {
         
         Store.get().put(SR.ASSOCIATED_PBDS, ref, pbdRef);
         
+        return ref;
+    }
+    
+    public static String createNFSSR(String name, String description, InetAddress target, String path, Host h) throws BadAPICallException {
+        SR sr = new SR();
+        sr.setName(name);
+        sr.setDescription(description);
+        HashMap<String, String> cfg = new HashMap<>();
+        cfg.put("server", target.getCanonicalHostName());
+        cfg.put("serverpath", path);
+        cfg.put("options", "");
+        sr.setSmConfig(new HashMap<String, String>());
+        String ref = sr.create(h, cfg, SR.Type.NFS, "user", true, 0);
         return ref;
     }
 }
