@@ -75,7 +75,7 @@ public class VM extends NamedEntity {
     public VM() {
         this.actionsAfterReboot = ShutdownAction.RESTART;
         this.actionsAfterShutdown = ShutdownAction.DESTROY;
-        this.actionsAfterCrash = CrashedAction.COREDUMP_AND_RESTART;
+        this.actionsAfterCrash = CrashedAction.DESTROY;
     }
 
     public VM(String ref, boolean autoFill) {
@@ -364,6 +364,18 @@ public class VM extends NamedEntity {
 
     public void setMemoryLimits(double maxStaticMemMb, double minStaticMemMb, double maxDynMemMb, double minDynMemMb) throws BadAPICallException {
         dispatch("set_memory_limits", minStaticMemMb * MEGABYTE, maxStaticMemMb * MEGABYTE, minDynMemMb * MEGABYTE, maxDynMemMb * MEGABYTE);
+    }
+
+    public void setActionsAfterCrash(CrashedAction actionsAfterCrash) throws BadAPICallException {
+        this.actionsAfterCrash = setter(actionsAfterCrash, "set_actions_after_crash");
+    }
+
+    public void setActionsAfterReboot(ShutdownAction actionsAfterReboot) throws BadAPICallException {
+        this.actionsAfterReboot = setter(actionsAfterReboot, "set_actions_after_reboot");
+    }
+
+    public void setActionsAfterShutdown(ShutdownAction actionsAfterShutdown) throws BadAPICallException {
+        this.actionsAfterShutdown = setter(actionsAfterShutdown, "set_actions_after_shutdown");
     }
 
     public String getHVMBootPolicy() {
