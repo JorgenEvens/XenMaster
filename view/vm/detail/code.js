@@ -26,7 +26,7 @@
 		 * Enum of possible VM states.
 		 */
 		VMState = {
-			RUNNING: [ 'start', [false], 'running' ],
+			RUNNING: [ 'start', [false, false], 'running' ],
 			STOPPED: [ 'stop', [true], 'stopped' ],
 			ABORTED: [ 'stop', [false], 'aborted' ],
 			PAUSED: [ 'pause', [], 'paused' ],
@@ -65,15 +65,19 @@
 					.remove();
 				
 				for( i in vm_data.VBDs ) {
-					(new VBD(vm_data.VBDs[i])).getVDI(function( vdi ){
-						var alternateName = 'HDD ( ' + (vdi.virtualSize/(1024*1024)) + 'MB )',
-							type = vdi.type=='iso' ? 'disk' : 'harddisk';
-						
-						$('<li></li>')
-							.addClass(type)
-							.attr('data-devicetype',type)
-							.insertBefore( add )
-							.text( vdi.name||alternateName );
+					new VBD(vm_data.VBDs[i],function( vbd ){
+						vbd.getVDI(function( vdi ){
+							var alternateName = 'HDD ( ' + (vdi.virtualSize/(1024*1024)) + 'MB )',
+								type = vbd.type=='CD' ? 'disk' : 'harddisk';
+							
+							console.log( vbd.type );
+							
+							$('<li></li>')
+								.addClass(type)
+								.attr('data-devicetype',type)
+								.insertBefore( add )
+								.text( vdi.name||alternateName );
+						});
 					});
 				}
 			});
