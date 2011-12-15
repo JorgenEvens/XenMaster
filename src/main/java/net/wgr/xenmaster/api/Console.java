@@ -56,7 +56,7 @@ public class Console extends XenApiEntity {
         this.port = setter(port, "set_port");
     }
     
-    protected static enum Protocol {
+    public static enum Protocol {
         /**
          * The value does not belong to this enumeration
          */

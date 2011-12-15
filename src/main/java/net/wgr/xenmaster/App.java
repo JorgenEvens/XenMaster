@@ -15,6 +15,7 @@ import net.wgr.xenmaster.setup.debian.Bootstrapper;
 import net.wgr.xenmaster.web.Hook;
 import net.wgr.xenmaster.web.SetupHook;
 import net.wgr.xenmaster.web.TemplateHook;
+import net.wgr.xenmaster.web.VNCHook;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
@@ -68,6 +69,7 @@ public class App implements Daemon {
         sh.addWebHook(new Hook());
         sh.addWebHook(new TemplateHook());
         sh.addWebHook(new SetupHook());
+        sh.addWebHook(new VNCHook());
 
         Authorize.disable();
 
