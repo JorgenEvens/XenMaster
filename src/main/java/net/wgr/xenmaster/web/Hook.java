@@ -27,6 +27,7 @@ import net.wgr.wcp.command.Command;
 import net.wgr.wcp.command.CommandException;
 import net.wgr.wcp.command.Result;
 import net.wgr.xenmaster.api.XenApiEntity;
+import net.wgr.xenmaster.api.util.APIUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -62,51 +63,7 @@ public class Hook extends WebCommandHandler {
 
         return executeInstruction(cmd.getName(), apic.ref, apic.args);
     }
-
-    protected Object deserializeToTargetType(Object value, Class type) throws Exception {
-        switch (type.getSimpleName().toLowerCase()) {
-            case "boolean":
-                return Boolean.parseBoolean(value.toString());
-            case "integer":
-            case "int":
-                return Integer.parseInt(value.toString());
-            case "long":
-                return Long.parseLong(value.toString());
-            case "double":
-                return Double.parseDouble(value.toString());
-            default:
-                if (type.isEnum()) {
-                    String ucase = value.toString().toUpperCase();
-                    boolean found = false;
-                    for (Object enumType : type.getEnumConstants()) {
-                        if (enumType.toString().toUpperCase().equals(ucase)) {
-                            found = true;
-                            return enumType;
-                        }
-                    }
-                    if (!found) {
-                        throw new IllegalArgumentException("Argument value does not belong to enum values of " + type.getCanonicalName());
-                    }
-                } else if (type.isArray()) {
-                    // FIXME : This can break all too easily
-                    Class t = type.getComponentType();
-                    Object[] src = (Object[]) value;
-                    Object[] arr = (Object[]) Array.newInstance(t, src.length);
-                    for (int i = 0; i < src.length; i++) {
-                        arr[i] = deserializeToTargetType(src[i], t);
-                    }
-                    return arr;
-                } else if (InetAddress.class.isAssignableFrom(type)) {
-                    return InetAddress.getByName(value.toString());
-                } else if (XenApiEntity.class.isAssignableFrom(type)) {
-                    Constructor c = type.getConstructor(String.class, boolean.class);
-                    return c.newInstance(value.toString(), false);
-                }
-                break;
-        }
-        return value;
-    }
-
+    
     protected <T> String createLocalObject(Class<T> clazz, Object[] args) throws Exception {
         T obj = clazz.newInstance();
 
@@ -120,7 +77,7 @@ public class Hook extends WebCommandHandler {
                 if (!m.getName().toLowerCase().equals(methodName) || m.getParameterTypes().length != 1) {
                     continue;
                 }
-                m.invoke(obj, deserializeToTargetType(entry.getValue(), m.getParameterTypes()[0]));
+                m.invoke(obj, APIUtil.deserializeToTargetType(entry.getValue(), m.getParameterTypes()[0]));
                 set = true;
             }
 
@@ -239,7 +196,7 @@ public class Hook extends WebCommandHandler {
                     }
                     args[j] = store.get(localRef).value;
                 } else {
-                    args[j] = deserializeToTargetType(value, type);
+                    args[j] = APIUtil.deserializeToTargetType(value, type);
                 }
             }
         }

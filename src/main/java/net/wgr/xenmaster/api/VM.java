@@ -61,7 +61,7 @@ public class VM extends NamedEntity {
     @ConstructorArgument
     protected String hostAffinity;
     @Fill
-    protected Object[] VBDs, VIFs;
+    protected Object[] VBDs, VIFs, consoles;
     @Fill
     @ConstructorArgument
     protected Map<String, String> VCPUparams;
@@ -351,6 +351,14 @@ public class VM extends NamedEntity {
         ArrayList<VIF> objs = new ArrayList<>();
         for (Object o : this.VIFs) {
             objs.add(new VIF((String) o));
+        }
+        return objs;
+    }
+    
+    public List<Console> getConsoles() {
+        ArrayList<Console> objs = new ArrayList<>();
+        for (Object o : this.VIFs) {
+            objs.add(new Console((String) o));
         }
         return objs;
     }
