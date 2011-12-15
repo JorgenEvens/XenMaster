@@ -54,4 +54,14 @@ public class FileSystem {
         
         return struct;
     }
+    
+    public static String[] getKernels(Host host) throws BadAPICallException {
+        String result = host.callPlugin(FILESYTEM_PLUGIN, "kernels", new HashMap<String, String>());
+        return gson.fromJson(result, String[].class);
+    }
+    
+    public static String[] getRamdisks(Host host) throws BadAPICallException {
+        String result = host.callPlugin(FILESYTEM_PLUGIN, "ramdisks", new HashMap<String, String>());
+        return gson.fromJson(result, String[].class);
+    }
 }
