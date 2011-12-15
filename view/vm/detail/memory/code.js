@@ -2,13 +2,26 @@
 	
 	var tpl = this,
 		dom = $(tpl.dom),
-		memory = dom.find( '#memory_assigned' ),
-		vm = null;
+		ctl = {
+			memory: dom.find( '#memory_assigned' ),
+		},
+		vm = null,
+		mem_units = [ 'B', 'KB', 'MB', 'GB', 'TB' ];
 	
 	tpl.onshow = function() {
+		var memory = 0,
+			unit = 0;
+		
 		vm = tpl.vm;
 		
-		memory.val( vm.minimumStaticMemory );
+		memory = vm.maximumDynamicMemory;
+		
+		while( memory > 1024 ) {
+			unit++;
+			memory /= 1024;
+		}
+		
+		ctl.memory.val( memory + mem_units[unit] );
 	};
 	
 });

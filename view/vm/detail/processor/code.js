@@ -2,13 +2,15 @@
 	
 	var tpl = this,
 		dom = $(tpl.dom),
-		CPU = dom.find( '#processor_count' ),
+		ctl = {
+			cpu: dom.find( '#processor_count' )
+		},
 		vm = null;
 	
 	tpl.onshow = function() {
 		vm = tpl.vm;
 		
-		CPU.val( vm.maxVCPUs );
+		ctl.cpu.val( vm.maxVCPUs );
 	};
 	
 });

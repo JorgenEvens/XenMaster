@@ -10,13 +10,14 @@
 		/*
 		 * Get a content panel for the specific piece of hardware.
 		 */
-		showDetail = function( detail ) {
+		showDetail = function( detail, device ) {
 			if( !detail ) return;
 			
 			app.load( 'tpl://vm/detail/' + detail, 'js://ui/template', 'js://tools/notifier', function( tpl_detail, Template, N ) {
 				
 				var view = new Template({ resource: tpl_detail });
 				view.vm = vm_data;
+				view.device = device;
 				view.show( 'vm_detail_panel' );
 				
 			});
@@ -56,31 +57,41 @@
 		 * Load VDIs for VBDs and display them.
 		 */
 		loadVBDs = function() {
-			dom.find('.hardware .harddisk').remove();
-			app.load( 'js://api/vbd', function( VBD ){
-				var i = null,
-					add = $('.hardware .add');
-				
-				add.siblings('.disk')
-					.remove();
-				
-				for( i in vm_data.VBDs ) {
-					new VBD(vm_data.VBDs[i],function( vbd ){
-						vbd.getVDI(function( vdi ){
-							var alternateName = 'HDD ( ' + (vdi.virtualSize/(1024*1024)) + 'MB )',
-								type = vbd.type=='CD' ? 'disk' : 'harddisk';
-							
-							console.log( vbd.type );
-							
-							$('<li></li>')
-								.addClass(type)
-								.attr('data-devicetype',type)
-								.insertBefore( add )
-								.text( vdi.name||alternateName );
-						});
-					});
+			var add = $('.hardware .add');			
+			
+			Util.chain(
+				function() {
+					app.load('js://ui/dataset', this.next );
+				},
+				function( Dataset ) {
+					this.Dataset = Dataset;
+					
+					vm_data.getVBDs( this.next );
+				},
+				function( vbds ) {
+					var Dataset = this.Dataset;
+						i = null;
+					
+					add.siblings( '.disk, .harddisk' ).remove();
+					
+					for( i in vbds ) {
+						(function( vbd ){
+							vbd.getVDI(function(vdi){
+								var alternateName = 'HDD ( ' + (vdi.virtualSize/(1024*1024)) + 'MB )',
+									type = vbd.type=='CD' ? 'disk' : 'harddisk',
+									el = $('<li></li>')
+										.addClass(type)
+										.attr('data-devicetype',type)
+										.insertBefore( add )
+										.text( vdi.name||alternateName ),
+									data = Dataset.get( el.get(0) );
+								
+								data.device = vdi;
+							});
+						}(vbds[i]));
+					}
 				}
-			});
+			).start();
 		},
 		
 		/*
@@ -89,31 +100,34 @@
 		loadVIFs = function(){
 			Util.chain(
 				function(){
-					app.load( 'js://api/network', this.next );
+					app.load( 'js://api/network', 'js://ui/dataset', this.next );
 				},
-				function( Network ){
+				function( Network, Dataset ){
 					this.add = $('.hardware .add');
 					this.Network = Network;
+					this.Dataset = Dataset;
 					
 					vm_data.getVIFs( this.next );
 				},
 				function( vifs ) {
 					var Network = this.Network,
+						Dataset = this.Dataset,
 						add = this.add;
 					
-					add.siblings('.nic')
-						.remove();
+					add.siblings('.nic').remove();
 					
 					for( i in vifs ) {
 						(function( vif ){
 							new Network( vif.network, function( net ) {
-								alternateName = 'NIC ' + vif.deviceIndex + ': ' + net.name;
+								var alternateName = 'NIC ' + vif.deviceIndex + ': ' + net.name,
+									el = $('<li></li>')
+										.addClass('nic')
+										.attr('data-devicetype','nic')
+										.insertBefore( add )
+										.text( i.name||alternateName ),
+									data = Dataset.get( el.get(0) );
 								
-								$('<li></li>')
-									.addClass('nic')
-									.attr('data-devicetype','nic')
-									.insertBefore( add )
-									.text( i.name||alternateName );
+								data.device = vif;
 							});
 						}(vifs[i]));
 					}
@@ -125,34 +139,35 @@
 	/*
 	 * Setup template
 	 */
-	dom.find( 'ul.hardware' )
-		.delegate( 'li', 'click', function() {
-			dom
-				.find( 'ul.hardware li' )
-				.removeClass( 'selected' );
-			
-			$(this).addClass( 'selected' );
-		});
 	
 	/*
 	 * Capture commands on click
 	 */
 	this.capture( ['click','keydown'] );
 	
-	this.bind( 'ui_alternate', function( e ){
-
-	});
-	
 	this.bind('vm_device_selected',function( e ){
-		showDetail( e.source.dataset.devicetype );
+		$(e.source)
+			.addClass('selected')
+			.siblings()
+				.removeClass( 'selected' );
+		
+		app.load( 'js://ui/dataset', function( Dataset ) {
+			var data = Dataset.get( e.source );
+			showDetail( e.source.dataset.devicetype, data.device );
+		});
 	});
 	
 	this.bind('vm_device_add', function( e ) {
 		app.load( 'tpl://vm/device/new', 'js://ui/template', 'js://tools/notifier', function( tpl_add, Template, N ) {
 			var view = new Template({ resource: tpl_add });
+			
+			/*
+			 * Device has been created.
+			 */
 			view.bind( 'vm_device_ready', function( e ) {
-				tpl.show( vm_data );
+				tpl.show( vm_data ); // reload view.
 			});
+			
 			view.vm = vm_data;
 			
 			view.show( 'vm_detail_panel' );

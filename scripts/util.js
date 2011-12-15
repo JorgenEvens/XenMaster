@@ -51,12 +51,13 @@
 	
 	Util.chain.prototype.start = function() {
 		var counter = 0,
-			chain = this;
+			chain = this,
+			context = {next:null},
 			next = function(){
 				return chain[counter++].apply(context,arguments);
-			},
-			context = {next:next};
+			};
 			
+		context.next = next;
 		next.apply(null,arguments);
 	};
 	

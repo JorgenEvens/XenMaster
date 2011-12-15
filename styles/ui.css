@@ -397,7 +397,8 @@ h2.corner:before {
 }
 
 .form_line label {
-	width: 200px;
+	width: 150px;
+	font-weight: bold;
 }
 
 .w80 {
