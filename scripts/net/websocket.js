@@ -105,7 +105,7 @@
 			callback = this.sent[ data.tag ],
 			hook_list = this.hooks[ data.handler ],
 			i = null;
-		
+
 		if( callback ) {
 			callback( data );
 		};
@@ -170,7 +170,7 @@
 		};
 		
 		options.tag = this.getTag();
-		
+
 		if( options.callback ) {
 			this.sent[ options.tag ] = options.callback;
 			delete options.callback;

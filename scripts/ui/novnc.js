@@ -1,81 +1,40 @@
 (function( ready, app ){
-	//"use strict";
-	/*
-	 * Replacing novnc/include/util.js
-	 * Replacing some novnc defaults
-	 */ 
-	// Globals defined here
+
+	var notify = function( message ) {
+		app.load( 'js://tools/notifier', function( Notifier ){
+			Notifier.publish( 'NoVNC', message );
+		});
+	};
+	
 	var Util = {};
-
-
+	
 	/*
-	 * Make arrays quack
+	 * ByteArray allows binary pushing of data.
 	 */
-
-	Array.prototype.push8 = function (num) {
-	    this.push(num & 0xFF);
-	};
-
-	Array.prototype.push16 = function (num) {
-	    this.push((num >> 8) & 0xFF,
-	              (num     ) & 0xFF  );
-	};
-	Array.prototype.push32 = function (num) {
-	    this.push((num >> 24) & 0xFF,
-	              (num >> 16) & 0xFF,
-	              (num >>  8) & 0xFF,
-	              (num      ) & 0xFF  );
-	};
-
-	/* 
-	 * ------------------------------------------------------
-	 * Namespaced in Util
-	 * ------------------------------------------------------
-	 */
-
-	/*
-	 * Logging/debug routines
-	 */
-
-	Util._log_level = 'none';
-	Util.init_logging = function (level) {
-	    if (typeof level === 'undefined') {
-	        level = Util._log_level;
-	    } else {
-	        Util._log_level = level;
-	    }
-	    if (typeof window.console === "undefined") {
-	        if (typeof window.opera !== "undefined") {
-	            window.console = {
-	                'log'  : window.opera.postError,
-	                'warn' : window.opera.postError,
-	                'error': window.opera.postError };
-	        } else {
-	            window.console = {
-	                'log'  : function(m) {},
-	                'warn' : function(m) {},
-	                'error': function(m) {}};
-	        }
-	    }
-
-	    Util.Debug = Util.Info = Util.Warn = Util.Error = function (msg) {};
-	    switch (level) {
-	        case 'debug': Util.Debug = function (msg) { console.log(msg); };
-	        case 'info':  Util.Info  = function (msg) { console.log(msg); };
-	        case 'warn':  Util.Warn  = function (msg) { console.warn(msg); };
-	        case 'error': Util.Error = function (msg) { console.error(msg); };
-	        case 'none':
-	            break;
-	        default:
-	            throw("invalid logging type '" + level + "'");
-	    }
-	};
-	Util.get_logging = function () {
-	    return Util._log_level;
-	};
-	// Initialize logging level
-	Util.init_logging();
-
+	var ByteArray = (function(){
+		var push8 = function (num) {
+			    this.push(num & 0xFF);
+			},
+			push16 = function( num ) {
+				this.push((num >> 8) & 0xFF,
+			              (num     ) & 0xFF  );
+			},
+			push32 = function (num) {
+			    this.push((num >> 24) & 0xFF,
+			              (num >> 16) & 0xFF,
+			              (num >>  8) & 0xFF,
+			              (num      ) & 0xFF  );
+			};
+		
+		return function() {
+			var me = [];
+				me.push8 = push8;
+				me.push16 = push16;
+				me.push32 = push32;
+				
+			return me;
+		};
+	}());
 
 	// Set configuration default for Crockford style function namespaces
 	Util.conf_default = function(cfg, api, defaults, v, mode, type, defval, desc) {
@@ -142,7 +101,6 @@
 	        defval = [];
 	    }
 	    // Coerce existing setting to the right type
-	    //Util.Debug("v: " + v + ", defval: " + defval + ", defaults[v]: " + defaults[v]);
 	    setter(defval);
 	};
 
@@ -175,7 +133,6 @@
 
 	// Get mouse event position in DOM element
 	Util.getEventPosition = function (e, obj, scale) {
-		console.log( scale );
 	    var evt, docX, docY, pos;
 	    //if (!e) evt = window.event;
 	    evt = (e ? e : window.event);
@@ -286,6 +243,7 @@
 		        pad = Base64.base64Pad,
 		        length = data.length,
 		        i;
+		    
 		    // Convert every three bytes to 4 ascii characters.
 		    for (i = 0; i < (length - 2); i += 3) {
 		        result += chrTable[data[i] >> 2];
@@ -577,7 +535,7 @@
 
 		    // Pre-declare private functions used before definitions (jslint)
 		    init_vars, updateState, fail, handle_message,
-		    init_msg, normal_msg, framebufferUpdate, print_stats,
+		    init_msg, normal_msg, framebufferUpdate,
 
 		    pixelFormat, clientEncodings, fbUpdateRequest, fbUpdateRequests,
 		    keyEvent, pointerEvent, clientCutText,
@@ -669,13 +627,11 @@
 		        fbu_rt_cnt     : 0
 		    },
 
-		    test_mode        = false,
-
 		    def_con_timeout  = 2,
 
 		    /* Mouse state */
 		    mouse_buttonMask = 0,
-		    mouse_arr        = [],
+		    mouse_arr        = new ByteArray(),
 		    viewportDragging = false,
 		    viewportDragPos  = {};
 
@@ -728,7 +684,7 @@
 		        if (display.get_cursor_uri()) {
 		            conf.local_cursor = true;
 		        } else {
-		            Util.Warn("Browser does not support local cursor");
+		            notify("Browser does not support local cursor");
 		        }
 		    }
 		};
@@ -750,7 +706,6 @@
 		// constant across connect/disconnect
 		function constructor() {
 		    var i, rmode;
-		    Util.Debug(">> RFB.constructor");
 
 		    // Create lookup tables based encoding number
 		    for (i=0; i < encodings.length; i+=1) {
@@ -763,7 +718,6 @@
 		    try {
 		        display   = new Display({'target': conf.target});
 		    } catch (exc) {
-		        Util.Error("Display exception: " + exc);
 		        updateState('fatal', "No working Display");
 		    }
 		    keyboard = new Keyboard({'target': conf.focusContainer,
@@ -774,6 +728,7 @@
 
 		    rmode = display.get_render_mode();
 
+		    // TODO remove completely
 		    ws = new Websock();
 		    ws.on('message', handle_message);
 		    ws.on('open', function() {
@@ -783,20 +738,6 @@
 		            fail("Got unexpected WebSockets connection");
 		        }
 		    });
-		    ws.on('close', function() {
-		        if (rfb_state === 'disconnect') {
-		            updateState('disconnected', 'VNC disconnected');
-		        } else if (rfb_state === 'ProtocolVersion') {
-		            fail('Failed to connect to server');
-		        } else if (rfb_state in {'failed':1, 'disconnected':1}) {
-		            Util.Error("Received onclose while disconnected");
-		        } else  {
-		            fail('Server disconnected');
-		        }
-		    });
-		    ws.on('error', function(e) {
-		        fail("WebSock error: " + e);
-		    });
 
 
 		    init_vars();
@@ -804,17 +745,11 @@
 		    /* Check web-socket-js if no builtin WebSocket support */
 	        updateState('loaded', 'noVNC ready: native WebSockets, ' + rmode);
 
-		    Util.Debug("<< RFB.constructor");
 		    return that;  // Return the public API interface
 		}
 
 		function connect() {
-		    Util.Debug(">> RFB.connect");
-
-		    Util.Info("connecting to using " + rfb_host);
 		    ws.open(rfb_host);
-
-		    Util.Debug("<< RFB.connect");
 		}
 
 		// Initialize variables that are reset before each connection
@@ -830,32 +765,11 @@
 		    FBU.tiles        = 0;  // HEXTILE
 		    FBU.imgQ         = []; // TIGHT_PNG image queue
 		    mouse_buttonMask = 0;
-		    mouse_arr        = [];
+		    mouse_arr        = new ByteArray();
 
 		    // Clear the per connection encoding stats
 		    for (i=0; i < encodings.length; i+=1) {
 		        encStats[encodings[i][1]][0] = 0;
-		    }
-		};
-
-		// Print statistics
-		print_stats = function() {
-		    var i, s;
-		    Util.Info("Encoding stats for this connection:");
-		    for (i=0; i < encodings.length; i+=1) {
-		        s = encStats[encodings[i][1]];
-		        if ((s[0] + s[1]) > 0) {
-		            Util.Info("    " + encodings[i][0] + ": " +
-		                      s[0] + " rects");
-		        }
-		    }
-		    Util.Info("Encoding stats since page load:");
-		    for (i=0; i < encodings.length; i+=1) {
-		        s = encStats[encodings[i][1]];
-		        if ((s[0] + s[1]) > 0) {
-		            Util.Info("    " + encodings[i][0] + ": " +
-		                      s[1] + " rects");
-		        }
 		    }
 		};
 
@@ -888,7 +802,6 @@
 		    
 		    if (state === oldstate) {
 		        /* Already here, ignore */
-		        Util.Debug("Already in state '" + state + "', ignoring.");
 		        return;
 		    }
 
@@ -912,8 +825,7 @@
 		            keyboard.ungrab();
 		            mouse.ungrab();
 		            display.defaultCursor();
-		            if ((Util.get_logging() !== 'debug') ||
-		                (state === 'loaded')) {
+		            if ( state === 'loaded' ) {
 		                // Show noVNC logo on load and when disconnected if
 		                // debug is off
 		                display.clear();
@@ -924,13 +836,7 @@
 		    }
 
 		    if (oldstate === 'fatal') {
-		        Util.Error("Fatal error, cannot continue");
-		    }
-
-		    if ((state === 'failed') || (state === 'fatal')) {
-		        func = Util.Error;
-		    } else {
-		        func = Util.Warn;
+		    	return;
 		    }
 
 		    if ((oldstate === 'failed') && (state === 'disconnected')) {
@@ -941,75 +847,51 @@
 		    }
 
 		    cmsg = typeof(statusMsg) !== 'undefined' ? (" Msg: " + statusMsg) : "";
-		    func("New state '" + rfb_state + "', was '" + oldstate + "'." + cmsg);
-
+		    
 		    if (connTimer && (rfb_state !== 'connect')) {
-		        Util.Debug("Clearing connect timer");
 		        clearInterval(connTimer);
 		        connTimer = null;
 		    }
 
 		    if (disconnTimer && (rfb_state !== 'disconnect')) {
-		        Util.Debug("Clearing disconnect timer");
 		        clearInterval(disconnTimer);
 		        disconnTimer = null;
 		    }
 
 		    switch (state) {
-		    case 'normal':
-		        if ((oldstate === 'disconnected') || (oldstate === 'failed')) {
-		            Util.Error("Invalid transition from 'disconnected' or 'failed' to 'normal'");
-		        }
+			    case 'normal':
+			        break;
 
-		        break;
-
-
-		    case 'connect':
-		        
-		        connTimer = setTimeout(function () {
-		                fail("Connect timeout");
-		            }, conf.connectTimeout * 1000);
-
-		        init_vars();
-		        connect();
-
-		        // WebSocket.onopen transitions to 'ProtocolVersion'
-		        break;
-
-
-		    case 'disconnect':
-
-		        if (! test_mode) {
+			    case 'connect':
+			        connTimer = setTimeout(function () {
+			                fail("Connect timeout");
+			            }, conf.connectTimeout * 1000);
+	
+			        init_vars();
+			        connect();
+	
+			        // WebSocket.onopen transitions to 'ProtocolVersion'
+			        break;
+	
+	
+			    case 'disconnect':
 		            disconnTimer = setTimeout(function () {
 		                    fail("Disconnect timeout");
 		                }, conf.disconnectTimeout * 1000);
-		        }
-
-		        print_stats();
-
-		        // WebSocket.onclose transitions to 'disconnected'
-		        break;
-
-
-		    case 'failed':
-		        if (oldstate === 'disconnected') {
-		            Util.Error("Invalid transition from 'disconnected' to 'failed'");
-		        }
-		        if (oldstate === 'normal') {
-		            Util.Error("Error while connected.");
-		        }
-		        if (oldstate === 'init') {
-		            Util.Error("Error while initializing.");
-		        }
-
-		        // Make sure we transition to disconnected
-		        setTimeout(function() { updateState('disconnected'); }, 50);
-
-		        break;
-
-
-		    default:
-		        // No state change action to take
+	
+			        // WebSocket.onclose transitions to 'disconnected'
+			        break;
+	
+	
+			    case 'failed':
+			        // Make sure we transition to disconnected
+			        setTimeout(function() { updateState('disconnected'); }, 50);
+	
+			        break;
+	
+	
+			    default:
+			        // No state change action to take
 
 		    }
 
@@ -1029,35 +911,28 @@
 		};
 
 		handle_message = function() {
-		    //Util.Debug(">> handle_message ws.rQlen(): " + ws.rQlen());
-		    //Util.Debug("ws.rQslice(0,20): " + ws.rQslice(0,20) + " (" + ws.rQlen() + ")");
 		    if (ws.rQlen() === 0) {
-		        Util.Warn("handle_message called on empty receive queue");
 		        return;
 		    }
 		    switch (rfb_state) {
-		    case 'disconnected':
-		    case 'failed':
-		        Util.Error("Got data while disconnected");
-		        break;
-		    case 'normal':
-		        if ( normal_msg() && ws.rQlen() > 0) {
-		            // true means we can continue processing
-		            // Give other events a chance to run
-		            if (msgTimer === null) {
-		                Util.Debug("More data to process, creating timer");
-		                msgTimer = setTimeout(function () {
-		                            msgTimer = null;
-		                            handle_message();
-		                        }, 10);
-		            } else {
-		                Util.Debug("More data to process, existing timer");
-		            }
-		        }
-		        break;
-		    default:
-		        init_msg();
-		        break;
+			    case 'disconnected':
+			    case 'failed':
+			        break;
+			    case 'normal':
+			        if ( normal_msg() && ws.rQlen() > 0) {
+			            // true means we can continue processing
+			            // Give other events a chance to run
+			            if (msgTimer === null) {
+			                msgTimer = setTimeout(function () {
+			                            msgTimer = null;
+			                            handle_message();
+			                        }, 10);
+			            }
+			        }
+			        break;
+			    default:
+			        init_msg();
+			        break;
 		    }
 		};
 
@@ -1078,7 +953,7 @@
 		                ws.send(fbUpdateRequests());
 		            }, 50);
 
-		        mouse_arr = [];
+		        mouse_arr = new ByteArray();
 		        return true;
 		    } else {
 		        return false;
@@ -1138,7 +1013,6 @@
 		};
 
 		mouseMove = function(x, y) {
-		    //Util.Debug('>> mouseMove ' + x + "," + y);
 		    var deltaX, deltaY;
 
 		    if (viewportDragging) {
@@ -1167,14 +1041,12 @@
 
 		// RFB/VNC initialisation message handler
 		init_msg = function() {
-		    //Util.Debug(">> init_msg [rfb_state '" + rfb_state + "']");
 
 		    var strlen, reason, length, sversion, cversion,
 		        i, types, num_types, challenge, response, bpp, depth,
 		        big_endian, red_max, green_max, blue_max, red_shift,
 		        green_shift, blue_shift, true_color, name_length;
 
-		    //Util.Debug("ws.rQ (" + ws.rQlen() + ") " + ws.rQslice(0));
 		    switch (rfb_state) {
 
 		    case 'ProtocolVersion' :
@@ -1182,7 +1054,7 @@
 		            return fail("Incomplete protocol version");
 		        }
 		        sversion = ws.rQshiftStr(12).substr(4,7);
-		        Util.Info("Server ProtocolVersion: " + sversion);
+		        
 		        switch (sversion) {
 		            case "003.003": rfb_version = 3.3; break;
 		            case "003.006": rfb_version = 3.3; break;  // UltraVNC
@@ -1195,14 +1067,12 @@
 		            rfb_version = rfb_max_version;
 		        }
 
-		        if (! test_mode) {
-		            sendTimer = setInterval(function() {
-		                    // Send updates either at a rate of one update
-		                    // every 50ms, or whatever slower rate the network
-		                    // can handle.
-		                    ws.flush();
-		                }, 50);
-		        }
+	            sendTimer = setInterval(function() {
+	                    // Send updates either at a rate of one update
+	                    // every 50ms, or whatever slower rate the network
+	                    // can handle.
+	                    ws.flush();
+	                }, 50);
 
 		        cversion = "00" + parseInt(rfb_version,10) +
 		                   ".00" + ((rfb_version * 10) % 10);
@@ -1222,7 +1092,7 @@
 		            }
 		            rfb_auth_scheme = 0;
 		            types = ws.rQshiftBytes(num_types);
-		            Util.Debug("Server security types: " + types);
+
 		            for (i=0; i < types.length; i+=1) {
 		                if ((types[i] > rfb_auth_scheme) && (types[i] < 3)) {
 		                    rfb_auth_scheme = types[i];
@@ -1245,7 +1115,7 @@
 
 		    // Triggered by fallthough, not by server message
 		    case 'Authentication' :
-		        //Util.Debug("Security auth scheme: " + rfb_auth_scheme);
+
 		        switch (rfb_auth_scheme) {
 		            case 0:  // connection failed
 		                if (ws.rQwait("auth reason", 4)) { return false; }
@@ -1269,14 +1139,9 @@
 		                }
 		                if (ws.rQwait("auth challenge", 16)) { return false; }
 		                challenge = ws.rQshiftBytes(16);
-		                //Util.Debug("Password: " + rfb_password);
-		                //Util.Debug("Challenge: " + challenge +
-		                //           " (" + challenge.length + ")");
+
 		                response = genDES(rfb_password, challenge);
-		                //Util.Debug("Response: " + response +
-		                //           " (" + response.length + ")");
-		                
-		                //Util.Debug("Sending DES encrypted auth response");
+
 		                ws.send(response);
 		                updateState('SecurityResult');
 		                return;
@@ -1320,8 +1185,9 @@
 		        break;
 
 		    case 'ServerInitialisation' :
+		    	
 		        if (ws.rQwait("server initialization", 24)) { return false; }
-
+		        
 		        /* Screen size */
 		        fb_width  = ws.rQshift16();
 		        fb_height = ws.rQshift16();
@@ -1339,17 +1205,6 @@
 		        green_shift    = ws.rQshift8();
 		        blue_shift     = ws.rQshift8();
 		        ws.rQshiftStr(3); // padding
-
-		        Util.Info("Screen: " + fb_width + "x" + fb_height + 
-		                  ", bpp: " + bpp + ", depth: " + depth +
-		                  ", big_endian: " + big_endian +
-		                  ", true_color: " + true_color +
-		                  ", red_max: " + red_max +
-		                  ", green_max: " + green_max +
-		                  ", blue_max: " + blue_max +
-		                  ", red_shift: " + red_shift +
-		                  ", green_shift: " + green_shift +
-		                  ", blue_shift: " + blue_shift);
 
 		        /* Connection name/title */
 		        name_length   = ws.rQshift32();
@@ -1370,10 +1225,10 @@
 
 		        response = pixelFormat();
 		        response = response.concat(clientEncodings());
-		        response = response.concat(fbUpdateRequests());
+		        response = response.concat(fbUpdateRequests());;
 		        timing.fbu_rt_start = (new Date()).getTime();
 		        ws.send(response);
-		        
+
 		        /* Start pushing/polling */
 		        setTimeout(checkEvents, conf.check_rate);
 		        setTimeout(scan_tight_imgQ, scan_imgQ_rate);
@@ -1385,14 +1240,11 @@
 		        }
 		        break;
 		    }
-		    //Util.Debug("<< init_msg");
 		};
 
 
 		/* Normal RFB/VNC server message handler */
 		normal_msg = function() {
-		    //Util.Debug(">> normal_msg");
-
 		    var ret = true, msg_type, length, text,
 		        c, first_colour, num_colours, red, green, blue;
 
@@ -1407,29 +1259,21 @@
 		        ret = framebufferUpdate(); // false means need more data
 		        break;
 		    case 1:  // SetColourMapEntries
-		        Util.Debug("SetColourMapEntries");
 		        ws.rQshift8();  // Padding
 		        first_colour = ws.rQshift16(); // First colour
 		        num_colours = ws.rQshift16();
 		        for (c=0; c < num_colours; c+=1) { 
 		            red = ws.rQshift16();
-		            //Util.Debug("red before: " + red);
 		            red = parseInt(red / 256, 10);
-		            //Util.Debug("red after: " + red);
 		            green = parseInt(ws.rQshift16() / 256, 10);
 		            blue = parseInt(ws.rQshift16() / 256, 10);
 		            display.set_colourMap([red, green, blue], first_colour + c);
 		        }
-		        Util.Debug("colourMap: " + display.get_colourMap());
-		        Util.Info("Registered " + num_colours + " colourMap entries");
-		        //Util.Debug("colourMap: " + display.get_colourMap());
 		        break;
 		    case 2:  // Bell
-		        Util.Debug("Bell");
 		        conf.onBell(that);
 		        break;
 		    case 3:  // ServerCutText
-		        Util.Debug("ServerCutText");
 		        if (ws.rQwait("ServerCutText header", 7, 1)) { return false; }
 		        ws.rQshiftBytes(3);  // Padding
 		        length = ws.rQshift32();
@@ -1441,11 +1285,8 @@
 		        break;
 		    default:
 		        fail("Disconnected: illegal server message type " + msg_type);
-		    	console.log( msg_type );
-		        Util.Debug("ws.rQslice(0,30):" + ws.rQslice(0,30));
 		        break;
 		    }
-		    //Util.Debug("<< normal_msg");
 		    return ret;
 		};
 
@@ -1453,19 +1294,16 @@
 		    var now, hdr, fbu_rt_diff, ret = true;
 
 		    if (FBU.rects === 0) {
-		        //Util.Debug("New FBU: ws.rQslice(0,20): " + ws.rQslice(0,20));
 		        if (ws.rQwait("FBU header", 3)) {
 		            ws.rQunshift8(0);  // FBU msg_type
 		            return false;
 		        }
 		        ws.rQshift8();  // padding
 		        FBU.rects = ws.rQshift16();
-		        //Util.Debug("FramebufferUpdate, rects:" + FBU.rects);
 		        FBU.bytes = 0;
 		        timing.cur_fbu = 0;
 		        if (timing.fbu_rt_start > 0) {
 		            now = (new Date()).getTime();
-		            Util.Info("First FBU latency: " + (now - timing.fbu_rt_start));
 		        }
 		    }
 
@@ -1493,16 +1331,7 @@
 		                     'encodingName': encNames[FBU.encoding]});
 
 		            if (encNames[FBU.encoding]) {
-		                // Debug:
-		                /*
-		                var msg =  "FramebufferUpdate rects:" + FBU.rects;
-		                msg += " x: " + FBU.x + " y: " + FBU.y;
-		                msg += " width: " + FBU.width + " height: " + FBU.height;
-		                msg += " encoding:" + FBU.encoding;
-		                msg += "(" + encNames[FBU.encoding] + ")";
-		                msg += ", ws.rQlen(): " + ws.rQlen();
-		                Util.Debug(msg);
-		                */
+
 		            } else {
 		                fail("Disconnected: unsupported encoding " +
 		                    FBU.encoding);
@@ -1528,23 +1357,11 @@
 		                    (timing.fbu_rt_start > 0)) {
 		                timing.full_fbu_total += timing.cur_fbu;
 		                timing.full_fbu_cnt += 1;
-		                Util.Info("Timing of full FBU, cur: " +
-		                          timing.cur_fbu + ", total: " +
-		                          timing.full_fbu_total + ", cnt: " +
-		                          timing.full_fbu_cnt + ", avg: " +
-		                          (timing.full_fbu_total /
-		                              timing.full_fbu_cnt));
 		            }
 		            if (timing.fbu_rt_start > 0) {
 		                fbu_rt_diff = now - timing.fbu_rt_start;
 		                timing.fbu_rt_total += fbu_rt_diff;
 		                timing.fbu_rt_cnt += 1;
-		                Util.Info("full FBU round-trip, cur: " +
-		                          fbu_rt_diff + ", total: " +
-		                          timing.fbu_rt_total + ", cnt: " +
-		                          timing.fbu_rt_cnt + ", avg: " +
-		                          (timing.fbu_rt_total /
-		                              timing.fbu_rt_cnt));
 		                timing.fbu_rt_start = 0;
 		            }
 		        }
@@ -1567,8 +1384,6 @@
 		//
 
 		encHandlers.RAW = function display_raw() {
-		    //Util.Debug(">> display_raw (" + ws.rQlen() + " bytes)");
-
 		    var cur_y, cur_height;
 
 		    if (FBU.lines === 0) {
@@ -1590,13 +1405,10 @@
 		        FBU.rects -= 1;
 		        FBU.bytes = 0;
 		    }
-		    //Util.Debug("<< display_raw (" + ws.rQlen() + " bytes)");
 		    return true;
 		};
 
 		encHandlers.COPYRECT = function display_copy_rect() {
-		    //Util.Debug(">> display_copy_rect");
-
 		    var old_x, old_y;
 
 		    if (ws.rQwait("COPYRECT", 4)) { return false; }
@@ -1609,7 +1421,6 @@
 		};
 
 		encHandlers.RRE = function display_rre() {
-		    //Util.Debug(">> display_rre (" + ws.rQlen() + " bytes)");
 		    var color, x, y, width, height, chunk;
 
 		    if (FBU.subrects === 0) {
@@ -1627,9 +1438,7 @@
 		        display.fillRect(FBU.x + x, FBU.y + y, width, height, color);
 		        FBU.subrects -= 1;
 		    }
-		    //Util.Debug("   display_rre: rects: " + FBU.rects +
-		    //           ", FBU.subrects: " + FBU.subrects);
-
+		    
 		    if (FBU.subrects > 0) {
 		        chunk = Math.min(rre_chunk_sz, FBU.subrects);
 		        FBU.bytes = (fb_Bpp + 8) * chunk;
@@ -1637,12 +1446,12 @@
 		        FBU.rects -= 1;
 		        FBU.bytes = 0;
 		    }
-		    //Util.Debug("<< display_rre, FBU.bytes: " + FBU.bytes);
+
 		    return true;
 		};
 
 		encHandlers.HEXTILE = function display_hextile() {
-		    //Util.Debug(">> display_hextile");
+
 		    var subencoding, subrects, color, cur_tile,
 		        tile_x, x, w, tile_y, y, h, xy, s, sx, sy, wh, sw, sh,
 		        rQ = ws.get_rQ(), rQi = ws.get_rQi(); 
@@ -1661,7 +1470,6 @@
 		        subencoding = rQ[rQi];  // Peek
 		        if (subencoding > 30) { // Raw
 		            fail("Disconnected: illegal hextile subencoding " + subencoding);
-		            //Util.Debug("ws.rQslice(0,30):" + ws.rQslice(0,30));
 		            return false;
 		        }
 		        subrects = 0;
@@ -1675,7 +1483,6 @@
 
 		        /* Figure out how much we are expecting */
 		        if (subencoding & 0x01) { // Raw
-		            //Util.Debug("   Raw subencoding");
 		            FBU.bytes += w * h * fb_Bpp;
 		        } else {
 		            if (subencoding & 0x02) { // Background
@@ -1696,17 +1503,6 @@
 		            }
 		        }
 
-		        /*
-		        Util.Debug("   tile:" + cur_tile + "/" + (FBU.total_tiles - 1) +
-		              " (" + tile_x + "," + tile_y + ")" +
-		              " [" + x + "," + y + "]@" + w + "x" + h +
-		              ", subenc:" + subencoding +
-		              "(last: " + FBU.lastsubencoding + "), subrects:" +
-		              subrects +
-		              ", ws.rQlen():" + ws.rQlen() + ", FBU.bytes:" + FBU.bytes +
-		              " last:" + ws.rQslice(FBU.bytes-10, FBU.bytes) +
-		              " next:" + ws.rQslice(FBU.bytes-1, FBU.bytes+10));
-		        */
 		        if (ws.rQwait("hextile", FBU.bytes)) { return false; }
 
 		        /* We know the encoding and have a whole tile */
@@ -1715,7 +1511,6 @@
 		        if (FBU.subencoding === 0) {
 		            if (FBU.lastsubencoding & 0x01) {
 		                /* Weird: ignore blanks after RAW */
-		                Util.Debug("     Ignoring blank after RAW");
 		            } else {
 		                display.fillRect(x, y, w, h, FBU.background);
 		            }
@@ -1768,16 +1563,13 @@
 		        FBU.rects -= 1;
 		    }
 
-		    //Util.Debug("<< display_hextile");
 		    return true;
 		};
 
 
 		encHandlers.TIGHT_PNG = function display_tight_png() {
-		    //Util.Debug(">> display_tight_png");
+
 		    var ctl, cmode, clength, getCLength, color, img;
-		    //Util.Debug("   FBU.rects: " + FBU.rects);
-		    //Util.Debug("   starting ws.rQslice(0,20): " + ws.rQslice(0,20) + " (" + ws.rQlen() + ")");
 
 		    FBU.bytes = 1; // compression-control byte
 		    if (ws.rQwait("TIGHT compression-control", FBU.bytes)) { return false; }
@@ -1813,9 +1605,6 @@
 
 		    if (ws.rQwait("TIGHT " + cmode, FBU.bytes)) { return false; }
 
-		    //Util.Debug("   ws.rQslice(0,20): " + ws.rQslice(0,20) + " (" + ws.rQlen() + ")");
-		    //Util.Debug("   cmode: " + cmode);
-
 		    // Determine FBU.bytes
 		    switch (cmode) {
 		    case "fill":
@@ -1837,7 +1626,6 @@
 		        if (ws.rQwait("TIGHT " + cmode, FBU.bytes)) { return false; }
 
 		        // We have everything, render it
-		        //Util.Debug("   png, ws.rQlen(): " + ws.rQlen() + ", clength[0]: " + clength[0] + ", clength[1]: " + clength[1]);
 		        ws.rQshiftBytes(1 + clength[0]); // shift off ctl + compact length
 		        img = new Image();
 		        //img.onload = scan_tight_imgQ;
@@ -1853,8 +1641,7 @@
 		    }
 		    FBU.bytes = 0;
 		    FBU.rects -= 1;
-		    //Util.Debug("   ending ws.rQslice(0,20): " + ws.rQslice(0,20) + " (" + ws.rQlen() + ")");
-		    //Util.Debug("<< display_tight_png");
+
 		    return true;
 		};
 
@@ -1885,7 +1672,6 @@
 		};
 
 		encHandlers.DesktopSize = function set_desktopsize() {
-		    Util.Debug(">> set_desktopsize");
 		    fb_width = FBU.width;
 		    fb_height = FBU.height;
 		    display.resize(fb_width, fb_height);
@@ -1896,13 +1682,12 @@
 		    FBU.bytes = 0;
 		    FBU.rects -= 1;
 
-		    Util.Debug("<< set_desktopsize");
 		    return true;
 		};
 
 		encHandlers.Cursor = function set_cursor() {
 		    var x, y, w, h, pixelslength, masklength;
-		    //Util.Debug(">> set_cursor");
+
 		    x = FBU.x;  // hotspot-x
 		    y = FBU.y;  // hotspot-y
 		    w = FBU.width;
@@ -1914,8 +1699,6 @@
 		    FBU.bytes = pixelslength + masklength;
 		    if (ws.rQwait("cursor encoding", FBU.bytes)) { return false; }
 
-		    //Util.Debug("   set_cursor, x: " + x + ", y: " + y + ", w: " + w + ", h: " + h);
-
 		    display.changeCursor(ws.rQshiftBytes(pixelslength),
 		                            ws.rQshiftBytes(masklength),
 		                            x, y, w, h);
@@ -1923,16 +1706,15 @@
 		    FBU.bytes = 0;
 		    FBU.rects -= 1;
 
-		    //Util.Debug("<< set_cursor");
 		    return true;
 		};
 
 		encHandlers.JPEG_quality_lo = function set_jpeg_quality() {
-		    Util.Error("Server sent jpeg_quality pseudo-encoding");
+		    return;
 		};
 
 		encHandlers.compress_lo = function set_compress_level() {
-		    Util.Error("Server sent compress level pseudo-encoding");
+		    return;
 		};
 
 		/*
@@ -1940,9 +1722,9 @@
 		 */
 
 		pixelFormat = function() {
-		    //Util.Debug(">> pixelFormat");
-		    var arr;
-		    arr = [0];     // msg-type
+		    var arr = new ByteArray();
+		    arr.push(0);     // msg-type
+		    
 		    arr.push8(0);  // padding
 		    arr.push8(0);  // padding
 		    arr.push8(0);  // padding
@@ -1962,56 +1744,50 @@
 		    arr.push8(0);     // padding
 		    arr.push8(0);     // padding
 		    arr.push8(0);     // padding
-		    //Util.Debug("<< pixelFormat");
 		    return arr;
 		};
 
 		clientEncodings = function() {
-		    //Util.Debug(">> clientEncodings");
 		    var arr, i, encList = [];
 
 		    for (i=0; i<encodings.length; i += 1) {
 		        if ((encodings[i][0] === "Cursor") &&
 		            (! conf.local_cursor)) {
-		            Util.Debug("Skipping Cursor pseudo-encoding");
 		        } else {
-		            //Util.Debug("Adding encoding: " + encodings[i][0]);
 		            encList.push(encodings[i][1]);
 		        }
 		    }
 
-		    arr = [2];     // msg-type
+		    arr = new ByteArray();
+		    arr.push(2);     // msg-type
 		    arr.push8(0);  // padding
 
 		    arr.push16(encList.length); // encoding count
 		    for (i=0; i < encList.length; i += 1) {
 		        arr.push32(encList[i]);
 		    }
-		    //Util.Debug("<< clientEncodings: " + arr);
 		    return arr;
 		};
 
 		fbUpdateRequest = function(incremental, x, y, xw, yw) {
-		    //Util.Debug(">> fbUpdateRequest");
 		    if (typeof(x) === "undefined") { x = 0; }
 		    if (typeof(y) === "undefined") { y = 0; }
 		    if (typeof(xw) === "undefined") { xw = fb_width; }
 		    if (typeof(yw) === "undefined") { yw = fb_height; }
-		    var arr;
-		    arr = [3];  // msg-type
+		    var arr = new ByteArray();
+		    arr.push(3);  // msg-type
 		    arr.push8(incremental);
 		    arr.push16(x);
 		    arr.push16(y);
 		    arr.push16(xw);
 		    arr.push16(yw);
-		    //Util.Debug("<< fbUpdateRequest");
 		    return arr;
 		};
 
 		// Based on clean/dirty areas, generate requests to send
 		fbUpdateRequests = function() {
 		    var cleanDirty = display.getCleanDirtyReset(),
-		        arr = [], i, cb, db;
+		        arr = new ByteArray(), i, cb, db;
 
 		    cb = cleanDirty.cleanBox;
 		    if (cb.w > 0 && cb.h > 0) {
@@ -2029,32 +1805,30 @@
 
 
 		keyEvent = function(keysym, down) {
-		    //Util.Debug(">> keyEvent, keysym: " + keysym + ", down: " + down);
-		    var arr;
-		    arr = [4];  // msg-type
+		    var arr = new ByteArray();
+		    arr.push( 4 );  // msg-type
 		    arr.push8(down);
 		    arr.push16(0);
 		    arr.push32(keysym);
-		    //Util.Debug("<< keyEvent");
+
 		    return arr;
 		};
 
 		pointerEvent = function(x, y) {
-		    //Util.Debug(">> pointerEvent, x,y: " + x + "," + y +
-		    //           " , mask: " + mouse_buttonMask);
-		    var arr;
-		    arr = [5];  // msg-type
+		    var arr = new ByteArray();
+		    arr.push( 5 );  // msg-type
 		    arr.push8(mouse_buttonMask);
 		    arr.push16(x);
 		    arr.push16(y);
-		    //Util.Debug("<< pointerEvent");
 		    return arr;
 		};
 
 		clientCutText = function(text) {
-		    //Util.Debug(">> clientCutText");
-		    var arr, i, n;
-		    arr = [6];     // msg-type
+		    var arr = new ByteArray(),
+		    	i,
+		    	n;
+		    
+		    arr.push( 6 );     // msg-type
 		    arr.push8(0);  // padding
 		    arr.push8(0);  // padding
 		    arr.push8(0);  // padding
@@ -2063,7 +1837,6 @@
 		    for (i=0; i < n; i+=1) {
 		        arr.push(text.charCodeAt(i));
 		    }
-		    //Util.Debug("<< clientCutText:" + arr);
 		    return arr;
 		};
 
@@ -2074,8 +1847,6 @@
 		//
 
 		that.connect = function(vm) {
-		    //Util.Debug(">> connect");
-
 		    rfb_host       = vm;
 
 		    if (!rfb_host) {
@@ -2083,14 +1854,11 @@
 		    }
 
 		    updateState('connect');
-		    //Util.Debug("<< connect");
 
 		};
 
 		that.disconnect = function() {
-		    //Util.Debug(">> disconnect");
 		    updateState('disconnect', 'Disconnecting');
-		    //Util.Debug("<< disconnect");
 		};
 
 		that.sendPassword = function(passwd) {
@@ -2101,8 +1869,7 @@
 
 		that.sendCtrlAltDel = function() {
 		    if (rfb_state !== "normal" || conf.view_only) { return false; }
-		    Util.Info("Sending Ctrl-Alt-Del");
-		    var arr = [];
+		    var arr = new ByteArray();
 		    arr = arr.concat(keyEvent(0xFFE3, 1)); // Control
 		    arr = arr.concat(keyEvent(0xFFE9, 1)); // Alt
 		    arr = arr.concat(keyEvent(0xFFFF, 1)); // Delete
@@ -2117,12 +1884,10 @@
 		// followed by an up key.
 		that.sendKey = function(code, down) {
 		    if (rfb_state !== "normal" || conf.view_only) { return false; }
-		    var arr = [];
+		    var arr = new ByteArray();
 		    if (typeof down !== 'undefined') {
-		        Util.Info("Sending key code (" + (down ? "down" : "up") + "): " + code);
 		        arr = arr.concat(keyEvent(code, down ? 1 : 0));
 		    } else {
-		        Util.Info("Sending key code (down + up): " + code);
 		        arr = arr.concat(keyEvent(code, 1));
 		        arr = arr.concat(keyEvent(code, 0));
 		    }
@@ -2132,9 +1897,7 @@
 
 		that.clipboardPasteFrom = function(text) {
 		    if (rfb_state !== "normal") { return; }
-		    //Util.Debug(">> clipboardPasteFrom: " + text.substr(0,40) + "...");
 		    ws.send(clientCutText(text));
-		    //Util.Debug("<< clipboardPasteFrom");
 		};
 
 
@@ -2223,7 +1986,6 @@
 		        } else {
 		            // IE9 always
 		            // Firefox and Opera when ctrl/alt + special
-		            Util.Warn("which not set, using keyCode");
 		            keysym = evt.keyCode;
 		        }
 
@@ -2307,7 +2069,6 @@
 		        keysym = evt.which;
 		    } else {
 		        // IE9
-		        Util.Warn("which not set, using keyCode");
 		        keysym = evt.keyCode;
 		    }
 
@@ -2318,7 +2079,6 @@
 		        if (typeof(keysym) === 'undefined') {
 		           keysym = 0; 
 		        }
-		        Util.Debug(msg + " to " + keysym);
 		    }
 
 		    return keysym;
@@ -2331,7 +2091,6 @@
 		        msg = msg + "    " + c + " - keyCode: " + keyDownList[c].keyCode +
 		              " - which: " + keyDownList[c].which + "\n";
 		    }
-		    Util.Debug(msg);
 		}
 
 		function copyKeyEvent(evt) {
@@ -2428,7 +2187,6 @@
 		    }
 		    var fevt = null, evt = (e ? e : window.event),
 		        keysym = null, suppress = false;
-		    //Util.Debug("onKeyDown kC:" + evt.keyCode + " cC:" + evt.charCode + " w:" + evt.which);
 
 		    fevt = copyKeyEvent(evt);
 
@@ -2440,9 +2198,6 @@
 		        // browser behaviors or it has no corresponding keyPress
 		        // event, then send it immediately
 		        if (conf.onKeyPress && !ignoreKeyEvent(evt)) {
-		            Util.Debug("onKeyPress down, keysym: " + keysym +
-		                   " (onKeyDown key: " + evt.keyCode +
-		                   ", which: " + evt.which + ")");
 		            conf.onKeyPress(keysym, 1, evt);
 		        }
 		        suppress = true;
@@ -2471,7 +2226,6 @@
 		    }
 		    var evt = (e ? e : window.event),
 		        kdlen = keyDownList.length, keysym = null;
-		    //Util.Debug("onKeyPress kC:" + evt.keyCode + " cC:" + evt.charCode + " w:" + evt.which);
 		    
 		    if (((evt.which !== "undefined") && (evt.which === 0)) ||
 		        (getKeysymSpecial(evt))) {
@@ -2480,7 +2234,6 @@
 		        // either:
 		        //     - the which attribute set to 0
 		        //     - getKeysymSpecial() will identify it
-		        Util.Debug("Ignoring special key in keyPress");
 		        Util.stopEvent(e);
 		        return false;
 		    }
@@ -2492,17 +2245,12 @@
 		    // translation available.
 		    if (kdlen > 0) {
 		        keyDownList[kdlen-1].keysym = keysym;
-		    } else {
-		        Util.Warn("keyDownList empty when keyPress triggered");
 		    }
 
 		    //show_keyDownList('press');
 		    
 		    // Send the translated keysym
 		    if (conf.onKeyPress && (keysym > 0)) {
-		        Util.Debug("onKeyPress down, keysym: " + keysym +
-		                   " (onKeyPress key: " + evt.keyCode +
-		                   ", which: " + evt.which + ")");
 		        conf.onKeyPress(keysym, 1, evt);
 		    }
 
@@ -2516,26 +2264,18 @@
 		        return true;
 		    }
 		    var fevt = null, evt = (e ? e : window.event), keysym;
-		    //Util.Debug("onKeyUp   kC:" + evt.keyCode + " cC:" + evt.charCode + " w:" + evt.which);
 
 		    fevt = getKeyEvent(evt.keyCode, true);
 		    
 		    if (fevt) {
 		        keysym = fevt.keysym;
 		    } else {
-		        Util.Warn("Key event (keyCode = " + evt.keyCode +
-		                ") not found on keyDownList");
 		        keysym = 0;
 		    }
 
 		    //show_keyDownList('up');
 
 		    if (conf.onKeyPress && (keysym > 0)) {
-		        //Util.Debug("keyPress up,   keysym: " + keysym +
-		        //        " (key: " + evt.keyCode + ", which: " + evt.which + ")");
-		        Util.Debug("onKeyPress up, keysym: " + keysym +
-		                   " (onKeyPress key: " + evt.keyCode +
-		                   ", which: " + evt.which + ")");
 		        conf.onKeyPress(keysym, 0, evt);
 		    }
 		    Util.stopEvent(e);
@@ -2547,25 +2287,19 @@
 		//
 
 		that.grab = function() {
-		    //Util.Debug(">> Keyboard.grab");
 		    var c = conf.target;
 
 		    Util.addEvent(c, 'keydown', onKeyDown);
 		    Util.addEvent(c, 'keyup', onKeyUp);
 		    Util.addEvent(c, 'keypress', onKeyPress);
-
-		    //Util.Debug("<< Keyboard.grab");
 		};
 
 		that.ungrab = function() {
-		    //Util.Debug(">> Keyboard.ungrab");
 		    var c = conf.target;
 
 		    Util.removeEvent(c, 'keydown', onKeyDown);
 		    Util.removeEvent(c, 'keyup', onKeyUp);
 		    Util.removeEvent(c, 'keypress', onKeyPress);
-
-		    //Util.Debug(">> Keyboard.ungrab");
 		};
 
 		return that;  // Return the public API interface
@@ -2619,11 +2353,8 @@
 		                (evt.button & 0x2) * 2 +  // Right
 		                (evt.button & 0x4) / 2;   // Middle
 		    }
-		    //Util.Debug("mouse " + pos.x + "," + pos.y + " down: " + down +
-		    //           " bmask: " + bmask + "(evt.button: " + evt.button + ")");
+
 		    if (bmask > 0 && conf.onMouseButton) {
-		        Util.Debug("onMouseButton " + (down ? "down" : "up") +
-		                   ", x: " + pos.x + ", y: " + pos.y + ", bmask: " + bmask);
 		        conf.onMouseButton(pos.x, pos.y, down, bmask);
 		    }
 		    Util.stopEvent(e);
@@ -2651,7 +2382,7 @@
 		    } else {
 		        bmask = 1 << 4;
 		    }
-		    //Util.Debug('mouse scroll by ' + wheelData + ':' + pos.x + "," + pos.y);
+
 		    if (conf.onMouseButton) {
 		        conf.onMouseButton(pos.x, pos.y, 1, bmask);
 		        conf.onMouseButton(pos.x, pos.y, 0, bmask);
@@ -2667,7 +2398,7 @@
 		    }
 		    evt = (e ? e : window.event);
 		    pos = Util.getEventPosition(e, conf.target, conf.scale);
-		    //Util.Debug('mouse ' + evt.which + '/' + evt.button + ' up:' + pos.x + "," + pos.y);
+
 		    if (conf.onMouseMove) {
 		        conf.onMouseMove(pos.x, pos.y);
 		    }
@@ -2686,11 +2417,9 @@
 		    if ((pos.x >= 0) && (pos.y >= 0) &&
 		        (pos.x < conf.target.offsetWidth) &&
 		        (pos.y < conf.target.offsetHeight)) {
-		        //Util.Debug("mouse event disabled");
 		        Util.stopEvent(e);
 		        return false;
 		    }
-		    //Util.Debug("mouse event not disabled");
 		    return true;
 		}
 
@@ -2699,7 +2428,6 @@
 		//
 
 		that.grab = function() {
-		    //Util.Debug(">> Mouse.grab");
 		    var c = conf.target;
 
 		    if ('ontouchstart' in document.documentElement) {
@@ -2717,12 +2445,9 @@
 		    /* Work around right and middle click browser behaviors */
 		    Util.addEvent(document, 'click', onMouseDisable);
 		    Util.addEvent(document.body, 'contextmenu', onMouseDisable);
-
-		    //Util.Debug("<< Mouse.grab");
 		};
 
 		that.ungrab = function() {
-		    //Util.Debug(">> Mouse.ungrab");
 		    var c = conf.target;
 
 		    if ('ontouchstart' in document.documentElement) {
@@ -2741,7 +2466,6 @@
 		    Util.removeEvent(document, 'click', onMouseDisable);
 		    Util.removeEvent(document.body, 'contextmenu', onMouseDisable);
 
-		    //Util.Debug(">> Mouse.ungrab");
 		};
 
 		return that;  // Return the public API interface
@@ -4089,8 +3813,6 @@
 
 	// Create the public API interface
 	function constructor() {
-	    Util.Debug(">> Display.constructor");
-
 	    var c, func, i, curDat, curSave,
 	        has_imageData = false, UE = Util.Engine;
 
@@ -4106,12 +3828,6 @@
 
 	    if (! c_ctx) { c_ctx = c.getContext('2d'); }
 
-	    Util.Debug("User Agent: " + navigator.userAgent);
-	    if (UE.gecko) { Util.Debug("Browser: gecko " + UE.gecko); }
-	    if (UE.webkit) { Util.Debug("Browser: webkit " + UE.webkit); }
-	    if (UE.trident) { Util.Debug("Browser: trident " + UE.trident); }
-	    if (UE.presto) { Util.Debug("Browser: presto " + UE.presto); }
-
 	    that.clear();
 
 	    // Check canvas features
@@ -4121,7 +3837,6 @@
 	        throw("Canvas does not support createImageData");
 	    }
 	    if (conf.prefer_js === null) {
-	        Util.Info("Prefering javascript operations");
 	        conf.prefer_js = true;
 	    }
 
@@ -4143,20 +3858,16 @@
 	            if (conf.cursor_uri === null) {
 	                conf.cursor_uri = true;
 	            }
-	            Util.Info("Data URI scheme cursor supported");
 	        } else {
 	            if (conf.cursor_uri === null) {
 	                conf.cursor_uri = false;
 	            }
-	            Util.Warn("Data URI scheme cursor not supported");
 	        }
 	        c.style.cursor = curSave;
 	    } catch (exc2) { 
-	        Util.Error("Data URI scheme cursor test exception: " + exc2);
 	        conf.cursor_uri = false;
 	    }
 
-	    Util.Debug("<< Display.constructor");
 	    return that ;
 	}
 
@@ -4173,7 +3884,6 @@
 	    }
 
 	    if (tp === null) {
-	        Util.Debug("No scaling support");
 	        return;
 	    }
 
@@ -4187,14 +3897,13 @@
 	    }
 
 	    if (conf.scale === factor) {
-	        //Util.Debug("Display already scaled to '" + factor + "'");
 	        return;
 	    }
-	    c.style['max-width'] = c.width*factor;
+
 	    conf.scale = factor;
-	    //x = c.width - c.width * factor;
-	    //y = c.height - c.height * factor;
-	    //c.style[tp] = "scale(" + conf.scale + ") translate(-" + x + "px, -" + y + "px)";
+	    x = c.width - c.width * factor;
+	    y = c.height - c.height * factor;
+	    c.style[tp] = "scale(" + conf.scale + ") translate(-" + x + "px, -" + y + "px)";
 	};
 
 	setFillColor = function(color) {
@@ -4222,7 +3931,6 @@
 	        saveImg = null, saveStyle, x1, y1, vx2, vy2, w, h;
 
 	    if (!conf.viewport) {
-	        Util.Debug("Setting viewport to full display region");
 	        deltaX = -v.w; // Clamped later if out of bounds
 	        deltaY = -v.h; // Clamped later if out of bounds
 	        width = fb_width;
@@ -4288,10 +3996,8 @@
 	    }
 
 	    if ((deltaX === 0) && (deltaY === 0)) {
-	        //Util.Debug("skipping viewport change");
 	        return;
 	    }
-	    Util.Debug("viewportChange deltaX: " + deltaX + ", deltaY: " + deltaY);
 
 	    v.x += deltaX;
 	    vx2 += deltaX;
@@ -4565,7 +4271,6 @@
 
 	that.changeCursor = function(pixels, mask, hotx, hoty, w, h) {
 	    if (conf.cursor_uri === false) {
-	        Util.Warn("changeCursor called but no cursor data URI support");
 	        return;
 	    }
 
@@ -4589,7 +4294,6 @@
 	function changeCursor(target, pixels, mask, hotx, hoty, w, h, cmap) {
 	    "use strict";
 	    var cur = [], rgb, IHDRsz, RGBsz, ANDsz, XORsz, url, idx, alpha, x, y;
-	    //Util.Debug(">> changeCursor, x: " + hotx + ", y: " + hoty + ", w: " + w + ", h: " + h);
 	    
 	    // Push multi-byte little-endian values
 	    cur.push16le = function (num) {
@@ -4682,7 +4386,6 @@
 
 	    url = "data:image/x-icon;base64," + Base64.encode(cur);
 	    target.style.cursor = "url(" + url + ") " + hotx + " " + hoty + ", default";
-	    //Util.Debug("<< changeCursor, cur.length: " + cur.length);
 	};
 	
 	/*
@@ -4701,13 +4404,7 @@
 	 * read binary data off of the receive queue.
 	 */
 
-
-	// Load Flash WebSocket emulator if needed
-
-	if (window.WebSocket) {
-	    Websock_native = true;
-	} else if (window.MozWebSocket) {
-	    Websock_native = true;
+	if (window.MozWebSocket) {
 	    window.WebSocket = window.MozWebSocket;
 	}
 
@@ -4720,16 +4417,14 @@
 	    rQ = [],          // Receive queue
 	    rQi = 0,          // Receive queue index
 	    rQmax = 10000,    // Max receive queue size before compacting
-	    sQ = [],          // Send queue
+	    sQ = new ByteArray(),          // Send queue
 
 	    eventHandlers = {
-	        'message' : function() {},
-	        'open'    : function() {},
-	        'close'   : function() {},
-	        'error'   : function() {}
+	        'message' : function() { },
+	        'open'    : function() { },
+	        'close'   : function() { },
+	        'error'   : function() { }
 	    },
-
-	    test_mode = false,
 	    
 	    vm_ref = null;
 
@@ -4813,8 +4508,7 @@
 	            }
 	            rQi -= goback;
 	        }
-	        //Util.Debug("   waiting for " + (num-rQlen) +
-	        //           " " + msg + " byte(s)");
+
 	        return true;  // true means need more data
 	    }
 	    return false;
@@ -4830,10 +4524,8 @@
 	}
 
 	function decode_message(data) {
-	    //Util.Debug(">> decode_message: " + data);
 	    /* base64 decode */
 	    rQ = rQ.concat(Base64.decode(data, 0));
-	    //Util.Debug(">> decode_message, rQ: " + rQ);
 	}
 
 
@@ -4851,13 +4543,11 @@
 
 	// overridable for testing
 	function send(arr) {
-	    //Util.Debug(">> send_array: " + arr);
 	    sQ = sQ.concat(arr);
 	    return flush();
 	}
 
 	function send_string(str) {
-	    //Util.Debug(">> send_string: " + str);
 	    api.send(str.split('').map(
 	        function (chr) { return chr.charCodeAt(0); } ) );
 	}
@@ -4866,36 +4556,23 @@
 	// Other public functions
 
 	function recv_message(e) {
-	    //Util.Debug(">> recv_message: " + e.data.length);
-
 	    try {
 	        decode_message(e);
 	        if (rQlen() > 0) {
 	            eventHandlers.message();
 	            // Compact the receive queue
 	            if (rQ.length > rQmax) {
-	                //Util.Debug("Compacting receive queue");
 	                rQ = rQ.slice(rQi);
 	                rQi = 0;
 	            }
-	        } else {
-	            Util.Debug("Ignoring empty message");
 	        }
 	    } catch (exc) {
-	        if (typeof exc.stack !== 'undefined') {
-	            Util.Warn("recv_message, caught exception: " + exc.stack);
-	        } else if (typeof exc.description !== 'undefined') {
-	            Util.Warn("recv_message, caught exception: " + exc.description);
-	        } else {
-	            Util.Warn("recv_message, caught exception:" + exc);
-	        }
 	        if (typeof exc.name !== 'undefined') {
 	            eventHandlers.error(exc.name + ": " + exc.message);
 	        } else {
 	            eventHandlers.error(exc);
 	        }
 	    }
-	    //Util.Debug("<< recv_message");
 	}
 
 
@@ -4922,55 +4599,6 @@
 			eventHandlers.open();
 			xm.send( 'vnc://connect', { ref: ref }, recv_message);
 		});
-	    
-	    /*
-	    if (test_mode) {
-	        websocket = {};
-	    } else {
-	        websocket = new WebSocket('ws://localhost:5999', 'base64');
-	        // TODO: future native binary support
-	        //websocket = new WebSocket(uri, ['binary', 'base64']);
-	    }
-
-	    websocket.onmessage = recv_message;
-	    websocket.onopen = function() {
-	        Util.Debug(">> WebSock.onopen");
-	        if (websocket.protocol) {
-	            Util.Info("Server chose sub-protocol: " + websocket.protocol);
-	        }
-	        eventHandlers.open();
-	        Util.Debug("<< WebSock.onopen");
-	    };
-	    websocket.onclose = function(e) {
-	        Util.Debug(">> WebSock.onclose");
-	        eventHandlers.close(e);
-	        Util.Debug("<< WebSock.onclose");
-	    };
-	    websocket.onerror = function(e) {
-	        Util.Debug(">> WebSock.onerror: " + e);
-	        eventHandlers.error(e);
-	        Util.Debug("<< WebSock.onerror");
-	    };*/
-	}
-
-	function close() {
-	    if (websocket) {
-	        if ((websocket.readyState === WebSocket.OPEN) ||
-	            (websocket.readyState === WebSocket.CONNECTING)) {
-	            Util.Info("Closing WebSocket connection");
-	            websocket.close();
-	        }
-	        websocket.onmessage = function (e) { return; };
-	    }
-	}
-
-	// Override internal functions for testing
-	// Takes a send function, returns reference to recv function
-	function testMode(override_send) {
-	    test_mode = true;
-	    api.send = override_send;
-	    api.close = function () {};
-	    return recv_message;
 	}
 
 	function constructor() {
@@ -5002,8 +4630,6 @@
 	    api.on           = on;
 	    api.init         = init;
 	    api.open         = open;
-	    api.close        = close;
-	    api.testMode     = testMode;
 
 	    return api;
 	}
