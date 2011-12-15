@@ -24,7 +24,7 @@ import net.wgr.xenmaster.controller.BadAPICallException;
 public class FileSystem {
     protected final static String FILESYTEM_PLUGIN = "xm-filesystem";
     protected static Gson gson = new Gson();
-    protected final static Pattern PARTITIION_PATTERN = Pattern.compile("([A-z]{3})(\\d+)");
+    protected final static Pattern PARTITION_PATTERN = Pattern.compile("([A-z]{3})(\\d+)");
     
     public static String[] getDiskDevices(Host host) throws BadAPICallException {
         String result = host.callPlugin(FILESYTEM_PLUGIN, "disks", new HashMap<String, String>());
@@ -32,7 +32,7 @@ public class FileSystem {
         ArrayList<String> disks = new ArrayList<>();
         
         for (String device : str) {
-            if (!PARTITIION_PATTERN.matcher(device).matches()) disks.add(device);
+            if (!PARTITION_PATTERN.matcher(device).matches()) disks.add(device);
         }
         return disks.toArray(new String[0]);
     }
@@ -43,7 +43,7 @@ public class FileSystem {
         String[] str = gson.fromJson(result, String[].class);
         
         for (String device : str) {
-            Matcher m = PARTITIION_PATTERN.matcher(device);
+            Matcher m = PARTITION_PATTERN.matcher(device);
             if (m.matches()) {
                 if (!struct.containsKey(m.group(1))) struct.put(m.group(1), new ArrayList<String>());
                 struct.get(m.group(1)).add(device);
