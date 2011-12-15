@@ -409,6 +409,14 @@ public class VM extends NamedEntity {
     public void setPVBootloader(String bootloader) throws BadAPICallException {
         PVbootloader = setter(bootloader, "set_PV_bootloader");
     }
+    
+    public String getPVBootloaderArgs() {
+        return PVbootloader;
+    }
+
+    public void setPVBootloaderArgs(String bootloaderargs) throws BadAPICallException {
+        PVbootloader = setter(bootloaderargs, "set_PV_bootloader_args");
+    }
 
     public String getPVKernel() {
         return PVkernel;
