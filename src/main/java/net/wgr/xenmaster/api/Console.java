@@ -62,7 +62,7 @@ public class Console extends XenApiEntity {
     
     public static List<Console> getAll() throws BadAPICallException {
         ArrayList<Console> consoles = new ArrayList<>();
-        Map<String, Object> vdis = (HashMap<String, Object>) Controller.dispatch("Console.get_all_records");
+        Map<String, Object> vdis = (HashMap<String, Object>) Controller.dispatch("console.get_all_records");
         for (Map.Entry<String, Object> entry : vdis.entrySet()) {
             Console console = new Console(entry.getKey(), false);
             console.fillOut((HashMap<String, Object>) entry.getValue());
