@@ -56,6 +56,12 @@ public class VNCHook extends WebCommandHandler {
                         conn = entry.getValue();
                     }
                 }
+
+                if (!conn.dismissedHttpOK) {
+                    conn.dismissedHttpOK = true;
+                    return;
+                }
+
                 vncData.ref = conn.getReference();
                 vncData.data = Base64.encodeBase64String(data.array()).replace("\r\n", "");
                 Command cmd = new Command("vnc", "updateScreen", vncData);
@@ -86,7 +92,7 @@ public class VNCHook extends WebCommandHandler {
                 }
 
                 conn.connection = connection;
-                cm.write(conn.connection, ByteBuffer.wrap((conn.uri.getPath() + '?' + conn.uri.getQuery()).getBytes()));
+                cm.write(conn.connection, ByteBuffer.wrap(buildHttpConnect(conn.uri).getBytes()));
 
                 Command cmd = new Command("vnc", "connectionEstablished", new Arguments("", conn.getReference()));
                 ArrayList<UUID> ids = new ArrayList<>();
@@ -100,6 +106,17 @@ public class VNCHook extends WebCommandHandler {
         cm.start();
         connections = new ConcurrentHashMap<>();
         GlobalExecutorService.get().scheduleAtFixedRate(new Reaper(), 0, 5, TimeUnit.MINUTES);
+    }
+
+    protected String buildHttpConnect(URI uri) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("CONNECT ");
+        sb.append(uri.getPath()).append('?').append(uri.getQuery());
+        sb.append(" HTTP/1.1").append("\r\n");
+        // TODO remove fixed user and password
+        sb.append("Authorization: Basic ").append(Base64.encodeBase64String("root:r00tme".getBytes()));
+        sb.append("\r\n\r\n");
+        return sb.toString();
     }
 
     @Override
@@ -157,6 +174,7 @@ public class VNCHook extends WebCommandHandler {
         public InetSocketAddress waitForAddress;
         public long lastWriteTime;
         public URI uri;
+        public boolean dismissedHttpOK;
 
         public Connection(UUID client) {
             connectionCounter++;

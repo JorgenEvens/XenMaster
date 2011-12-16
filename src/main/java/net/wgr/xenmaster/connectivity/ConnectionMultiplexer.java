@@ -90,6 +90,7 @@ public class ConnectionMultiplexer implements Runnable {
 
     public void write(int connection, ByteBuffer data) {
         scheduledWrites.get(connection).add(data);
+        socketSelector.wakeup();
     }
 
     private void read(SelectionKey key) throws IOException {
@@ -198,7 +199,7 @@ public class ConnectionMultiplexer implements Runnable {
             try {
                 for (Map.Entry<Integer, ArrayList<ByteBuffer>> entry : scheduledWrites.entrySet()) {
                     SelectionKey sk = connections.get(entry.getKey());
-                    if (sk.isValid() && sk.isReadable()) {
+                    if (sk.isValid() && sk.isConnectable()) {
                         sk.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
                     }
                 }
