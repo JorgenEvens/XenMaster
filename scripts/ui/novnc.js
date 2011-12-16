@@ -848,7 +848,7 @@
 		    }
 
 		    cmsg = typeof(statusMsg) !== 'undefined' ? (" Msg: " + statusMsg) : "";
-		    console.log( 'state:', oldstate, '->', state );
+		    console.log( 'state:', oldstate, '->', state, ':', statusMsg );
 		    
 		    if (connTimer && (rfb_state !== 'connect')) {
 		        clearInterval(connTimer);
@@ -1056,6 +1056,7 @@
 		            return fail("Incomplete protocol version");
 		        }
 		        sversion = ws.rQshiftStr(12).substr(4,7);
+		        console.log( 'Server version:', sversion );
 		        
 		        switch (sversion) {
 		            case "003.003": rfb_version = 3.3; break;
@@ -4537,7 +4538,7 @@
 
 	function flush() {
 		if (sQ.length > 0) {
-			websocket.send( 'vnc://write', {connection: connection_id, data: encode_message(sQ)});
+			websocket.send( 'vnc://write', {ref: conn_ref, data: encode_message(sQ)});
 			sQ = [];
 		}
 		return true;
@@ -4560,6 +4561,8 @@
 	function recv_message(e) {
 	    try {
 	        decode_message(e);
+	        console.log( 'Receive buffer:', rQ.slice().map(function (num) {
+	            return String.fromCharCode(num); } ).join('') );
 	        if (rQlen() > 0) {
 	            eventHandlers.message();
 	            // Compact the receive queue
