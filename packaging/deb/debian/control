@@ -3,7 +3,7 @@ Version: 0.1
 Section: admin
 Priority: optional
 Architecture: all
-Depends: openjdk-7-jre-headless, jsvc
+Depends: openjdk-7-jre-headless, jsvc, python-simplejson
 Maintainer: Jorgen Evens <jorgen.evens@gmail.com>
 Homepage: http://xen-master.org
 Vcs-Git: git://github.com/Double-U/XenMaster.git

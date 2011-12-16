@@ -67,7 +67,6 @@ d-i hw-detect/load_firmware boolean true
 #d-i mirror/protocol string ftp
 d-i mirror/country string manual
 d-i mirror/http/hostname string ftp.belnet.be
-#d-i mirror/http/hostname string 10.152.187.16:12345
 d-i mirror/http/directory string /debian
 d-i mirror/http/proxy string
 
@@ -226,7 +225,7 @@ tasksel tasksel/first multiselect standard
 #tasksel tasksel/desktop multiselect kde, xfce
 
 # Individual additional packages to install
-d-i pkgsel/include string openssh-server xen-linux-system-amd64 xen-utils xcp-xapi bridge-utils
+d-i pkgsel/include string openssh-server xen-linux-system-amd64 xen-utils xcp-xapi bridge-utils open-iscsi
 # Whether to upgrade packages after debootstrap.
 # Allowed values: none, safe-upgrade, full-upgrade
 d-i pkgsel/upgrade select full-upgrade

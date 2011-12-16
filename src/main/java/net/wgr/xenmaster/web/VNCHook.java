@@ -96,7 +96,7 @@ public class VNCHook extends WebCommandHandler {
         try {
             switch (cmd.getName()) {
                 case "openConnection":
-                    if (cmd.getData().isJsonObject() || cmd.getData().getAsJsonObject().has("ref")) {
+                    if (!cmd.getData().isJsonObject() || !cmd.getData().getAsJsonObject().has("ref")) {
                         throw new IllegalArgumentException("No VM reference parameter given");
                     }
                     VM vm = new VM(cmd.getData().getAsJsonObject().get("ref").getAsString(), false);
