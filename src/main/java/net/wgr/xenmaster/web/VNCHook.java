@@ -6,14 +6,12 @@
  */
 package net.wgr.xenmaster.web;
 
+import com.google.gson.Gson;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,51 +33,57 @@ import org.apache.log4j.Logger;
 public class VNCHook extends WebCommandHandler {
 
     protected static ConnectionMultiplexer cm = new ConnectionMultiplexer();
-    protected ConcurrentHashMap<Integer, UUID> conversationIds;
-    protected HashMap<InetAddress, UUID> pendingConnections;
+    protected ConcurrentHashMap<String, Connection> connections;
     protected ConnectionMultiplexer.ActivityListener al;
-    protected VNCData vncData;
+    protected static int connectionCounter;
+    protected Arguments vncData;
 
     public VNCHook() {
         super("vnc");
 
-        vncData = new VNCData();
+        vncData = new Arguments();
         al = new ConnectionMultiplexer.ActivityListener() {
 
             @Override
             public void dataReceived(ByteBuffer data, int connection, ConnectionMultiplexer cm) {
-                vncData.connection = connection;
+                Connection conn = null;
+                for (Entry<String, Connection> entry : connections.entrySet()) {
+                    if (entry.getValue().connection == connection) {
+                        conn = entry.getValue();
+                    }
+                }
+                vncData.ref = conn.getReference();
                 vncData.data = Base64.encodeBase64String(data.array()).replace("\r\n", "");
                 Command cmd = new Command("vnc", "updateScreen", vncData);
                 ArrayList<UUID> ids = new ArrayList<>();
-                ids.add(conversationIds.get(connection));
+                ids.add(conn.clientId);
                 Scope scope = new Scope(ids);
                 Commander.getInstance().commandeer(cmd, scope);
             }
 
             @Override
             public void connectionClosed(int connection) {
-                Command cmd = new Command("vnc", "connectionClosed", connection);
-                Commander.getInstance().commandeer(cmd, new Scope(Scope.Target.ALL));
-                if (conversationIds.containsKey(connection)) {
-                    conversationIds.remove(connection);
+                for (Entry<String, Connection> entry : connections.entrySet()) {
+                    if (entry.getValue().connection == connection) {
+                        Command cmd = new Command("vnc", "connectionClosed", new Arguments("", entry.getKey()));
+                        Commander.getInstance().commandeer(cmd, new Scope(Scope.Target.ALL));
+                    }
                 }
             }
 
             @Override
             public void connectionEstablished(int connection, Socket socket) {
-                Entry<InetAddress, UUID> entry = null;
-                for (Iterator<Entry<InetAddress, UUID>> it = pendingConnections.entrySet().iterator(); it.hasNext();) {
-                    entry = it.next();
-                    if (entry.getKey().equals(socket.getInetAddress())) {
-                        conversationIds.put(connection, entry.getValue());
-                        it.remove();
+                Connection conn = null;
+                for (Entry<String, Connection> entry : connections.entrySet()) {
+                    if (entry.getValue().waitForAddress.equals(socket.getRemoteSocketAddress())) {
+                        conn = entry.getValue();
+                        break;
                     }
                 }
 
-                Command cmd = new Command("vnc", "connectionEstablished", connection);
+                Command cmd = new Command("vnc", "connectionEstablished", new Arguments("", conn.getReference()));
                 ArrayList<UUID> ids = new ArrayList<>();
-                ids.add(entry.getValue());
+                ids.add(conn.clientId);
                 Scope scope = new Scope(ids);
                 Commander.getInstance().commandeer(cmd, scope);
             }
@@ -87,41 +91,38 @@ public class VNCHook extends WebCommandHandler {
 
         cm.addActivityListener(al);
         cm.start();
-        conversationIds = new ConcurrentHashMap<>();
-        pendingConnections = new HashMap<>();
+        connections = new ConcurrentHashMap<>();
     }
 
     @Override
     public Object execute(Command cmd) {
         try {
+            Gson gson = new Gson();
+
             switch (cmd.getName()) {
                 case "openConnection":
                     if (!cmd.getData().isJsonObject() || !cmd.getData().getAsJsonObject().has("ref")) {
                         throw new IllegalArgumentException("No VM reference parameter given");
                     }
+                    Connection conn = new Connection(cmd.getConnection().getId());
                     VM vm = new VM(cmd.getData().getAsJsonObject().get("ref").getAsString(), false);
                     for (Console c : vm.getConsoles()) {
                         if (c.getProtocol() == Console.Protocol.RFB) {
-                            pendingConnections.put(InetAddress.getByName(c.getLocation()), cmd.getConnection().getId());
-                            cm.addConnection(new InetSocketAddress(c.getLocation(), c.getPort()));
+                            InetSocketAddress isa = new InetSocketAddress(c.getLocation(), c.getPort());
+                            conn.waitForAddress = isa;
+                            cm.addConnection(isa);
                         }
                     }
-                    break;
+
+                    connections.put(conn.getReference(), conn);
+                    return conn.getReference();
                 case "write":
-                    for (Entry<Integer, UUID> entry : conversationIds.entrySet()) {
-                        if (entry.getValue().equals(cmd.getConnection().getId())) {
-                            cm.write(entry.getKey(), ByteBuffer.wrap(Base64.decodeBase64(cmd.getData().getAsString())));
-                            break;
-                        }
-                    }
+                    Arguments data = gson.fromJson(cmd.getData(), Arguments.class);
+                    cm.write(connections.get(data.ref).connection, ByteBuffer.wrap(Base64.decodeBase64(data.data)));
                     break;
                 case "closeConnection":
-                    for (Entry<Integer, UUID> entry : conversationIds.entrySet()) {
-                        if (entry.getValue().equals(cmd.getConnection().getId())) {
-                            cm.close(entry.getKey());
-                            break;
-                        }
-                    }
+                    Arguments close = gson.fromJson(cmd.getData(), Arguments.class);
+                    cm.close(connections.get(close.ref).connection);
                     break;
             }
         } catch (IOException ex) {
@@ -131,9 +132,35 @@ public class VNCHook extends WebCommandHandler {
         return null;
     }
 
-    protected static class VNCData {
+    protected static class Connection {
+
+        public UUID clientId;
+        public int connection;
+        protected String reference;
+        public InetSocketAddress waitForAddress;
+
+        public Connection(UUID client) {
+            connectionCounter++;
+            this.reference = "ConnectionRef:" + connectionCounter;
+            this.clientId = client;
+        }
+
+        public String getReference() {
+            return reference;
+        }
+    }
+
+    protected static class Arguments {
 
         public String data;
-        public int connection;
+        public String ref;
+
+        public Arguments() {
+        }
+
+        public Arguments(String data, String ref) {
+            this.data = data;
+            this.ref = ref;
+        }
     }
 }
