@@ -96,7 +96,10 @@ public class VNCHook extends WebCommandHandler {
         try {
             switch (cmd.getName()) {
                 case "openConnection":
-                    VM vm = new VM(cmd.getData().getAsString(), false);
+                    if (cmd.getData().isJsonObject() || cmd.getData().getAsJsonObject().has("ref")) {
+                        throw new IllegalArgumentException("No VM reference parameter given");
+                    }
+                    VM vm = new VM(cmd.getData().getAsJsonObject().get("ref").getAsString(), false);
                     for (Console c : vm.getConsoles()) {
                         if (c.getProtocol() == Console.Protocol.RFB) {
                             pendingConnections.put(InetAddress.getByName(c.getLocation()), cmd.getConnection().getId());
@@ -127,8 +130,9 @@ public class VNCHook extends WebCommandHandler {
 
         return null;
     }
-    
+
     protected static class VNCData {
+
         public String data;
         public int connection;
     }
