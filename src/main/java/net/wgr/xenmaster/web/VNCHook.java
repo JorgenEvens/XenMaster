@@ -10,9 +10,10 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -83,7 +84,13 @@ public class VNCHook extends WebCommandHandler {
                         break;
                     }
                 }
-                
+                try {
+                    URI uri = new URI(conn.uri);
+                    cm.write(conn.connection, ByteBuffer.wrap((uri.getPath() + '?' + uri.getQuery()).getBytes()));
+                } catch (URISyntaxException ex) {
+                    Logger.getLogger(getClass()).error("Illegal URI", ex);
+                }
+                       
                 Command cmd = new Command("vnc", "connectionEstablished", new Arguments("", conn.getReference()));
                 ArrayList<UUID> ids = new ArrayList<>();
                 ids.add(conn.clientId);
@@ -114,6 +121,7 @@ public class VNCHook extends WebCommandHandler {
                         if (c.getProtocol() == Console.Protocol.RFB) {
                             InetSocketAddress isa = new InetSocketAddress(c.getLocation(), c.getPort());
                             conn.waitForAddress = isa;
+                            conn.uri = c.getLocation();
                             cm.addConnection(isa);
                         }
                     }
@@ -146,6 +154,7 @@ public class VNCHook extends WebCommandHandler {
         protected String reference;
         public InetSocketAddress waitForAddress;
         public long lastWriteTime;
+        public String uri;
         
         public Connection(UUID client) {
             connectionCounter++;

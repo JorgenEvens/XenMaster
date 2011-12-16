@@ -348,6 +348,7 @@ public class VM extends NamedEntity {
     }
 
     public List<VIF> getVIFs() {
+        this.VIFs = value(this.VIFs, "get_VIFs");
         ArrayList<VIF> objs = new ArrayList<>();
         for (Object o : this.VIFs) {
             objs.add(new VIF((String) o));
@@ -356,6 +357,7 @@ public class VM extends NamedEntity {
     }
     
     public List<Console> getConsoles() {
+        this.consoles = value(this.consoles, "get_consoles");
         ArrayList<Console> objs = new ArrayList<>();
         for (Object o : this.VIFs) {
             objs.add(new Console((String) o));
