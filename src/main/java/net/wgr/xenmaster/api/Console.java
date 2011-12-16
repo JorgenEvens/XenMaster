@@ -6,8 +6,12 @@
  */
 package net.wgr.xenmaster.api;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
+import net.wgr.xenmaster.controller.Controller;
 
 /**
  * 
@@ -54,6 +58,17 @@ public class Console extends XenApiEntity {
 
     public void setPort(int port) throws BadAPICallException {
         this.port = setter(port, "set_port");
+    }
+    
+    public static List<Console> getAll() throws BadAPICallException {
+        ArrayList<Console> consoles = new ArrayList<>();
+        Map<String, Object> vdis = (HashMap<String, Object>) Controller.dispatch("VDI.get_all_records");
+        for (Map.Entry<String, Object> entry : vdis.entrySet()) {
+            Console console = new Console(entry.getKey(), false);
+            console.fillOut((HashMap<String, Object>) entry.getValue());
+            consoles.add(console);
+        }
+        return consoles;
     }
     
     public static enum Protocol {

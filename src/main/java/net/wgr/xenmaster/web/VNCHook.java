@@ -12,10 +12,13 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import net.wgr.server.web.handling.WebCommandHandler;
+import net.wgr.utility.GlobalExecutorService;
 import net.wgr.wcp.Commander;
 import net.wgr.wcp.Scope;
 import net.wgr.wcp.command.Command;
@@ -31,19 +34,19 @@ import org.apache.log4j.Logger;
  * @author double-u
  */
 public class VNCHook extends WebCommandHandler {
-
+    
     protected static ConnectionMultiplexer cm = new ConnectionMultiplexer();
     protected ConcurrentHashMap<String, Connection> connections;
     protected ConnectionMultiplexer.ActivityListener al;
     protected static int connectionCounter;
     protected Arguments vncData;
-
+    
     public VNCHook() {
         super("vnc");
-
+        
         vncData = new Arguments();
         al = new ConnectionMultiplexer.ActivityListener() {
-
+            
             @Override
             public void dataReceived(ByteBuffer data, int connection, ConnectionMultiplexer cm) {
                 Connection conn = null;
@@ -60,7 +63,7 @@ public class VNCHook extends WebCommandHandler {
                 Scope scope = new Scope(ids);
                 Commander.getInstance().commandeer(cmd, scope);
             }
-
+            
             @Override
             public void connectionClosed(int connection) {
                 for (Entry<String, Connection> entry : connections.entrySet()) {
@@ -70,7 +73,7 @@ public class VNCHook extends WebCommandHandler {
                     }
                 }
             }
-
+            
             @Override
             public void connectionEstablished(int connection, Socket socket) {
                 Connection conn = null;
@@ -80,7 +83,7 @@ public class VNCHook extends WebCommandHandler {
                         break;
                     }
                 }
-
+                
                 Command cmd = new Command("vnc", "connectionEstablished", new Arguments("", conn.getReference()));
                 ArrayList<UUID> ids = new ArrayList<>();
                 ids.add(conn.clientId);
@@ -88,17 +91,18 @@ public class VNCHook extends WebCommandHandler {
                 Commander.getInstance().commandeer(cmd, scope);
             }
         };
-
+        
         cm.addActivityListener(al);
         cm.start();
         connections = new ConcurrentHashMap<>();
+        GlobalExecutorService.get().scheduleAtFixedRate(new Reaper(), 0, 5, TimeUnit.MINUTES);
     }
-
+    
     @Override
     public Object execute(Command cmd) {
         try {
             Gson gson = new Gson();
-
+            
             switch (cmd.getName()) {
                 case "openConnection":
                     if (!cmd.getData().isJsonObject() || !cmd.getData().getAsJsonObject().has("ref")) {
@@ -113,12 +117,15 @@ public class VNCHook extends WebCommandHandler {
                             cm.addConnection(isa);
                         }
                     }
-
+                    
+                    conn.lastWriteTime =  System.currentTimeMillis();
                     connections.put(conn.getReference(), conn);
                     return conn.getReference();
                 case "write":
                     Arguments data = gson.fromJson(cmd.getData(), Arguments.class);
-                    cm.write(connections.get(data.ref).connection, ByteBuffer.wrap(Base64.decodeBase64(data.data)));
+                    Connection c = connections.get(data.ref);
+                    c.lastWriteTime = System.currentTimeMillis();
+                    cm.write(c.connection, ByteBuffer.wrap(Base64.decodeBase64(data.data)));
                     break;
                 case "closeConnection":
                     Arguments close = gson.fromJson(cmd.getData(), Arguments.class);
@@ -128,39 +135,56 @@ public class VNCHook extends WebCommandHandler {
         } catch (IOException ex) {
             Logger.getLogger(getClass()).error("Command failed : " + cmd.getName(), ex);
         }
-
+        
         return null;
     }
-
+    
     protected static class Connection {
-
+        
         public UUID clientId;
         public int connection;
         protected String reference;
         public InetSocketAddress waitForAddress;
-
+        public long lastWriteTime;
+        
         public Connection(UUID client) {
             connectionCounter++;
             this.reference = "ConnectionRef:" + connectionCounter;
             this.clientId = client;
         }
-
+        
         public String getReference() {
             return reference;
         }
     }
-
+    
     protected static class Arguments {
-
+        
         public String data;
         public String ref;
-
+        
         public Arguments() {
         }
-
+        
         public Arguments(String data, String ref) {
             this.data = data;
             this.ref = ref;
+        }
+    }
+    
+    protected class Reaper implements Runnable {
+        
+        @Override
+        public void run() {
+            for (Entry<String, Connection> entry : connections.entrySet()) {
+                if (System.currentTimeMillis() - entry.getValue().lastWriteTime > 1000 * 60) {
+                    try {
+                        cm.close(entry.getValue().connection);
+                    } catch (IOException ex) {
+                        Logger.getLogger(getClass()).error("Failed to close connection", ex);
+                    }
+                }
+            }
         }
     }
 }
