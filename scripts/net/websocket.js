@@ -127,9 +127,9 @@
 		if( !hook_list ) {
 			return;
 		}
-
+		
 		for( i in hook_list ) {
-			hook_list[i]( data.result );
+			hook_list[i]( data.data );
 		}
 	};
 	
