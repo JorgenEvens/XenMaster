@@ -7,7 +7,6 @@
 package net.wgr.xenmaster.connectivity;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -20,10 +19,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.TTCCLayout;
 
 /**
  * Generic Socket multiplexer
@@ -86,6 +82,8 @@ public class ConnectionMultiplexer implements Runnable {
     public void addConnection(SocketAddress addr) throws IOException {
         SocketChannel channel = SocketChannel.open();
         channel.configureBlocking(false);
+        
+        socketSelector.wakeup();
         channel.register(socketSelector, SelectionKey.OP_CONNECT);
         channel.connect(addr);
     }

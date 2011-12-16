@@ -85,6 +85,7 @@ public class VNCHook extends WebCommandHandler {
                     }
                 }
 
+                conn.connection = connection;
                 cm.write(conn.connection, ByteBuffer.wrap((conn.uri.getPath() + '?' + conn.uri.getQuery()).getBytes()));
 
                 Command cmd = new Command("vnc", "connectionEstablished", new Arguments("", conn.getReference()));
@@ -114,16 +115,16 @@ public class VNCHook extends WebCommandHandler {
                     Connection conn = new Connection(cmd.getConnection().getId());
                     VM vm = new VM(cmd.getData().getAsJsonObject().get("ref").getAsString(), false);
                     for (Console c : vm.getConsoles()) {
-                        if (c.getProtocol() == Console.Protocol.RFB) { 
+                        if (c.getProtocol() == Console.Protocol.RFB) {
                             try {
                                 URI uri = new URI(c.getLocation());
                                 conn.uri = uri;
-                                InetSocketAddress isa = new InetSocketAddress(uri.getHost(), 443);
+                                InetSocketAddress isa = new InetSocketAddress(uri.getHost(), 80);
                                 conn.waitForAddress = isa;
                                 cm.addConnection(isa);
                             } catch (URISyntaxException ex) {
                                 Logger.getLogger(getClass()).error("Failed to parse URI", ex);
-                            }                  
+                            }
                         }
                     }
 
