@@ -359,7 +359,7 @@ public class VM extends NamedEntity {
     public List<Console> getConsoles() {
         this.consoles = value(this.consoles, "get_consoles");
         ArrayList<Console> objs = new ArrayList<>();
-        for (Object o : this.VIFs) {
+        for (Object o : this.consoles) {
             objs.add(new Console((String) o));
         }
         return objs;
