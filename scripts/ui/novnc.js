@@ -848,6 +848,7 @@
 		    }
 
 		    cmsg = typeof(statusMsg) !== 'undefined' ? (" Msg: " + statusMsg) : "";
+		    console.log( 'state:', oldstate, '->', state );
 		    
 		    if (connTimer && (rfb_state !== 'connect')) {
 		        clearInterval(connTimer);
@@ -4558,7 +4559,6 @@
 
 	function recv_message(e) {
 	    try {
-	    	console.log( e );
 	        decode_message(e);
 	        if (rQlen() > 0) {
 	            eventHandlers.message();
@@ -4609,10 +4609,11 @@
 				connectionClosed = function(data){
 					if( data.ref != conn_ref ) return;
 					xm.removeHook( 'vnc', 'updateScreen', dataReceived );
-					xm.addHook( 'vnc', 'connectionClosed', conntectionClosed );
+					xm.addHook( 'vnc', 'connectionClosed', connectionClosed );
 				},
 				
 				dataReceived = function( data ) {
+					console.log( 'dataReceived: ', data.ref, conn_ref );
 					if( data.ref != conn_ref ) return;
 					recv_message( data.data );
 				};
