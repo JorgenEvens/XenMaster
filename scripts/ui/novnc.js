@@ -28,9 +28,10 @@
 		
 		return function() {
 			var me = [];
-				me.push8 = push8;
-				me.push16 = push16;
-				me.push32 = push32;
+			
+			me.push8 = push8;
+			me.push16 = push16;
+			me.push32 = push32;
 				
 			return me;
 		};
@@ -4420,13 +4421,13 @@
 	    sQ = new ByteArray(),          // Send queue
 
 	    eventHandlers = {
-	        'message' : function() { },
-	        'open'    : function() { },
-	        'close'   : function() { },
-	        'error'   : function() { }
+	        'message' : function( e ) { console.log( e ); },
+	        'open'    : function( e ) { console.log( e ); },
+	        'close'   : function( e ) { console.log( e ); },
+	        'error'   : function( e ) { console.log( e ); }
 	    },
 	    
-	    vm_ref = null;
+	    conn_ref = null;
 
 
 	//
@@ -4535,7 +4536,7 @@
 
 	function flush() {
 		if (sQ.length > 0) {
-			websocket.send( 'vnc://send', {ref: vm_ref, args: [encode_message(sQ)]});
+			websocket.send( 'vnc://write', {connection: connection_id, data: encode_message(sQ)});
 			sQ = [];
 		}
 		return true;
@@ -4557,6 +4558,7 @@
 
 	function recv_message(e) {
 	    try {
+	    	console.log( e );
 	        decode_message(e);
 	        if (rQlen() > 0) {
 	            eventHandlers.message();
@@ -4591,13 +4593,37 @@
 	function open(ref) {
 	    init();
 
-	    vm_ref = ref;
-
 		app.load( 'js://net/xmconnection', function( xm ){
 			xm = xm.getInstance();
 			websocket = xm;
-			eventHandlers.open();
-			xm.send( 'vnc://connect', { ref: ref }, recv_message);
+			
+			/*
+			 * data.connection = connection_id
+			 */
+			var connectionEstablished = function(data){
+					if( data.ref != conn_ref ) return;
+					eventHandlers.open();
+					xm.removeHook( 'vnc', 'connectionEstablished', connectionEstablished );
+				},
+				
+				connectionClosed = function(data){
+					if( data.ref != conn_ref ) return;
+					xm.removeHook( 'vnc', 'updateScreen', dataReceived );
+					xm.addHook( 'vnc', 'connectionClosed', conntectionClosed );
+				},
+				
+				dataReceived = function( data ) {
+					if( data.ref != conn_ref ) return;
+					recv_message( data.data );
+				};
+			
+			xm.addHook( 'vnc', 'connectionEstablished', connectionEstablished);
+			xm.addHook( 'vnc', 'connectionClosed', connectionClosed );
+			xm.addHook( 'vnc', 'updateScreen', dataReceived );
+			
+			xm.send( 'vnc://openConnection', { ref: ref }, function(data){
+				conn_ref = data;
+			});
 		});
 	}
 

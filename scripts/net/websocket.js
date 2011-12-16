@@ -101,38 +101,79 @@
 	 * Handle messages that come in over the socket.
 	 */
 	Socket.prototype.onmessage = function( e ) {
-		var data = window.JSON ? JSON.parse( e.data ) : eval( '(' + e.data + ')' ),
-			callback = this.sent[ data.tag ],
-			hook_list = this.hooks[ data.handler ],
+		var data = window.JSON ? JSON.parse( e.data ) : eval( '(' + e.data + ')' );
+
+		if( data.name && data.handler && typeof this.oncommand == 'function' ) {
+			this.oncommand( data );
+		}
+		
+		if( data.type && data.result && typeof this.onresult == 'function' ) {
+			this.onresult( data );
+		}
+	};
+	
+	/*
+	 * Handle commands coming in from the backend
+	 */
+	Socket.prototype.oncommand = function( data ) {
+		var hook_list = this.hooks[ data.handler ],
 			i = null;
+		
+		if( !hook_list ) {
+			return;
+		}
+		
+		hook_list = hook_list[ data.name ];
+		if( !hook_list ) {
+			return;
+		}
+
+		for( i in hook_list ) {
+			hook_list[i]( data.result );
+		}
+	};
+	
+	/*
+	 * Handle results coming in from the backend
+	 */	
+	Socket.prototype.onresult = function( data ) {
+		var callback = this.sent[ data.tag ];
+		
+		delete this.sent[ data.tag ];
 
 		if( callback ) {
 			callback( data );
 		};
-		
-		for( i in hook_list ) {
-			hook_list[i]( data );
-		}
 	};
 	
 	/*
 	 * Add a hook that handles messages broadcasted by the backend.
 	 */
-	Socket.prototype.addHook = function( handler, callback ) {
+	Socket.prototype.addHook = function( handler, commandName, callback ) {		
 		if( !this.hooks[ handler ] ) {
 			this.hooks[ handler ] = [];
 		}
+		handler = this.hooks[ handler ];
 		
-		this.hooks[ handler ].push( callback );
+		if( !handler[ commandName ] ) {
+			handler[ commandName ] = [];
+		}
+		
+		handler[ commandName ].push( callback );
 	};
 	
 	/*
 	 * Remove a previously added hook.
 	 */
-	Socket.prototype.removeHook = function( handler, callback ) {
+	Socket.prototype.removeHook = function( handler, commandName, callback ) {
 		var hook_list = this.hooks[ handler ],
 			i = null;
 		
+		if( !hook_list ) {
+			return;
+		}
+		
+		hook_list = hook_list[ commandName ];
 		if( !hook_list ) {
 			return;
 		}
