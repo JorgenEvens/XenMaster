@@ -35,20 +35,24 @@ import org.apache.log4j.Logger;
 public class VNCHook extends WebCommandHandler {
 
     protected static ConnectionMultiplexer cm = new ConnectionMultiplexer();
-    protected ConcurrentHashMap<Integer, Client> conversationIds;
-    protected HashMap<InetAddress, Client> pendingConnections;
+    protected ConcurrentHashMap<Integer, UUID> conversationIds;
+    protected HashMap<InetAddress, UUID> pendingConnections;
     protected ConnectionMultiplexer.ActivityListener al;
+    protected VNCData vncData;
 
     public VNCHook() {
         super("vnc");
 
+        vncData = new VNCData();
         al = new ConnectionMultiplexer.ActivityListener() {
 
             @Override
             public void dataReceived(ByteBuffer data, int connection, ConnectionMultiplexer cm) {
-                Command cmd = new Command("vnc", "vncData", conversationIds.get(connection).tag, Base64.encodeBase64(data.array()));
+                vncData.connection = connection;
+                vncData.data = Base64.encodeBase64String(data.array()).replace("\r\n", "");
+                Command cmd = new Command("vnc", "updateScreen", vncData);
                 ArrayList<UUID> ids = new ArrayList<>();
-                ids.add(conversationIds.get(connection).connId);
+                ids.add(conversationIds.get(connection));
                 Scope scope = new Scope(ids);
                 Commander.getInstance().commandeer(cmd, scope);
             }
@@ -64,8 +68,8 @@ public class VNCHook extends WebCommandHandler {
 
             @Override
             public void connectionEstablished(int connection, Socket socket) {
-                Entry<InetAddress, Client> entry = null;
-                for (Iterator<Entry<InetAddress, Client>> it = pendingConnections.entrySet().iterator(); it.hasNext();) {
+                Entry<InetAddress, UUID> entry = null;
+                for (Iterator<Entry<InetAddress, UUID>> it = pendingConnections.entrySet().iterator(); it.hasNext();) {
                     entry = it.next();
                     if (entry.getKey().equals(socket.getInetAddress())) {
                         conversationIds.put(connection, entry.getValue());
@@ -73,9 +77,9 @@ public class VNCHook extends WebCommandHandler {
                     }
                 }
 
-                Command cmd = new Command("vnc", "connectionEstablished", entry.getValue().tag, connection);
+                Command cmd = new Command("vnc", "connectionEstablished", connection);
                 ArrayList<UUID> ids = new ArrayList<>();
-                ids.add(entry.getValue().connId);
+                ids.add(entry.getValue());
                 Scope scope = new Scope(ids);
                 Commander.getInstance().commandeer(cmd, scope);
             }
@@ -95,22 +99,22 @@ public class VNCHook extends WebCommandHandler {
                     VM vm = new VM(cmd.getData().getAsString(), false);
                     for (Console c : vm.getConsoles()) {
                         if (c.getProtocol() == Console.Protocol.RFB) {
-                            pendingConnections.put(InetAddress.getByName(c.getLocation()), new Client(cmd.getTag(), cmd.getConnection().getId()));
+                            pendingConnections.put(InetAddress.getByName(c.getLocation()), cmd.getConnection().getId());
                             cm.addConnection(new InetSocketAddress(c.getLocation(), c.getPort()));
                         }
                     }
                     break;
                 case "write":
-                    for (Entry<Integer, Client> entry : conversationIds.entrySet()) {
-                        if (entry.getValue().connId.equals(cmd.getConnection().getId()) && entry.getValue().tag.equals(cmd.getTag())) {
+                    for (Entry<Integer, UUID> entry : conversationIds.entrySet()) {
+                        if (entry.getValue().equals(cmd.getConnection().getId())) {
                             cm.write(entry.getKey(), ByteBuffer.wrap(Base64.decodeBase64(cmd.getData().getAsString())));
                             break;
                         }
                     }
                     break;
                 case "closeConnection":
-                    for (Entry<Integer, Client> entry : conversationIds.entrySet()) {
-                        if (entry.getValue().connId.equals(cmd.getConnection().getId()) && entry.getValue().tag.equals(cmd.getTag())) {
+                    for (Entry<Integer, UUID> entry : conversationIds.entrySet()) {
+                        if (entry.getValue().equals(cmd.getConnection().getId())) {
                             cm.close(entry.getKey());
                             break;
                         }
@@ -123,15 +127,9 @@ public class VNCHook extends WebCommandHandler {
 
         return null;
     }
-
-    protected static class Client {
-
-        public String tag;
-        public UUID connId;
-
-        public Client(String tag, UUID conn) {
-            this.tag = tag;
-            this.connId = conn;
-        }
+    
+    protected static class VNCData {
+        public String data;
+        public int connection;
     }
 }
