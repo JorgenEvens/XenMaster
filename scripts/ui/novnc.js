@@ -848,7 +848,6 @@
 		    }
 
 		    cmsg = typeof(statusMsg) !== 'undefined' ? (" Msg: " + statusMsg) : "";
-		    console.log( 'state:', oldstate, '->', state, ':', statusMsg );
 		    
 		    if (connTimer && (rfb_state !== 'connect')) {
 		        clearInterval(connTimer);
@@ -1056,7 +1055,6 @@
 		            return fail("Incomplete protocol version");
 		        }
 		        sversion = ws.rQshiftStr(12).substr(4,7);
-		        console.log( 'Server version:', sversion );
 		        
 		        switch (sversion) {
 		            case "003.003": rfb_version = 3.3; break;
@@ -1081,6 +1079,7 @@
 		                   ".00" + ((rfb_version * 10) % 10);
 		        ws.send_string("RFB " + cversion + "\n");
 		        updateState('Security', "Sent ProtocolVersion: " + cversion);
+		        //updateState('ClientInitialisation', "Sent ProtocolVersion: " + cversion);
 		        break;
 
 		    case 'Security' :
@@ -4423,10 +4422,10 @@
 	    sQ = new ByteArray(),          // Send queue
 
 	    eventHandlers = {
-	        'message' : function( e ) { console.log( e ); },
-	        'open'    : function( e ) { console.log( e ); },
-	        'close'   : function( e ) { console.log( e ); },
-	        'error'   : function( e ) { console.log( e ); }
+	        'message' : function( e ) {},
+	        'open'    : function( e ) {},
+	        'close'   : function( e ) {},
+	        'error'   : function( e ) {}
 	    },
 	    
 	    conn_ref = null;
@@ -4561,8 +4560,6 @@
 	function recv_message(e) {
 	    try {
 	        decode_message(e);
-	        console.log( 'Receive buffer:', rQ.slice().map(function (num) {
-	            return String.fromCharCode(num); } ).join('') );
 	        if (rQlen() > 0) {
 	            eventHandlers.message();
 	            // Compact the receive queue
@@ -4616,7 +4613,6 @@
 				},
 				
 				dataReceived = function( data ) {
-					console.log( 'dataReceived: ', data.ref, conn_ref );
 					if( data.ref != conn_ref ) return;
 					recv_message( data.data );
 				};
