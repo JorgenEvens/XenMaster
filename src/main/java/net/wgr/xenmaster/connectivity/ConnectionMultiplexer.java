@@ -113,6 +113,10 @@ public class ConnectionMultiplexer implements Runnable {
 
             return;
         }
+        
+        if( numRead < 1 ) {
+            return;
+        }
 
         if (numRead == -1) {
             // Remote entity shut the socket down cleanly. Do the
@@ -126,8 +130,12 @@ public class ConnectionMultiplexer implements Runnable {
         }
 
         readBuffer.flip();
-
-        ByteBuffer bb = ByteBuffer.allocate(1024 ^ 2);
+        
+        // Mark that we are interested in WRITE operations again.
+        key.interestOps(key.interestOps()|SelectionKey.OP_WRITE);
+        
+        // Only send the received amount of data
+        ByteBuffer bb = ByteBuffer.allocate(numRead);
         bb.put(readBuffer);
         for (ActivityListener al : activityListeners) {
             al.dataReceived(bb, (int) key.attachment(), this);
@@ -226,9 +234,11 @@ public class ConnectionMultiplexer implements Runnable {
                         for (ActivityListener al : activityListeners) {
                             al.connectionEstablished(connectionCounter, ((SocketChannel) sk.channel()).socket());
                         }
-                    } else if (sk.isReadable()) {
+                    }
+                    if (sk.isReadable()) {
                         read(sk);
-                    } else if (sk.isWritable()) {
+                    }
+                    if (sk.isWritable()) {
                         write(sk);
                     }
                 }
