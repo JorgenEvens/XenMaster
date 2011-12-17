@@ -14,6 +14,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,9 +24,11 @@ import net.wgr.utility.GlobalExecutorService;
 import net.wgr.wcp.Commander;
 import net.wgr.wcp.Scope;
 import net.wgr.wcp.command.Command;
+import net.wgr.wcp.command.CommandException;
 import net.wgr.xenmaster.api.Console;
 import net.wgr.xenmaster.api.VM;
 import net.wgr.xenmaster.connectivity.ConnectionMultiplexer;
+import net.wgr.xenmaster.controller.Controller;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 
@@ -36,97 +39,23 @@ import org.apache.log4j.Logger;
  */
 public class VNCHook extends WebCommandHandler {
 
-    protected static ConnectionMultiplexer cm = new ConnectionMultiplexer();
-    protected ConcurrentHashMap<String, Connection> connections;
+    protected static ConnectionMultiplexer cm;
+    protected static ConcurrentHashMap<String, Connection> connections;
     protected ConnectionMultiplexer.ActivityListener al;
     protected static int connectionCounter;
-    protected Arguments vncData;
 
     public VNCHook() {
         super("vnc");
-
-        vncData = new Arguments();
-        al = new ConnectionMultiplexer.ActivityListener() {
-
-            @Override
-            public void dataReceived(ByteBuffer data, int connection, ConnectionMultiplexer cm) {
-                Connection conn = null;
-                for (Entry<String, Connection> entry : connections.entrySet()) {
-                    if (entry.getValue().connection == connection) {
-                        conn = entry.getValue();
-                    }
-                }
-
-                 byte[] binData = data.array();
-                
-                if (!conn.dismissedHttpOK) {
-                    String content = new String(binData);
-                    // The RFB string means server has started VNC communication
-                    if( content.contains( "RFB" ) ) {
-                        conn.dismissedHttpOK = true;
-                        binData = content.substring( content.indexOf( "RFB" ) ).getBytes();
-                    } else {
-                        return;
-                    }
-                }
-                
-                if( binData.length < 1 ) {
-                    return;
-                }
-
-                vncData.ref = conn.getReference();
-                vncData.data = Base64.encodeBase64String(binData).replace("\r\n", "");
-                Command cmd = new Command("vnc", "updateScreen", vncData);
-                ArrayList<UUID> ids = new ArrayList<>();
-                ids.add(conn.clientId);
-                Scope scope = new Scope(ids);
-                Commander.getInstance().commandeer(cmd, scope);
-            }
-
-            @Override
-            public void connectionClosed(int connection) {
-                for (Entry<String, Connection> entry : connections.entrySet()) {
-                    if (entry.getValue().connection == connection) {
-                        Command cmd = new Command("vnc", "connectionClosed", new Arguments("", entry.getKey()));
-                        Commander.getInstance().commandeer(cmd, new Scope(Scope.Target.ALL));
-                    }
-                }
-            }
-
-            @Override
-            public void connectionEstablished(int connection, Socket socket) {
-                Connection conn = null;
-                for (Entry<String, Connection> entry : connections.entrySet()) {
-                    if (entry.getValue().waitForAddress.equals(socket.getRemoteSocketAddress())) {
-                        conn = entry.getValue();
-                        break;
-                    }
-                }
-
-                conn.connection = connection;
-                cm.write(conn.connection, ByteBuffer.wrap(buildHttpConnect(conn.uri).getBytes()));
-
-                Command cmd = new Command("vnc", "connectionEstablished", new Arguments("", conn.getReference()));
-                ArrayList<UUID> ids = new ArrayList<>();
-                ids.add(conn.clientId);
-                Scope scope = new Scope(ids);
-                Commander.getInstance().commandeer(cmd, scope);
-            }
-        };
-
-        cm.addActivityListener(al);
-        cm.start();
-        connections = new ConcurrentHashMap<>();
-        GlobalExecutorService.get().scheduleAtFixedRate(new Reaper(), 0, 5, TimeUnit.MINUTES);
+        
+        if (cm == null) setupInfrastructure();
     }
 
-    protected String buildHttpConnect(URI uri) {
+    protected static String buildHttpConnect(URI uri) {
         StringBuilder sb = new StringBuilder();
         sb.append("CONNECT ");
         sb.append(uri.getPath()).append('?').append(uri.getQuery());
         sb.append(" HTTP/1.1").append("\r\n");
-        // TODO remove fixed user and password
-        sb.append("Authorization: Basic ").append(Base64.encodeBase64String("root:r00tme".getBytes()));
+        sb.append("Cookie: session_id=").append(Controller.getSession().getReference());
         sb.append("\r\n\r\n");
         return sb.toString();
     }
@@ -162,9 +91,11 @@ public class VNCHook extends WebCommandHandler {
                     return conn.getReference();
                 case "write":
                     Arguments data = gson.fromJson(cmd.getData(), Arguments.class);
+                    if (!connections.containsKey(data.ref)) return new CommandException("Tried to write to unexisting connection", data.ref);
                     Connection c = connections.get(data.ref);
                     c.lastWriteTime = System.currentTimeMillis();
-                    cm.write(c.connection, ByteBuffer.wrap(Base64.decodeBase64(data.data)));
+                    byte[] bytes = Base64.decodeBase64(data.data);
+                    cm.write(c.connection, ByteBuffer.wrap(bytes));
                     break;
                 case "closeConnection":
                     Arguments close = gson.fromJson(cmd.getData(), Arguments.class);
@@ -213,7 +144,93 @@ public class VNCHook extends WebCommandHandler {
         }
     }
 
-    protected class Reaper implements Runnable {
+    protected static class AL implements ConnectionMultiplexer.ActivityListener {
+
+        @Override
+        public void dataReceived(ByteBuffer buffer, int connection, ConnectionMultiplexer cm) {
+            Connection conn = null;
+            for (Entry<String, Connection> entry : connections.entrySet()) {
+                if (entry.getValue().connection == connection) {
+                    conn = entry.getValue();
+                    break;
+                }
+            }
+            
+            if (conn == null) {
+                Logger.getLogger(getClass()).warn("Received data on unexisting connection " + connection);
+                return;
+            }
+
+            byte[] data = buffer.array();
+            
+            if (!conn.dismissedHttpOK) {
+                String content = new String(data);
+                // RFB xxx.xxx denotes start of VNC handshake
+                if (content.contains("RFB")) {
+                    conn.dismissedHttpOK = true;
+                    data = content.substring(content.indexOf("RFB")).getBytes();
+                } else {
+                    return;
+                }
+            }
+
+            if (data.length < 1) {
+                return;
+            }
+
+            Arguments vncData = new Arguments();
+            vncData.ref = conn.getReference();
+            vncData.data = Base64.encodeBase64String(data).replace("\r\n", "");
+            Command cmd = new Command("vnc", "updateScreen", vncData);
+            ArrayList<UUID> ids = new ArrayList<>();
+            ids.add(conn.clientId);
+            Scope scope = new Scope(ids);
+            Commander.getInstance().commandeer(cmd, scope);
+        }
+
+        @Override
+        public void connectionClosed(int connection) {
+            for (Iterator<Entry<String, Connection>> it = connections.entrySet().iterator(); it.hasNext();) {
+                Entry<String, Connection> entry = it.next();
+                if (entry.getValue().connection == connection) {
+                    Command cmd = new Command("vnc", "connectionClosed", new Arguments("", entry.getKey()));
+                    Commander.getInstance().commandeer(cmd, new Scope(Scope.Target.ALL));
+                    it.remove();
+                    break;
+                }
+            }
+        }
+
+        @Override
+        public void connectionEstablished(int connection, Socket socket) {
+            Connection conn = null;
+            for (Entry<String, Connection> entry : connections.entrySet()) {
+                if (entry.getValue().waitForAddress.equals(socket.getRemoteSocketAddress())) {
+                    conn = entry.getValue();
+                    break;
+                }
+            }
+            
+            conn.connection = connection;
+            cm.write(conn.connection, ByteBuffer.wrap(buildHttpConnect(conn.uri).getBytes()));
+
+            Command cmd = new Command("vnc", "connectionEstablished", new Arguments("", conn.getReference()));
+            ArrayList<UUID> ids = new ArrayList<>();
+            ids.add(conn.clientId);
+            Scope scope = new Scope(ids);
+            Commander.getInstance().commandeer(cmd, scope);
+        }
+    }
+
+    protected static void setupInfrastructure() {
+        cm = new ConnectionMultiplexer();
+        cm.addActivityListener(new AL());
+        cm.start();
+        connections = new ConcurrentHashMap<>();
+        GlobalExecutorService.get().scheduleAtFixedRate(new Reaper(), 0, 5, TimeUnit.MINUTES);
+    }
+
+    protected static class Reaper implements Runnable {
 
         @Override
         public void run() {

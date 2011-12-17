@@ -32,7 +32,7 @@ public class ConnectionMultiplexer implements Runnable {
     protected ConcurrentHashMap<Integer, SelectionKey> connections;
     protected Selector socketSelector;
     protected ByteBuffer readBuffer;
-    protected ConcurrentHashMap<Integer, ArrayList<ByteBuffer>> scheduledWrites;
+    protected final ConcurrentHashMap<Integer, ArrayList<ByteBuffer>> scheduledWrites;
     protected ArrayList<ActivityListener> activityListeners;
     protected Thread thread;
     protected boolean run;
@@ -67,9 +67,16 @@ public class ConnectionMultiplexer implements Runnable {
         activityListeners = new ArrayList<>();
         thread = new Thread(this);
         thread.setName("Multiplexer");
+        thread.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                Logger.getLogger(getClass()).error("Uncaught exception in Multiplexer", e);
+            }
+        });
         try {
             socketSelector = SelectorProvider.provider().openSelector();
-            readBuffer = ByteBuffer.allocateDirect(1024 ^ 2);
+            readBuffer = ByteBuffer.allocateDirect(1024 * 1024);
         } catch (IOException ex) {
             Logger.getLogger(getClass()).error("Failed to ", ex);
         }
@@ -89,6 +96,10 @@ public class ConnectionMultiplexer implements Runnable {
     }
 
     public void write(int connection, ByteBuffer data) {
+        if (!scheduledWrites.containsKey(connection)) {
+            throw new IllegalArgumentException("Connection does not exist");
+        }
+        Logger.getLogger(getClass()).info("Scheduled write on " + connection + " : " + new String(data.array()));
         scheduledWrites.get(connection).add(data);
         socketSelector.wakeup();
     }
@@ -100,9 +111,10 @@ public class ConnectionMultiplexer implements Runnable {
         this.readBuffer.clear();
 
         // Attempt to read off the channel
-        int numRead;
+        int bytesRead;
         try {
-            numRead = socketChannel.read(this.readBuffer);
+            bytesRead = socketChannel.read(this.readBuffer);
+            Logger.getLogger(getClass()).info("Read " + bytesRead + " off " + (int) key.attachment());
         } catch (IOException e) {
             // The remote forcibly closed the connection, cancel
             // the selection key and close the channel.
@@ -113,29 +125,25 @@ public class ConnectionMultiplexer implements Runnable {
 
             return;
         }
-        
-        if( numRead < 1 ) {
-            return;
-        }
 
-        if (numRead == -1) {
+        if (bytesRead == -1) {
             // Remote entity shut the socket down cleanly. Do the
             // same from our end and cancel the channel.
             key.channel().close();
             key.cancel();
 
             close((int) key.attachment());
+            return;
+        }
 
+        if (bytesRead < 1) {
             return;
         }
 
         readBuffer.flip();
-        
-        // Mark that we are interested in WRITE operations again.
-        key.interestOps(key.interestOps()|SelectionKey.OP_WRITE);
-        
+
         // Only send the received amount of data
-        ByteBuffer bb = ByteBuffer.allocate(numRead);
+        ByteBuffer bb = ByteBuffer.allocate(bytesRead);
         bb.put(readBuffer);
         for (ActivityListener al : activityListeners) {
             al.dataReceived(bb, (int) key.attachment(), this);
@@ -144,11 +152,7 @@ public class ConnectionMultiplexer implements Runnable {
     }
 
     public void close(int connection) throws IOException {
-        if (connections.get(connection).isValid()) {
-            SelectionKey key = connections.get(connection);
-            key.channel().close();
-            key.cancel();
-        }
+        Logger.getLogger(getClass()).info("Closing connection " + connection);
 
         connections.remove(connection);
         scheduledWrites.remove(connection);
@@ -159,26 +163,31 @@ public class ConnectionMultiplexer implements Runnable {
 
     protected void write(SelectionKey key) {
         SocketChannel socketChannel = (SocketChannel) key.channel();
+
         for (Iterator<Entry<Integer, ArrayList<ByteBuffer>>> it = scheduledWrites.entrySet().iterator(); it.hasNext();) {
             try {
                 Entry<Integer, ArrayList<ByteBuffer>> entry = it.next();
 
                 if (entry.getKey().equals((int) key.attachment())) {
-                    for (Iterator<ByteBuffer> itr = entry.getValue().iterator(); itr.hasNext();) {
-                        ByteBuffer bb = itr.next();
-
-                        socketChannel.write(bb);
-                        if (bb.remaining() > 0) {
-                            // Write has been interrupted
-                            break;
+                    synchronized (entry.getValue()) {
+                        for (Iterator<ByteBuffer> itr = entry.getValue().iterator(); itr.hasNext();) {
+                            ByteBuffer bb = itr.next();
+                            socketChannel.write(bb);
+                            
+                            if (bb.remaining() > 0) {
+                                // Write has been interrupted
+                                Logger.getLogger(getClass()).debug("Write interrupt on " + (int) key.attachment());
+                                break;
+                            }
+                            itr.remove();
                         }
-                        itr.remove();
                     }
                 }
             } catch (IOException ex) {
                 Logger.getLogger(getClass()).error("Failed to write data", ex);
             }
         }
+
         key.interestOps(SelectionKey.OP_READ);
     }
 
@@ -206,9 +215,14 @@ public class ConnectionMultiplexer implements Runnable {
         while (run) {
             try {
                 for (Map.Entry<Integer, ArrayList<ByteBuffer>> entry : scheduledWrites.entrySet()) {
+                    if (entry.getValue().size() < 1) {
+                        continue;
+                    }
+
                     SelectionKey sk = connections.get(entry.getKey());
-                    if (sk.isValid() && sk.isConnectable()) {
+                    if (sk.isValid() && (sk.interestOps() & SelectionKey.OP_WRITE) == 0) {
                         sk.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+                        break;
                     }
                 }
 
@@ -216,30 +230,41 @@ public class ConnectionMultiplexer implements Runnable {
 
                 for (Iterator<SelectionKey> it = this.socketSelector.selectedKeys().iterator(); it.hasNext();) {
                     SelectionKey sk = it.next();
+                    it.remove();
 
                     if (!sk.isValid()) {
+                        Logger.getLogger(getClass()).info("Invalid connection " + ((SocketChannel) sk.channel()).socket().getInetAddress().getCanonicalHostName());
                         if (sk.attachment() != null && sk.attachment() instanceof Integer) {
                             close((int) sk.attachment());
                         }
                         continue;
                     }
 
-                    if (sk.isConnectable() && ((SocketChannel) sk.channel()).finishConnect() && sk.attachment() == null) {
+                    if (sk.isConnectable() && sk.attachment() == null) {
+                        boolean success = ((SocketChannel) sk.channel()).finishConnect();
+                        if (!success) {
+                            Logger.getLogger(getClass()).warn("Failed to connect to " + ((SocketChannel) sk.channel()).socket().getInetAddress().getCanonicalHostName());
+                        }
+
                         connectionCounter++;
                         connections.put(connectionCounter, sk);
                         scheduledWrites.put(connectionCounter, new ArrayList<ByteBuffer>());
+
+                        Logger.getLogger(getClass()).info("Got connection " + connectionCounter + " " + ((SocketChannel) sk.channel()).socket().getInetAddress().getCanonicalHostName());
+
                         sk.interestOps(SelectionKey.OP_READ);
                         sk.attach(connectionCounter);
 
                         for (ActivityListener al : activityListeners) {
                             al.connectionEstablished(connectionCounter, ((SocketChannel) sk.channel()).socket());
                         }
-                    }
-                    if (sk.isReadable()) {
-                        read(sk);
-                    }
-                    if (sk.isWritable()) {
-                        write(sk);
+                    } else {
+                        if (sk.isReadable()) {
+                            read(sk);
+                        }
+                        if (sk.isWritable()) {
+                            write(sk);
+                        }
                     }
                 }
             } catch (IOException ex) {
