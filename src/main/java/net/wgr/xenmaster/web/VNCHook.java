@@ -57,13 +57,25 @@ public class VNCHook extends WebCommandHandler {
                     }
                 }
 
+                 byte[] binData = data.array();
+                
                 if (!conn.dismissedHttpOK) {
-                    conn.dismissedHttpOK = true;
+                    String content = new String(binData);
+                    // The RFB string means server has started VNC communication
+                    if( content.contains( "RFB" ) ) {
+                        conn.dismissedHttpOK = true;
+                        binData = content.substring( content.indexOf( "RFB" ) ).getBytes();
+                    } else {
+                        return;
+                    }
+                }
+                
+                if( binData.length < 1 ) {
                     return;
                 }
 
                 vncData.ref = conn.getReference();
-                vncData.data = Base64.encodeBase64String(data.array()).replace("\r\n", "");
+                vncData.data = Base64.encodeBase64String(binData).replace("\r\n", "");
                 Command cmd = new Command("vnc", "updateScreen", vncData);
                 ArrayList<UUID> ids = new ArrayList<>();
                 ids.add(conn.clientId);
