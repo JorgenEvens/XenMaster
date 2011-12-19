@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
+import net.wgr.xenmaster.monitoring.LogEntry;
+import net.wgr.xenmaster.monitoring.LogKeeper;
 import org.apache.commons.collections.CollectionUtils;
 
 /**
@@ -115,6 +117,7 @@ public class VM extends NamedEntity {
 
     public void start(boolean startPaused, boolean force, Host host) throws BadAPICallException {
         try {
+            ensureStart();
             if (host != null) {
                 dispatch("start", host.getReference(), startPaused, force);
             } else {
@@ -135,6 +138,21 @@ public class VM extends NamedEntity {
             }
 
             throw ex;
+        }
+    }
+
+    /** 
+     * Check if this VM will be able to start up properly
+     * @return 
+     */
+    public void ensureStart() throws BadAPICallException {
+        for (VBD vbd : this.getVBDs()) {
+            for (PBD pbd : vbd.getVDI().getSR().getPBDs()) {
+                if (!pbd.isPlugged()) {
+                    LogKeeper.log(new LogEntry(pbd.getReference(), getClass(), "Plugged_in_PBD", LogEntry.Level.INFORMATION));
+                    pbd.plug();
+                }
+            }
         }
     }
 
@@ -288,8 +306,8 @@ public class VM extends NamedEntity {
     public int getNextAvailableVBDIndex() throws BadAPICallException {
         return getFreeVBDIndexes()[0];
     }
-    
-     public int[] getFreeVIFIndexes() throws BadAPICallException {
+
+    public int[] getFreeVIFIndexes() throws BadAPICallException {
         Object[] result = (Object[]) dispatch("get_allowed_VIF_devices");
         int[] indexes = new int[result.length];
         for (int i = 0; i < result.length; i++) {
@@ -324,7 +342,7 @@ public class VM extends NamedEntity {
         }
         return objects;
     }
-    
+
     public static List<VM> getTemplates() throws BadAPICallException {
         Map<String, Object> records = (Map) Controller.dispatch("VM.get_all_records");
         ArrayList<VM> objects = new ArrayList<>();
@@ -355,7 +373,7 @@ public class VM extends NamedEntity {
         }
         return objs;
     }
-    
+
     public List<Console> getConsoles() {
         this.consoles = value(this.consoles, "get_consoles");
         ArrayList<Console> objs = new ArrayList<>();
@@ -419,7 +437,7 @@ public class VM extends NamedEntity {
     public void setPVBootloader(String bootloader) throws BadAPICallException {
         PVbootloader = setter(bootloader, "set_PV_bootloader");
     }
-    
+
     public String getPVBootloaderArgs() {
         return PVbootloader;
     }

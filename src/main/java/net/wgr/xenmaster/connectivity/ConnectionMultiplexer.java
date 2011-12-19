@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.CancelledKeyException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -99,7 +100,7 @@ public class ConnectionMultiplexer implements Runnable {
         if (!scheduledWrites.containsKey(connection)) {
             throw new IllegalArgumentException("Connection does not exist");
         }
-        Logger.getLogger(getClass()).info("Scheduled write on " + connection + " : " + new String(data.array()));
+
         scheduledWrites.get(connection).add(data);
         socketSelector.wakeup();
     }
@@ -114,7 +115,6 @@ public class ConnectionMultiplexer implements Runnable {
         int bytesRead;
         try {
             bytesRead = socketChannel.read(this.readBuffer);
-            Logger.getLogger(getClass()).info("Read " + bytesRead + " off " + (int) key.attachment());
         } catch (IOException e) {
             // The remote forcibly closed the connection, cancel
             // the selection key and close the channel.
@@ -152,8 +152,6 @@ public class ConnectionMultiplexer implements Runnable {
     }
 
     public void close(int connection) throws IOException {
-        Logger.getLogger(getClass()).info("Closing connection " + connection);
-
         connections.remove(connection);
         scheduledWrites.remove(connection);
         for (ActivityListener al : activityListeners) {
@@ -173,7 +171,7 @@ public class ConnectionMultiplexer implements Runnable {
                         for (Iterator<ByteBuffer> itr = entry.getValue().iterator(); itr.hasNext();) {
                             ByteBuffer bb = itr.next();
                             socketChannel.write(bb);
-                            
+
                             if (bb.remaining() > 0) {
                                 // Write has been interrupted
                                 Logger.getLogger(getClass()).debug("Write interrupt on " + (int) key.attachment());
@@ -221,7 +219,7 @@ public class ConnectionMultiplexer implements Runnable {
 
                     SelectionKey sk = connections.get(entry.getKey());
                     if (sk.isValid() && (sk.interestOps() & SelectionKey.OP_WRITE) == 0) {
-                        sk.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+                        sk.interestOps(SelectionKey.OP_WRITE);
                         break;
                     }
                 }
@@ -250,8 +248,6 @@ public class ConnectionMultiplexer implements Runnable {
                         connections.put(connectionCounter, sk);
                         scheduledWrites.put(connectionCounter, new ArrayList<ByteBuffer>());
 
-                        Logger.getLogger(getClass()).info("Got connection " + connectionCounter + " " + ((SocketChannel) sk.channel()).socket().getInetAddress().getCanonicalHostName());
-
                         sk.interestOps(SelectionKey.OP_READ);
                         sk.attach(connectionCounter);
 
@@ -259,11 +255,15 @@ public class ConnectionMultiplexer implements Runnable {
                             al.connectionEstablished(connectionCounter, ((SocketChannel) sk.channel()).socket());
                         }
                     } else {
-                        if (sk.isReadable()) {
-                            read(sk);
-                        }
-                        if (sk.isWritable()) {
-                            write(sk);
+                        try {
+                            if (sk.isReadable()) {
+                                read(sk);
+                            }
+                            if (sk.isWritable()) {
+                                write(sk);
+                            }
+                        } catch (CancelledKeyException ex) {
+                            close((int) sk.attachment());
                         }
                     }
                 }

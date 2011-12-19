@@ -7,6 +7,7 @@
 package net.wgr.xenmaster.controller;
 
 import java.util.List;
+import net.wgr.lang.I18N;
 
 /**
  * 
@@ -28,14 +29,15 @@ public class BadAPICallException extends Exception {
         this.methodName = methodName;
         this.args = params;
         this.errorName = errorName;
-        this.info = info;
+        this.info = info; 
     }
 
     public BadAPICallException(String methodName, List params, String errorName, String errorDescription) {
         this.methodName = methodName;
         this.args = params;
         this.errorName = errorName;
-        this.errorDescription = errorDescription;
+        String betterDescription = I18N.get().getText(errorName);
+        this.errorDescription = (betterDescription == null ? errorDescription : betterDescription);
     }
 
     public List getArgs() {

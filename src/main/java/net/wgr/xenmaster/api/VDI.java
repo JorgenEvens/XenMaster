@@ -47,8 +47,9 @@ public class VDI extends NamedEntity {
         super(ref);
     }
 
-    public String getStorageRepository() {
-        return SR;
+    public SR getSR() {
+        this.SR = value(SR, "get_SR");
+        return new SR(SR, false);
     }
 
     // todo watch closely

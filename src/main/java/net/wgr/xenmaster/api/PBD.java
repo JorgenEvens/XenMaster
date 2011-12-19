@@ -22,7 +22,7 @@ public class PBD extends XenApiEntity {
 
     @Fill
     protected Map<String, Object> deviceConfig, otherConfig;
-    protected boolean attached;
+    protected boolean plugged;
     protected String SR, host;
     
     public PBD() {
@@ -72,8 +72,8 @@ public class PBD extends XenApiEntity {
         return objects;
     }
 
-    public boolean isAttached() {
-        return attached;
+    public boolean isPlugged() {
+        return plugged;
     }
 
     public Host getHost() {
@@ -83,7 +83,7 @@ public class PBD extends XenApiEntity {
     @Override
     protected Map<String, String> interpretation() {
         HashMap<String, String> map = new HashMap<>();
-        map.put("attached", "currently_attached");
+        map.put("plugged", "currently_attached");
         return map;
     }
 }
