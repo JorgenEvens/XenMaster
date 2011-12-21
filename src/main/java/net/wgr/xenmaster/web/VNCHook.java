@@ -46,8 +46,10 @@ public class VNCHook extends WebCommandHandler {
 
     public VNCHook() {
         super("vnc");
-        
-        if (cm == null) setupInfrastructure();
+
+        if (cm == null) {
+            setupInfrastructure();
+        }
     }
 
     protected static String buildHttpConnect(URI uri) {
@@ -91,7 +93,9 @@ public class VNCHook extends WebCommandHandler {
                     return conn.getReference();
                 case "write":
                     Arguments data = gson.fromJson(cmd.getData(), Arguments.class);
-                    if (!connections.containsKey(data.ref)) return new CommandException("Tried to write to unexisting connection", data.ref);
+                    if (!connections.containsKey(data.ref)) {
+                        return new CommandException("Tried to write to unexisting connection", data.ref);
+                    }
                     Connection c = connections.get(data.ref);
                     c.lastWriteTime = System.currentTimeMillis();
                     byte[] bytes = Base64.decodeBase64(data.data);
@@ -155,14 +159,14 @@ public class VNCHook extends WebCommandHandler {
                     break;
                 }
             }
-            
+
             if (conn == null) {
                 Logger.getLogger(getClass()).warn("Received data on unexisting connection " + connection);
                 return;
             }
 
             byte[] data = buffer.array();
-            
+
             if (!conn.dismissedHttpOK) {
                 String content = new String(data);
                 // RFB xxx.xxx denotes start of VNC handshake
@@ -210,7 +214,12 @@ public class VNCHook extends WebCommandHandler {
                     break;
                 }
             }
-            
+
+            if (conn == null) {
+                Logger.getLogger(getClass()).warn("Unknown connection established to " + ((InetSocketAddress) socket.getRemoteSocketAddress()).getHostString());
+                return;
+            }
+
             conn.connection = connection;
             cm.write(conn.connection, ByteBuffer.wrap(buildHttpConnect(conn.uri).getBytes()));
 
