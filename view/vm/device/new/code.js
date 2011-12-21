@@ -7,7 +7,7 @@
 			tpl.action( 'vm_device_ready', device );
 		};
 		
-	tpl.capture( 'click' );
+	tpl.capture(['click', 'change']);
 	
 	tpl.on( 'device_type_selected', function() {
 		var type = dom.find('#vm_device_type').val();

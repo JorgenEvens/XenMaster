@@ -32,7 +32,7 @@
 			ABORTED: [ 'stop', [false], 'aborted' ],
 			PAUSED: [ 'pause', [], 'paused' ],
 			SUSPENDED: [ 'suspend', [], 'suspended' ],
-			REBOOT: [ 'reboot', [], 'rebooting' ]
+			REBOOT: [ 'reboot', [false], 'rebooting' ]
 		},
 		
 		/*

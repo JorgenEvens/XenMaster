@@ -581,6 +581,7 @@
 		    encStats       = {},     // [rectCnt, rectCntTot]
 
 		    ws             = null,   // Websock object
+		    rQ			   = null,	 // Websock receive queue
 		    display        = null,   // Display object
 		    keyboard       = null,   // Keyboard input handler object
 		    mouse          = null,   // Mouse input handler object
@@ -730,7 +731,8 @@
 		    rmode = display.get_render_mode();
 
 		    // TODO remove completely
-		    ws = new Websock();
+		    ws = new VNCConnection();
+		    rQ = ws.receiveQueue;
 		    ws.on('message', handle_message);
 		    ws.on('open', function() {
 		        if (rfb_state === "connect") {
@@ -758,7 +760,7 @@
 		    var i;
 
 		    /* Reset state */
-		    ws.init();
+		    ws.reset();
 
 		    FBU.rects        = 0;
 		    FBU.subrects     = 0;  // RRE and HEXTILE
@@ -848,6 +850,7 @@
 		    }
 
 		    cmsg = typeof(statusMsg) !== 'undefined' ? (" Msg: " + statusMsg) : "";
+		    console.log( 'change state:', oldstate, '->', state, ':', statusMsg );
 		    
 		    if (connTimer && (rfb_state !== 'connect')) {
 		        clearInterval(connTimer);
@@ -912,15 +915,17 @@
 		};
 
 		handle_message = function() {
-		    if (ws.rQlen() === 0) {
+			var data_available = ws.receiveQueue.available();
+		    if (data_available === 0) {
 		        return;
 		    }
+
 		    switch (rfb_state) {
 			    case 'disconnected':
 			    case 'failed':
 			        break;
 			    case 'normal':
-			        if ( normal_msg() && ws.rQlen() > 0) {
+			        if ( normal_msg() && data_available > 0) {
 			            // true means we can continue processing
 			            // Give other events a chance to run
 			            if (msgTimer === null) {
@@ -1042,19 +1047,19 @@
 
 		// RFB/VNC initialisation message handler
 		init_msg = function() {
-
+			
 		    var strlen, reason, length, sversion, cversion,
 		        i, types, num_types, challenge, response, bpp, depth,
 		        big_endian, red_max, green_max, blue_max, red_shift,
 		        green_shift, blue_shift, true_color, name_length;
-
+		    
 		    switch (rfb_state) {
 
 		    case 'ProtocolVersion' :
-		        if (ws.rQlen() < 12) {
+		        if (rQ.available() < 12) {
 		            return fail("Incomplete protocol version");
 		        }
-		        sversion = ws.rQshiftStr(12).substr(4,7);
+		        sversion = rQ.shiftString(12).substr(4,7);
 		        
 		        switch (sversion) {
 		            case "003.003": rfb_version = 3.3; break;
@@ -1068,16 +1073,9 @@
 		            rfb_version = rfb_max_version;
 		        }
 
-	            sendTimer = setInterval(function() {
-	                    // Send updates either at a rate of one update
-	                    // every 50ms, or whatever slower rate the network
-	                    // can handle.
-	                    ws.flush();
-	                }, 50);
-
 		        cversion = "00" + parseInt(rfb_version,10) +
 		                   ".00" + ((rfb_version * 10) % 10);
-		        ws.send_string("RFB " + cversion + "\n");
+		        ws.send("RFB " + cversion + "\n");
 		        updateState('Security', "Sent ProtocolVersion: " + cversion);
 		        //updateState('ClientInitialisation', "Sent ProtocolVersion: " + cversion);
 		        break;
@@ -1085,16 +1083,16 @@
 		    case 'Security' :
 		        if (rfb_version >= 3.7) {
 		            // Server sends supported list, client decides 
-		            num_types = ws.rQshift8();
-		            if (ws.rQwait("security type", num_types, 1)) { return false; }
+		            num_types = rQ.shift(1);
+		            if (rQ.wait(num_types, 1)) { return false; }
 		            if (num_types === 0) {
-		                strlen = ws.rQshift32();
-		                reason = ws.rQshiftStr(strlen);
+		                strlen = rQ.shift(4);
+		                reason = rQ.shiftString(strlen);
 		                return fail("Security failure: " + reason);
 		            }
 		            rfb_auth_scheme = 0;
-		            types = ws.rQshiftBytes(num_types);
-
+		            types = rQ.shiftBytes(num_types);
+		            
 		            for (i=0; i < types.length; i+=1) {
 		                if ((types[i] > rfb_auth_scheme) && (types[i] < 3)) {
 		                    rfb_auth_scheme = types[i];
@@ -1107,8 +1105,8 @@
 		            ws.send([rfb_auth_scheme]);
 		        } else {
 		            // Server decides
-		            if (ws.rQwait("security scheme", 4)) { return false; }
-		            rfb_auth_scheme = ws.rQshift32();
+		            if (rQ.wait(4)) { return false; }
+		            rfb_auth_scheme = rQ.shift(4);
 		        }
 		        updateState('Authentication',
 		                "Authenticating using scheme: " + rfb_auth_scheme);
@@ -1117,12 +1115,11 @@
 
 		    // Triggered by fallthough, not by server message
 		    case 'Authentication' :
-
 		        switch (rfb_auth_scheme) {
 		            case 0:  // connection failed
-		                if (ws.rQwait("auth reason", 4)) { return false; }
-		                strlen = ws.rQshift32();
-		                reason = ws.rQshiftStr(strlen);
+		                if (rQ.wait(4)) { return false; }
+		                strlen = rQ.shift(4);
+		                reason = rQ.shiftString(strlen);
 		                return fail("Auth failure: " + reason);
 		            case 1:  // no authentication
 		                if (rfb_version >= 3.8) {
@@ -1139,8 +1136,8 @@
 		                    conf.onPasswordRequired(that);
 		                    return;
 		                }
-		                if (ws.rQwait("auth challenge", 16)) { return false; }
-		                challenge = ws.rQshiftBytes(16);
+		                if (rQ.wait(16)) { return false; }
+		                challenge = rQ.shiftBytes(16);
 
 		                response = genDES(rfb_password, challenge);
 
@@ -1156,18 +1153,19 @@
 		        break;
 
 		    case 'SecurityResult' :
-		        if (ws.rQwait("VNC auth response ", 4)) { return false; }
-		        switch (ws.rQshift32()) {
+		        if (rQ.wait(4)) { return false; }
+		        
+		        switch (rQ.shift(4)) {
 		            case 0:  // OK
 		                // Fall through to ClientInitialisation
 		                break;
 		            case 1:  // failed
 		                if (rfb_version >= 3.8) {
-		                    length = ws.rQshift32();
-		                    if (ws.rQwait("SecurityResult reason", length, 8)) {
+		                    length = rQ.shift(4);
+		                    if (rQ.wait(length, 8)) {
 		                        return false;
 		                    }
-		                    reason = ws.rQshiftStr(length);
+		                    reason = rQ.shiftString(length);
 		                    fail(reason);
 		                } else {
 		                    fail("Authentication failed");
@@ -1188,29 +1186,31 @@
 
 		    case 'ServerInitialisation' :
 		    	
-		        if (ws.rQwait("server initialization", 24)) { return false; }
+		        if (rQ.wait(24)) { return false; }
 		        
 		        /* Screen size */
-		        fb_width  = ws.rQshift16();
-		        fb_height = ws.rQshift16();
+		        console.log('Width:',rQ.peek(2));
+		        fb_width  = rQ.shift(2);
+		        console.log('Width:',rQ.peek(2));
+		        fb_height = rQ.shift(2);
 
 		        /* PIXEL_FORMAT */
-		        bpp            = ws.rQshift8();
-		        depth          = ws.rQshift8();
-		        big_endian     = ws.rQshift8();
-		        true_color     = ws.rQshift8();
+		        bpp            = rQ.shift(1);
+		        depth          = rQ.shift(1);
+		        big_endian     = rQ.shift(1);
+		        true_color     = rQ.shift(1);
 
-		        red_max        = ws.rQshift16();
-		        green_max      = ws.rQshift16();
-		        blue_max       = ws.rQshift16();
-		        red_shift      = ws.rQshift8();
-		        green_shift    = ws.rQshift8();
-		        blue_shift     = ws.rQshift8();
-		        ws.rQshiftStr(3); // padding
+		        red_max        = rQ.shift(2);
+		        green_max      = rQ.shift(2);
+		        blue_max       = rQ.shift(2);
+		        red_shift      = rQ.shift(1);
+		        green_shift    = rQ.shift(1);
+		        blue_shift     = rQ.shift(1);
+		        rQ.shiftString(3); // padding
 
 		        /* Connection name/title */
-		        name_length   = ws.rQshift32();
-		        fb_name = ws.rQshiftStr(name_length);
+		        name_length   = rQ.shift(4);
+		        fb_name = rQ.shiftString(name_length);
 
 		        display.set_true_color(conf.true_color);
 		        display.resize(fb_width, fb_height);
@@ -1253,22 +1253,22 @@
 		    if (FBU.rects > 0) {
 		        msg_type = 0;
 		    } else {
-		        msg_type = ws.rQshift8();
+		        msg_type = rQ.shift(1);
 		    }
-		    
+
 		    switch (msg_type) {
 		    case 0:  // FramebufferUpdate
 		        ret = framebufferUpdate(); // false means need more data
 		        break;
 		    case 1:  // SetColourMapEntries
-		        ws.rQshift8();  // Padding
-		        first_colour = ws.rQshift16(); // First colour
-		        num_colours = ws.rQshift16();
+		        rQ.shift(1);  // Padding
+		        first_colour = rQ.shift(2); // First colour
+		        num_colours = rQ.shift(2);
 		        for (c=0; c < num_colours; c+=1) { 
-		            red = ws.rQshift16();
+		            red = rQ.shift(2);
 		            red = parseInt(red / 256, 10);
-		            green = parseInt(ws.rQshift16() / 256, 10);
-		            blue = parseInt(ws.rQshift16() / 256, 10);
+		            green = parseInt(rQ.shift(2) / 256, 10);
+		            blue = parseInt(rQ.shift(2) / 256, 10);
 		            display.set_colourMap([red, green, blue], first_colour + c);
 		        }
 		        break;
@@ -1276,12 +1276,12 @@
 		        conf.onBell(that);
 		        break;
 		    case 3:  // ServerCutText
-		        if (ws.rQwait("ServerCutText header", 7, 1)) { return false; }
-		        ws.rQshiftBytes(3);  // Padding
-		        length = ws.rQshift32();
-		        if (ws.rQwait("ServerCutText", length, 8)) { return false; }
+		        if (rQ.wait(7, 1)) { return false; }
+		        rQ.shiftBytes(3);  // Padding
+		        length = rQ.shift(4);
+		        if (rQ.wait(length, 8)) { return false; }
 
-		        text = ws.rQshiftStr(length);
+		        text = rQ.shiftString(length);
 		        conf.clipboardReceive(that, text); // Obsolete
 		        conf.onClipboard(that, text);
 		        break;
@@ -1296,12 +1296,12 @@
 		    var now, hdr, fbu_rt_diff, ret = true;
 
 		    if (FBU.rects === 0) {
-		        if (ws.rQwait("FBU header", 3)) {
-		            ws.rQunshift8(0);  // FBU msg_type
+		        if (rQ.wait(3)) {
+		            rQ.unshift(0);  // FBU msg_type
 		            return false;
 		        }
-		        ws.rQshift8();  // padding
-		        FBU.rects = ws.rQshift16();
+		        rQ.shift(1);  // padding
+		        FBU.rects = rQ.shift(2);
 		        FBU.bytes = 0;
 		        timing.cur_fbu = 0;
 		        if (timing.fbu_rt_start > 0) {
@@ -1313,12 +1313,12 @@
 		        if (rfb_state !== "normal") {
 		            return false;
 		        }
-		        if (ws.rQwait("FBU", FBU.bytes)) { return false; }
+		        if (rQ.wait(FBU.bytes)) { return false; }
 		        if (FBU.bytes === 0) {
-		            if (ws.rQwait("rect header", 12)) { return false; }
+		            if (rQ.wait(12)) { return false; }
 		            /* New FramebufferUpdate */
 
-		            hdr = ws.rQshiftBytes(12);
+		            hdr = rQ.shiftBytes(12);
 		            FBU.x      = (hdr[0] << 8) + hdr[1];
 		            FBU.y      = (hdr[2] << 8) + hdr[3];
 		            FBU.width  = (hdr[4] << 8) + hdr[5];
@@ -1392,13 +1392,13 @@
 		        FBU.lines = FBU.height;
 		    }
 		    FBU.bytes = FBU.width * fb_Bpp; // At least a line
-		    if (ws.rQwait("RAW", FBU.bytes)) { return false; }
+		    if (ws.receiveQueue.wait(FBU.bytes)) { return false; }
 		    cur_y = FBU.y + (FBU.height - FBU.lines);
 		    cur_height = Math.min(FBU.lines,
-		                          Math.floor(ws.rQlen()/(FBU.width * fb_Bpp)));
+		                          Math.floor(ws.receiveQueue.available()/(FBU.width * fb_Bpp)));
 		    display.blitImage(FBU.x, cur_y, FBU.width, cur_height,
-		            ws.get_rQ(), ws.get_rQi());
-		    ws.rQshiftBytes(FBU.width * cur_height * fb_Bpp);
+		            ws.receiveQueue, ws.receiveQueue.position);
+		    ws.receiveQueue.shiftBytes(FBU.width * cur_height * fb_Bpp);
 		    FBU.lines -= cur_height;
 
 		    if (FBU.lines > 0) {
@@ -1413,9 +1413,9 @@
 		encHandlers.COPYRECT = function display_copy_rect() {
 		    var old_x, old_y;
 
-		    if (ws.rQwait("COPYRECT", 4)) { return false; }
-		    old_x = ws.rQshift16();
-		    old_y = ws.rQshift16();
+		    if (ws.receiveQueue.wait(4)) { return false; }
+		    old_x = rQ.shift(2);
+		    old_y = rQ.shift(2);
 		    display.copyImage(old_x, old_y, FBU.x, FBU.y, FBU.width, FBU.height);
 		    FBU.rects -= 1;
 		    FBU.bytes = 0;
@@ -1426,17 +1426,17 @@
 		    var color, x, y, width, height, chunk;
 
 		    if (FBU.subrects === 0) {
-		        if (ws.rQwait("RRE", 4+fb_Bpp)) { return false; }
-		        FBU.subrects = ws.rQshift32();
-		        color = ws.rQshiftBytes(fb_Bpp); // Background
+		        if (rQ.wait(4+fb_Bpp)) { return false; }
+		        FBU.subrects = rQ.shift(4);
+		        color = rQ.shiftBytes(fb_Bpp); // Background
 		        display.fillRect(FBU.x, FBU.y, FBU.width, FBU.height, color);
 		    }
-		    while ((FBU.subrects > 0) && (ws.rQlen() >= (fb_Bpp + 8))) {
-		        color = ws.rQshiftBytes(fb_Bpp);
-		        x = ws.rQshift16();
-		        y = ws.rQshift16();
-		        width = ws.rQshift16();
-		        height = ws.rQshift16();
+		    while ((FBU.subrects > 0) && (rQ.available() >= (fb_Bpp + 8))) {
+		        color = rQ.shiftBytes(fb_Bpp);
+		        x = rQ.shift(2);
+		        y = rQ.shift(2);
+		        width = rQ.shift(2);
+		        height = rQ.shift(2);
 		        display.fillRect(FBU.x + x, FBU.y + y, width, height, color);
 		        FBU.subrects -= 1;
 		    }
@@ -1456,7 +1456,7 @@
 
 		    var subencoding, subrects, color, cur_tile,
 		        tile_x, x, w, tile_y, y, h, xy, s, sx, sy, wh, sw, sh,
-		        rQ = ws.get_rQ(), rQi = ws.get_rQi(); 
+		        rQi = rQ.position; 
 
 		    if (FBU.tiles === 0) {
 		        FBU.tiles_x = Math.ceil(FBU.width/16);
@@ -1468,7 +1468,7 @@
 		    /* FBU.bytes comes in as 1, ws.rQlen() at least 1 */
 		    while (FBU.tiles > 0) {
 		        FBU.bytes = 1;
-		        if (ws.rQwait("HEXTILE subencoding", FBU.bytes)) { return false; }
+		        if (rQ.wait(FBU.bytes)) { return false; }
 		        subencoding = rQ[rQi];  // Peek
 		        if (subencoding > 30) { // Raw
 		            fail("Disconnected: illegal hextile subencoding " + subencoding);
@@ -1495,7 +1495,7 @@
 		            }
 		            if (subencoding & 0x08) { // AnySubrects
 		                FBU.bytes += 1;   // Since we aren't shifting it off
-		                if (ws.rQwait("hextile subrects header", FBU.bytes)) { return false; }
+		                if (rQ.wait(FBU.bytes)) { return false; }
 		                subrects = rQ[rQi + FBU.bytes-1]; // Peek
 		                if (subencoding & 0x10) { // SubrectsColoured
 		                    FBU.bytes += subrects * (fb_Bpp + 2);
@@ -1505,7 +1505,7 @@
 		            }
 		        }
 
-		        if (ws.rQwait("hextile", FBU.bytes)) { return false; }
+		        if (rQ.wait(FBU.bytes)) { return false; }
 
 		        /* We know the encoding and have a whole tile */
 		        FBU.subencoding = rQ[rQi];
@@ -1555,7 +1555,7 @@
 		            }
 		            display.finishTile();
 		        }
-		        ws.set_rQi(rQi);
+		        rQ.position = rQi;
 		        FBU.lastsubencoding = FBU.subencoding;
 		        FBU.bytes = 0;
 		        FBU.tiles -= 1;
@@ -1574,7 +1574,7 @@
 		    var ctl, cmode, clength, getCLength, color, img;
 
 		    FBU.bytes = 1; // compression-control byte
-		    if (ws.rQwait("TIGHT compression-control", FBU.bytes)) { return false; }
+		    if (rQ.wait(FBU.bytes)) { return false; }
 
 		    // Get 'compact length' header and data size
 		    getCLength = function (arr) {
@@ -1610,8 +1610,8 @@
 		    // Determine FBU.bytes
 		    switch (cmode) {
 		    case "fill":
-		        ws.rQshift8(); // shift off ctl
-		        color = ws.rQshiftBytes(fb_depth);
+		        rQ.shift(1); // shift off ctl
+		        color = rQ.shiftBytes(fb_depth);
 		        FBU.imgQ.push({
 		                'type': 'fill',
 		                'img': {'complete': true},
@@ -1628,7 +1628,7 @@
 		        if (ws.rQwait("TIGHT " + cmode, FBU.bytes)) { return false; }
 
 		        // We have everything, render it
-		        ws.rQshiftBytes(1 + clength[0]); // shift off ctl + compact length
+		        rQ.shiftBytes(1 + clength[0]); // shift off ctl + compact length
 		        img = new Image();
 		        //img.onload = scan_tight_imgQ;
 		        FBU.imgQ.push({
@@ -1637,7 +1637,7 @@
 		                'x': FBU.x,
 		                'y': FBU.y});
 		        img.src = "data:image/" + cmode +
-		            extract_data_uri(ws.rQshiftBytes(clength[1]));
+		            extract_data_uri(rQ.shiftBytes(clength[1]));
 		        img = null;
 		        break;
 		    }
@@ -1699,10 +1699,10 @@
 		    masklength = Math.floor((w + 7) / 8) * h;
 
 		    FBU.bytes = pixelslength + masklength;
-		    if (ws.rQwait("cursor encoding", FBU.bytes)) { return false; }
+		    if (rQ.wait(FBU.bytes)) { return false; }
 
-		    display.changeCursor(ws.rQshiftBytes(pixelslength),
-		                            ws.rQshiftBytes(masklength),
+		    display.changeCursor(rQ.shiftBytes(pixelslength),
+		                            rQ.shiftBytes(masklength),
 		                            x, y, w, h);
 
 		    FBU.bytes = 0;
@@ -4391,281 +4391,197 @@
 	};
 	
 	/*
+	 * Implementation inspired by:
+	 *
 	 * Websock: high-performance binary WebSockets
 	 * Copyright (C) 2011 Joel Martin
 	 * Licensed under LGPL-3 (see LICENSE.txt)
-	 *
-	 * Websock is similar to the standard WebSocket object but Websock
-	 * enables communication with raw TCP sockets (i.e. the binary stream)
-	 * via websockify. This is accomplished by base64 encoding the data
-	 * stream between Websock and websockify.
-	 *
-	 * Websock has built-in receive queue buffering; the message event
-	 * does not contain actual data but is simply a notification that
-	 * there is new data available. Several rQ* methods are available to
-	 * read binary data off of the receive queue.
 	 */
-
-	if (window.MozWebSocket) {
-	    window.WebSocket = window.MozWebSocket;
-	}
-
-
-	function Websock() {
-	"use strict";
-
-	var api = {},         // Public API
-	    websocket = null, // WebSocket object
-	    rQ = [],          // Receive queue
-	    rQi = 0,          // Receive queue index
-	    rQmax = 10000,    // Max receive queue size before compacting
-	    sQ = new ByteArray(),          // Send queue
-
-	    eventHandlers = {
-	        'message' : function( e ) {},
-	        'open'    : function( e ) {},
-	        'close'   : function( e ) {},
-	        'error'   : function( e ) {}
-	    },
-	    
-	    conn_ref = null;
-
-
-	//
-	// Queue public functions
-	//
-
-	function get_sQ() {
-	    return sQ;
-	}
-
-	function get_rQ() {
-	    return rQ;
-	}
-	function get_rQi() {
-	    return rQi;
-	}
-	function set_rQi(val) {
-	    rQi = val;
+	
+	var global = (function(){return this;}());
+	
+	/*
+	 * A binary data queue
+	 */
+	var Queue = function() {
+		var bytearray = null,
+			i = null;
+		
+		bytearray = new ByteArray();
+		for( i in this ) {
+			bytearray[i] = this[i];
+		}
+		return bytearray;
 	};
+	
+	Queue.prototype.position = 0;
+	
+	Queue.prototype.available = function(){
+		return this.length - this.position;
+	};
+	
+	Queue.prototype.peek = function( bytes ){
+		var pointer = this.position,
+			result = 0;
+		
+		bytes = bytes||1;
 
-	function rQlen() {
-	    return rQ.length - rQi;
-	}
+		while( bytes-- ) {
+			result += this[pointer++] << ( bytes * 8 );
+		}
 
-	function rQpeek8() {
-	    return (rQ[rQi]      );
-	}
-	function rQshift8() {
-	    return (rQ[rQi++]      );
-	}
-	function rQunshift8(num) {
-	    if (rQi === 0) {
-	        rQ.unshift(num);
-	    } else {
-	        rQi -= 1;
-	        rQ[rQi] = num;
-	    }
-
-	}
-	function rQshift16() {
-	    return (rQ[rQi++] <<  8) +
-	           (rQ[rQi++]      );
-	}
-	function rQshift32() {
-	    return (rQ[rQi++] << 24) +
-	           (rQ[rQi++] << 16) +
-	           (rQ[rQi++] <<  8) +
-	           (rQ[rQi++]      );
-	}
-	function rQshiftStr(len) {
-	    var arr = rQ.slice(rQi, rQi + len);
-	    rQi += len;
-	    return arr.map(function (num) {
-	            return String.fromCharCode(num); } ).join('');
-
-	}
-	function rQshiftBytes(len) {
-	    rQi += len;
-	    return rQ.slice(rQi-len, rQi);
-	}
-
-	function rQslice(start, end) {
-	    if (end) {
-	        return rQ.slice(rQi + start, rQi + end);
-	    } else {
-	        return rQ.slice(rQi + start);
-	    }
-	}
-
-	// Check to see if we must wait for 'num' bytes (default to FBU.bytes)
-	// to be available in the receive queue. Return true if we need to
-	// wait (and possibly print a debug message), otherwise false.
-	function rQwait(msg, num, goback) {
-	    var rQlen = rQ.length - rQi; // Skip rQlen() function call
-	    if (rQlen < num) {
-	        if (goback) {
-	            if (rQi < goback) {
-	                throw("rQwait cannot backup " + goback + " bytes");
+		return result;
+	};
+	
+	Queue.prototype.shift = function( bytes ){
+		bytes = bytes||1;
+		var result = this.peek( bytes );
+		this.position += bytes;
+		return result;
+	};
+	
+	Queue.prototype.shiftString = function( length ){
+		var arr = this.slice( this.position, this.position + length );
+	    this.position += length;
+	    return arr.map(function(i){
+		    	return String.fromCharCode(i);
+		    }).join('');
+	};
+	
+	Queue.prototype.shiftBytes = function( length ){
+		this.position += length;
+		return this.slice( this.position-length, this.position );
+	};
+	
+	Queue.prototype.unshift = function( value ){
+		this.splice( this.position, 0, value );
+	};
+	
+	Queue.prototype.append = function( value ) {
+		Array.prototype.push.apply( this, value );
+		if( this.length > 10000 ) {
+            this.splice(0,this.position);
+            this.position = 0;
+        }
+	};
+	
+	Queue.prototype.wait = function( length, goback ){
+	    if( this.available() < length ){
+	        if( goback ){
+	            if( this.position < goback ){
+	                throw("Queue cannot backup " + goback + " bytes");
 	            }
-	            rQi -= goback;
+	            this.position -= goback;
 	        }
-
-	        return true;  // true means need more data
+	        return true;
 	    }
 	    return false;
-	}
-
-	//
-	// Private utility routines
-	//
-
-	function encode_message() {
-	    /* base64 encode */
-	    return Base64.encode(sQ);
-	}
-
-	function decode_message(data) {
-	    /* base64 decode */
-	    rQ = rQ.concat(Base64.decode(data, 0));
-	}
-
-
-	//
-	// Public Send functions
-	//
-
-	function flush() {
-		if (sQ.length > 0) {
-			websocket.send( 'vnc://write', {ref: conn_ref, data: encode_message(sQ)});
-			sQ = [];
+	};
+	
+	Queue.prototype.clear = function() {
+		this.splice(0, this.length);
+	};
+	
+	/*
+	 * A binary connection
+	 */
+	var Connection = function() {
+		this.receiveQueue = new Queue();
+		this.handlers = [];
+	};
+	
+	Connection.prototype.send = function( value ){
+		if( typeof value == 'string' ) {
+			value = value.split('').map(function( chr ){ return chr.charCodeAt(0); });
 		}
-		return true;
-	}
+		this.write( value );
+	};
+	
+	Connection.prototype.read = function(){
+		return this.receiveQueue.shiftString( this.receiveQueue.available() );
+	};
+	
+	Connection.prototype.on = function( event, handler ){
+		if( !this.handlers[ event ] ) {
+			this.handlers[event] = [];
+		}
+		
+		this.handlers[event].push( handler );
+	};
+	
+	Connection.prototype.trigger = function( event, args ){
+		var handlers = this.handlers[ event ],
+			i = null;
 
-	// overridable for testing
-	function send(arr) {
-	    sQ = sQ.concat(arr);
-	    return flush();
-	}
-
-	function send_string(str) {
-	    api.send(str.split('').map(
-	        function (chr) { return chr.charCodeAt(0); } ) );
-	}
-
-	//
-	// Other public functions
-
-	function recv_message(e) {
-	    try {
-	        decode_message(e);
-	        if (rQlen() > 0) {
-	            eventHandlers.message();
-	            // Compact the receive queue
-	            if (rQ.length > rQmax) {
-	                rQ = rQ.slice(rQi);
-	                rQi = 0;
-	            }
-	        }
-	    } catch (exc) {
-	        if (typeof exc.name !== 'undefined') {
-	            eventHandlers.error(exc.name + ": " + exc.message);
-	        } else {
-	            eventHandlers.error(exc);
-	        }
-	    }
-	}
-
-
-	// Set event handlers
-	function on(evt, handler) { 
-	    eventHandlers[evt] = handler;
-	}
-
-	function init() {
-	    rQ         = [];
-	    rQi        = 0;
-	    sQ         = [];
-	    websocket  = null;
-	}
-
-	function open(ref) {
-	    init();
-
+		if( !handlers ) {
+			return;
+		}
+		
+		for( i in handlers ) {
+			handlers[i].apply( null, args );
+		}
+	};
+	
+	Connection.prototype.open = function() {}; // TODO: provide default implementation
+	
+	Connection.prototype.write = function( data ) {}; // TODO: provide default implementation
+	
+	/*
+	 * VNC Connection
+	 */
+	var VNCConnection = function() {
+		Connection.apply( this );
+	};
+	
+	VNCConnection.prototype = new Connection();
+	
+	VNCConnection.prototype.reset = function(){
+		this.receiveQueue.clear();
+	};
+	
+	VNCConnection.prototype.open = function( vm_ref ) {
+		var me = this;
+		
 		app.load( 'js://net/xmconnection', function( xm ){
 			xm = xm.getInstance();
-			websocket = xm;
 			
-			/*
-			 * data.connection = connection_id
-			 */
-			var connectionEstablished = function(data){
-					if( data.ref != conn_ref ) return;
-					eventHandlers.open();
+			var connectionEstablished = function( data ){
+					if( data.ref != me.reference ) return;
+					me.trigger('open');
 					xm.removeHook( 'vnc', 'connectionEstablished', connectionEstablished );
 				},
 				
 				connectionClosed = function(data){
-					if( data.ref != conn_ref ) return;
+					if( data.ref != me.reference ) return;
 					xm.removeHook( 'vnc', 'updateScreen', dataReceived );
 					xm.addHook( 'vnc', 'connectionClosed', connectionClosed );
 				},
 				
 				dataReceived = function( data ) {
-					if( data.ref != conn_ref ) return;
-					recv_message( data.data );
+					if( data.ref != me.reference ) return;
+					me.receiveQueue.append( Base64.decode( data.data ) );
+					me.trigger('message');
 				};
 			
 			xm.addHook( 'vnc', 'connectionEstablished', connectionEstablished);
 			xm.addHook( 'vnc', 'connectionClosed', connectionClosed );
 			xm.addHook( 'vnc', 'updateScreen', dataReceived );
 			
-			xm.send( 'vnc://openConnection', { ref: ref }, function(data){
-				conn_ref = data;
+			xm.send( 'vnc://openConnection', { ref: vm_ref }, function( data ){
+				me.reference = data;
 			});
 		});
-	}
-
-	function constructor() {
-	    // Configuration settings
-	    api.maxBufferedAmount = 200;
-
-	    // Direct access to send and receive queues
-	    api.get_sQ       = get_sQ;
-	    api.get_rQ       = get_rQ;
-	    api.get_rQi      = get_rQi;
-	    api.set_rQi      = set_rQi;
-
-	    // Routines to read from the receive queue
-	    api.rQlen        = rQlen;
-	    api.rQpeek8      = rQpeek8;
-	    api.rQshift8     = rQshift8;
-	    api.rQunshift8   = rQunshift8;
-	    api.rQshift16    = rQshift16;
-	    api.rQshift32    = rQshift32;
-	    api.rQshiftStr   = rQshiftStr;
-	    api.rQshiftBytes = rQshiftBytes;
-	    api.rQslice      = rQslice;
-	    api.rQwait       = rQwait;
-
-	    api.flush        = flush;
-	    api.send         = send;
-	    api.send_string  = send_string;
-
-	    api.on           = on;
-	    api.init         = init;
-	    api.open         = open;
-
-	    return api;
-	}
-
-	return constructor();
-
-	}
-
-
+	};
 	
+	VNCConnection.prototype.write = function( data ) {
+		var me = this;
+		
+		app.load( 'js://net/xmconnection', function( xm ){
+			xm = xm.getInstance();
+			
+			xm.send( 'vnc://write', {ref: me.reference, data: Base64.encode(data) } );
+		});
+	};
 	
 	
 	ready( RFB );
