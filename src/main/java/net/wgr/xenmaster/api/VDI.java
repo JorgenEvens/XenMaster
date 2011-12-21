@@ -24,8 +24,8 @@ public class VDI extends NamedEntity {
     protected String SR;
     protected Object[] VBDs;
     @ConstructorArgument
-    protected int virtualSize;
-    protected int physicalUtilization;
+    protected long virtualSize;
+    protected long physicalUtilization;
     @ConstructorArgument
     protected Type type;
     @ConstructorArgument
@@ -113,7 +113,7 @@ public class VDI extends NamedEntity {
         return VDIs;
     }
 
-    public int getPhysicalUtilization() {
+    public long getPhysicalUtilization() {
         physicalUtilization = value(physicalUtilization, "get_physical_utilization");
         return physicalUtilization;
     }
@@ -134,7 +134,7 @@ public class VDI extends NamedEntity {
         return type;
     }
 
-    public int getVirtualSize() {
+    public long getVirtualSize() {
         return virtualSize;
     }
 

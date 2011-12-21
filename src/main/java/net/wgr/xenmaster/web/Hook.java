@@ -25,6 +25,7 @@ import net.wgr.wcp.command.Command;
 import net.wgr.wcp.command.CommandException;
 import net.wgr.wcp.command.Result;
 import net.wgr.xenmaster.api.util.APIUtil;
+import net.wgr.xenmaster.api.util.CachingFacility;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -115,8 +116,7 @@ public class Hook extends WebCommandHandler {
                 }
                 current = store.get(localRef).value;
             } else {
-                Constructor c = clazz.getConstructor(String.class, boolean.class);
-                current = c.newInstance(ref, !ref.isEmpty());
+                current = CachingFacility.get(ref, clazz);
             }
         }
     }

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 
@@ -33,7 +34,7 @@ public class ConnectionMultiplexer implements Runnable {
     protected ConcurrentHashMap<Integer, SelectionKey> connections;
     protected Selector socketSelector;
     protected ByteBuffer readBuffer;
-    protected final ConcurrentHashMap<Integer, ArrayList<ByteBuffer>> scheduledWrites;
+    protected final ConcurrentHashMap<Integer, ArrayBlockingQueue<ByteBuffer>> scheduledWrites;
     protected ArrayList<ActivityListener> activityListeners;
     protected Thread thread;
     protected boolean run;
@@ -162,23 +163,22 @@ public class ConnectionMultiplexer implements Runnable {
     protected void write(SelectionKey key) {
         SocketChannel socketChannel = (SocketChannel) key.channel();
 
-        for (Iterator<Entry<Integer, ArrayList<ByteBuffer>>> it = scheduledWrites.entrySet().iterator(); it.hasNext();) {
+        for (Iterator<Entry<Integer, ArrayBlockingQueue<ByteBuffer>>> it = scheduledWrites.entrySet().iterator(); it.hasNext();) {
             try {
-                Entry<Integer, ArrayList<ByteBuffer>> entry = it.next();
+                Entry<Integer, ArrayBlockingQueue<ByteBuffer>> entry = it.next();
 
                 if (entry.getKey().equals((int) key.attachment())) {
-                    synchronized (entry.getValue()) {
-                        for (Iterator<ByteBuffer> itr = entry.getValue().iterator(); itr.hasNext();) {
-                            ByteBuffer bb = itr.next();
-                            socketChannel.write(bb);
+                    ArrayBlockingQueue<ByteBuffer> writeOps = entry.getValue();
+                    for (Iterator<ByteBuffer> itr = writeOps.iterator(); itr.hasNext();) {
+                        ByteBuffer bb = itr.next();
+                        socketChannel.write(bb);
 
-                            if (bb.remaining() > 0) {
-                                // Write has been interrupted
-                                Logger.getLogger(getClass()).debug("Write interrupt on " + (int) key.attachment());
-                                break;
-                            }
-                            itr.remove();
+                        if (bb.remaining() > 0) {
+                            // Write has been interrupted
+                            Logger.getLogger(getClass()).debug("Write interrupt on " + (int) key.attachment());
+                            break;
                         }
+                        itr.remove();
                     }
                 }
             } catch (IOException ex) {
@@ -212,7 +212,7 @@ public class ConnectionMultiplexer implements Runnable {
 
         while (run) {
             try {
-                for (Map.Entry<Integer, ArrayList<ByteBuffer>> entry : scheduledWrites.entrySet()) {
+                for (Map.Entry<Integer, ArrayBlockingQueue<ByteBuffer>> entry : scheduledWrites.entrySet()) {
                     if (entry.getValue().size() < 1) {
                         continue;
                     }
@@ -246,8 +246,8 @@ public class ConnectionMultiplexer implements Runnable {
 
                         connectionCounter++;
                         connections.put(connectionCounter, sk);
-                        scheduledWrites.put(connectionCounter, new ArrayList<ByteBuffer>());
-
+                        // We like to queue up 50 writes, if there are more they need to wait
+                        scheduledWrites.put(connectionCounter, new ArrayBlockingQueue<ByteBuffer>(50));
                         sk.interestOps(SelectionKey.OP_READ);
                         sk.attach(connectionCounter);
 
