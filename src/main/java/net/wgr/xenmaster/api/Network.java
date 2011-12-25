@@ -45,14 +45,7 @@ public class Network extends NamedEntity {
     }
     
     public static List<Network> getAll() throws BadAPICallException {
-        ArrayList<Network> all = new ArrayList<>();
-        Map<String, Object> objs = (Map<String, Object>) Controller.dispatch("network.get_all_records");
-        for (Map.Entry<String, Object> entry : objs.entrySet()) {
-            Network n = new Network(entry.getKey(), false);
-            n.fillOut((Map<String, Object>) entry.getValue());
-            all.add(n);
-        }
-        return all;
+        return getAllEntities(Network.class);
     }
 
     public int getMTU() {

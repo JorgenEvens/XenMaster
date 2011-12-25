@@ -84,12 +84,7 @@ public class Host extends XenApiEntity {
     }
 
     public List<PCPU> getCPUs() throws BadAPICallException {
-        hostCPUs = value(hostCPUs, "get_host_CPUs");
-        ArrayList<PCPU> cpus = new ArrayList<>();
-        for (Object cpu : hostCPUs) {
-            cpus.add(new PCPU((String) cpu));
-        }
-        return cpus;
+        return getEntities(PCPU.class, "get_host_CPUs");
     }
 
     public PCPU getCPU(int number) throws BadAPICallException {
@@ -105,38 +100,15 @@ public class Host extends XenApiEntity {
     }
     
     public static List<Host> getAll() throws BadAPICallException {
-        Map<String, Object> records = (Map) Controller.dispatch("host.get_all_records");
-        ArrayList<Host> objects = new ArrayList<>();
-        for (Map.Entry<String, Object> entry : records.entrySet()) {
-            Host vm = new Host(entry.getKey(), false);
-            vm.fillOut((Map) entry.getValue());
-            objects.add(vm);
-        }
-        return objects;
+        return getAllEntities(Host.class);
     }
 
     public List<VM> getResidentVMs() throws BadAPICallException {
-        Object[] refs = (Object[]) dispatch("get_resident_VMs");
-        ArrayList<VM> vms = new ArrayList<>();
-        for (Object obj : refs) {
-            // Lame
-            String ref = (String) obj;
-            if (ref.equals("00000000-0000-0000-0000-000000000000")) {
-                continue;
-            }
-            vms.add(new VM(ref, true));
-        }
-        return vms;
+        return getEntities(VM.class, "get_resident_VMs");
     }
 
     public List<PIF> getPhysicalInterfaces() throws BadAPICallException {
-        Object[] refs = (Object[]) dispatch("get_PIFs");
-        ArrayList<PIF> pifs = new ArrayList<>();
-        for (Object obj : refs) {
-            String ref = (String) obj;
-            pifs.add(new PIF(ref, true));
-        }
-        return pifs;
+        return getEntities(PIF.class, "get_PIFs");
     }
 
     protected Map<String, String> interpretation() {

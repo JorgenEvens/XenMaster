@@ -103,14 +103,7 @@ public class VDI extends NamedEntity {
     }
     
     public static List<VDI> getAll() throws BadAPICallException {
-        ArrayList<VDI> VDIs = new ArrayList<>();
-        Map<String, Object> vdis = (HashMap<String, Object>) Controller.dispatch("VDI.get_all_records");
-        for (Map.Entry<String, Object> entry : vdis.entrySet()) {
-            VDI vdi = new VDI(entry.getKey(), false);
-            vdi.fillOut((HashMap<String, Object>) entry.getValue());
-            VDIs.add(vdi);
-        }
-        return VDIs;
+        return getAllEntities(VDI.class);
     }
 
     public long getPhysicalUtilization() {

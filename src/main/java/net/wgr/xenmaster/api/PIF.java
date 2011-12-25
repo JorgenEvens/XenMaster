@@ -52,14 +52,7 @@ public class PIF extends XenApiEntity {
     }
 
     public static List<PIF> getAll() throws BadAPICallException {
-        Map<String, Object> records = (Map) Controller.dispatch("PIF.get_all_records");
-        ArrayList<PIF> objects = new ArrayList<>();
-        for (Map.Entry<String, Object> entry : records.entrySet()) {
-            PIF pif = new PIF(entry.getKey(), false);
-            pif.fillOut((Map) entry.getValue());
-            objects.add(pif);
-        }
-        return objects;
+        return getAllEntities(PIF.class);
     }
 
     public String getMAC() {

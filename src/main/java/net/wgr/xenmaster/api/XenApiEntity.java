@@ -56,7 +56,7 @@ public class XenApiEntity {
     protected String getAPIName() {
         return getAPIName(getClass());
     }
-    
+
     public static String getAPIName(Class clazz) {
         String sn = clazz.getSimpleName();
         if (sn.toUpperCase().equals(sn)) {
@@ -339,28 +339,22 @@ public class XenApiEntity {
 
         return args;
     }
-    
-    public static <T extends XenApiEntity> List<T> getAllEntities(Class<T> type) {
+
+    public static <T extends XenApiEntity> List<T> getAllEntities(Class<T> type) throws BadAPICallException {
         return getEntities(type, type.getSimpleName() + ".get_all", null);
     }
 
-    public static <T extends XenApiEntity> List<T> getEntities(Class<T> type, String methodName, String reference) {
-        try {
-            Object[] records = (Object[]) (reference == null ? Controller.dispatch(methodName) : Controller.dispatch(methodName, reference));
-            ArrayList<T> objects = new ArrayList<>();
-            for (Object o: records) {
-                String ref = (String) o;
-                objects.add(CachingFacility.get(ref, type));
-            }
-            return objects;
-        } catch (BadAPICallException ex) {
-            Logger.getLogger(XenApiEntity.class).error("Failed to get all entities by " + methodName, ex);
+    public static <T extends XenApiEntity> List<T> getEntities(Class<T> type, String methodName, String reference) throws BadAPICallException {
+        Object[] records = (Object[]) (reference == null ? Controller.dispatch(methodName) : Controller.dispatch(methodName, reference));
+        ArrayList<T> objects = new ArrayList<>();
+        for (Object o : records) {
+            String ref = (String) o;
+            objects.add(CachingFacility.get(ref, type));
         }
-
-        return null;
+        return objects;
     }
-    
-    protected <T extends XenApiEntity> List<T> getEntities(Class<T> type, String methodName) {
+
+    protected <T extends XenApiEntity> List<T> getEntities(Class<T> type, String methodName) throws BadAPICallException {
         return getEntities(type, getAPIName() + '.' + methodName, reference);
     }
 

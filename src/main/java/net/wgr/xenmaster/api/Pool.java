@@ -71,14 +71,7 @@ public class Pool extends NamedEntity {
     }
 
     public static List<Pool> getAll() throws BadAPICallException {
-        Map<String, Object> pools = (Map) Controller.dispatch("pool.get_all_records");
-        ArrayList<Pool> mudPools = new ArrayList<>();
-        for (Map.Entry<String, Object> entry : pools.entrySet()) {
-            Pool p = new Pool(entry.getKey(), false);
-            p.fillOut((Map) entry.getValue());
-            mudPools.add(p);
-        }
-        return mudPools;
+        return getAllEntities(Pool.class);
     }
 
     @Override

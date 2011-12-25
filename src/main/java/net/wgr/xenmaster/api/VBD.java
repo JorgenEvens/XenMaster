@@ -125,14 +125,7 @@ public class VBD extends XenApiEntity {
     }
     
     public static List<VBD> getAll() throws BadAPICallException {
-        Map<String, Object> records = (Map) Controller.dispatch("VBD.get_all_records");
-        ArrayList<VBD> objects = new ArrayList<>();
-        for (Map.Entry<String, Object> entry : records.entrySet()) {
-            VBD pif = new VBD(entry.getKey(), false);
-            pif.fillOut((Map) entry.getValue());
-            objects.add(pif);
-        }
-        return objects;
+        return getAllEntities(VBD.class);
     }
 
     public boolean isBootable() {

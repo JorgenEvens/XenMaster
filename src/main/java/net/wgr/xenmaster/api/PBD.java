@@ -62,14 +62,7 @@ public class PBD extends XenApiEntity {
     }
 
     public static List<PBD> getAll() throws BadAPICallException {
-        Map<String, Object> records = (Map) Controller.dispatch("PBD.get_all_records");
-        ArrayList<PBD> objects = new ArrayList<>();
-        for (Map.Entry<String, Object> entry : records.entrySet()) {
-            PBD obj = new PBD(entry.getKey(), false);
-            obj.fillOut((Map) entry.getValue());
-            objects.add(obj);
-        }
-        return objects;
+        return getAllEntities(PBD.class);
     }
 
     public boolean isPlugged() {

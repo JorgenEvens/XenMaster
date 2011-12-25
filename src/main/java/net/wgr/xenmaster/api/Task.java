@@ -65,14 +65,7 @@ public class Task extends NamedEntity {
     }
 
     public static List<Task> getAll() throws BadAPICallException {
-        Map<String, Object> records = (Map) Controller.dispatch("task.get_all_records");
-        ArrayList<Task> objects = new ArrayList<>();
-        for (Map.Entry<String, Object> entry : records.entrySet()) {
-            Task task = new Task(entry.getKey());
-            task.fillOut((Map) entry.getValue());
-            objects.add(task);
-        }
-        return objects;
+        return getAllEntities(Task.class);
     }
     
     public static enum Status {

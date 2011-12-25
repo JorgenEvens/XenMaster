@@ -7,6 +7,7 @@
 package net.wgr.xenmaster.api;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import net.wgr.xenmaster.controller.BadAPICallException;
@@ -75,6 +76,10 @@ public class VIF extends XenApiEntity {
 
         this.reference = (String) dispatch("create", collectConstructorArgs());
         return this.reference;
+    }
+    
+    public static List<VIF> getAll() throws BadAPICallException {
+        return getAllEntities(VIF.class);
     }
 
     public void destroy() throws BadAPICallException {
