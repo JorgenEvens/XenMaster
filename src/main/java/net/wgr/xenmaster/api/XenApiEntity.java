@@ -354,8 +354,13 @@ public class XenApiEntity {
         return objects;
     }
 
-    protected <T extends XenApiEntity> List<T> getEntities(Class<T> type, String methodName) throws BadAPICallException {
-        return getEntities(type, getAPIName() + '.' + methodName, reference);
+    protected <T extends XenApiEntity> List<T> getEntities(Class<T> type, String methodName) {
+        try {
+            return getEntities(type, getAPIName() + '.' + methodName, reference);
+        } catch (BadAPICallException ex) {
+            Logger.getLogger(getClass()).error("Failed to retrieve all " + type.getSimpleName() + " with " + methodName);
+        }
+        return null;
     }
 
     public void fillOut(Map<String, Object> data) {
