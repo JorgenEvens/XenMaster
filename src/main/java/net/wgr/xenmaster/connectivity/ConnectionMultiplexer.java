@@ -39,30 +39,6 @@ public class ConnectionMultiplexer implements Runnable {
     protected Thread thread;
     protected boolean run;
 
-    /*public static void main(String[] args) throws IOException {
-    Logger root = Logger.getRootLogger();
-    root.setLevel(Level.DEBUG);
-    root.addAppender(new ConsoleAppender(new TTCCLayout()));
-    
-    ConnectionMultiplexer vnc = new ConnectionMultiplexer();
-    ActivityListener al = new ActivityListener() {
-    
-    @Override
-    public void dataReceived(ByteBuffer data, int connection, ConnectionMultiplexer cm) {
-    String recv = new String(data.array());
-    cm.write(connection, ByteBuffer.wrap(("You said the following : " + recv).getBytes()));
-    }
-    
-    @Override
-    public void connectionClosed(int connection) {
-    }
-    };
-    vnc.addActivityListener(al);
-    vnc.addConnection(new InetSocketAddress("localhost", 30000));
-    vnc.addConnection(new InetSocketAddress("localhost", 20000));
-    vnc.start();
-    vnc.run();
-    }*/
     public ConnectionMultiplexer() {
         connections = new ConcurrentHashMap<>();
         scheduledWrites = new ConcurrentHashMap<>();
@@ -106,7 +82,7 @@ public class ConnectionMultiplexer implements Runnable {
         socketSelector.wakeup();
     }
 
-    private void read(SelectionKey key) throws IOException {
+    protected void read(SelectionKey key) throws IOException {
         SocketChannel socketChannel = (SocketChannel) key.channel();
 
         // Clear out our read buffer so it's ready for new data
@@ -268,7 +244,7 @@ public class ConnectionMultiplexer implements Runnable {
                     }
                 }
             } catch (IOException ex) {
-                Logger.getLogger(getClass()).error("Failed to listen for incoming data");
+                Logger.getLogger(getClass()).error("Failed to listen for incoming data", ex);
             }
         }
     }
