@@ -331,16 +331,7 @@ public class VM extends NamedEntity {
     }
 
     public static List<VM> getAll() throws BadAPICallException {
-        Map<String, Object> records = (Map) Controller.dispatch("VM.get_all_records");
-        ArrayList<VM> objects = new ArrayList<>();
-        for (Map.Entry<String, Object> entry : records.entrySet()) {
-            VM vm = new VM(entry.getKey(), false);
-            vm.fillOut((Map) entry.getValue());
-            if (!vm.isTemplate()) {
-                objects.add(vm);
-            }
-        }
-        return objects;
+        return getAllEntities(VM.class);
     }
 
     public static List<VM> getTemplates() throws BadAPICallException {
@@ -357,30 +348,15 @@ public class VM extends NamedEntity {
     }
 
     public List<VBD> getVBDs() {
-        this.VBDs = value(this.VBDs, "get_VBDs");
-        ArrayList<VBD> vbds = new ArrayList<>();
-        for (Object o : this.VBDs) {
-            vbds.add(new VBD((String) o));
-        }
-        return vbds;
+        return getEntities(VBD.class, "get_VBDs");
     }
 
     public List<VIF> getVIFs() {
-        this.VIFs = value(this.VIFs, "get_VIFs");
-        ArrayList<VIF> objs = new ArrayList<>();
-        for (Object o : this.VIFs) {
-            objs.add(new VIF((String) o));
-        }
-        return objs;
+        return getEntities(VIF.class, "get_VIFs");
     }
 
     public List<Console> getConsoles() {
-        this.consoles = value(this.consoles, "get_consoles");
-        ArrayList<Console> objs = new ArrayList<>();
-        for (Object o : this.consoles) {
-            objs.add(new Console((String) o));
-        }
-        return objs;
+        return getEntities(Console.class, "get_consoles");
     }
 
     public Map<String, String> getVCPUParams() {

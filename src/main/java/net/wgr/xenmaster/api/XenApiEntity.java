@@ -8,7 +8,9 @@ package net.wgr.xenmaster.api;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +20,7 @@ import java.util.UUID;
 import net.wgr.core.ReflectionUtils;
 import net.wgr.core.data.DAObjectMatcher;
 import net.wgr.core.data.LazyQuery;
+import net.wgr.xenmaster.api.util.CachingFacility;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
 import net.wgr.xenmaster.monitoring.LogEntry;
@@ -51,7 +54,11 @@ public class XenApiEntity {
     }
 
     protected String getAPIName() {
-        String sn = getClass().getSimpleName();
+        return getAPIName(getClass());
+    }
+    
+    public static String getAPIName(Class clazz) {
+        String sn = clazz.getSimpleName();
         if (sn.toUpperCase().equals(sn)) {
             return sn;
         } else {
@@ -331,6 +338,30 @@ public class XenApiEntity {
         }
 
         return args;
+    }
+    
+    public static <T extends XenApiEntity> List<T> getAllEntities(Class<T> type) {
+        return getEntities(type, type.getSimpleName() + ".get_all", null);
+    }
+
+    public static <T extends XenApiEntity> List<T> getEntities(Class<T> type, String methodName, String reference) {
+        try {
+            Object[] records = (Object[]) (reference == null ? Controller.dispatch(methodName) : Controller.dispatch(methodName, reference));
+            ArrayList<T> objects = new ArrayList<>();
+            for (Object o: records) {
+                String ref = (String) o;
+                objects.add(CachingFacility.get(ref, type));
+            }
+            return objects;
+        } catch (BadAPICallException ex) {
+            Logger.getLogger(XenApiEntity.class).error("Failed to get all entities by " + methodName, ex);
+        }
+
+        return null;
+    }
+    
+    protected <T extends XenApiEntity> List<T> getEntities(Class<T> type, String methodName) {
+        return getEntities(type, getAPIName() + '.' + methodName, reference);
     }
 
     public void fillOut(Map<String, Object> data) {
