@@ -18,7 +18,7 @@ import org.apache.log4j.Logger;
  * @author double-u
  */
 public class WakeOnLan {
-    
+
     // WOL functionality from http://www.jibble.org/wake-on-lan/
     public static boolean wakeHost(String ipAddress, String macAddress, boolean confirmHostIsUp) {
         try {
@@ -30,25 +30,26 @@ public class WakeOnLan {
             for (int i = 6; i < bytes.length; i += macBytes.length) {
                 System.arraycopy(macBytes, 0, bytes, i, macBytes.length);
             }
-            
+
             InetAddress address = InetAddress.getByName(ipAddress);
             DatagramPacket packet = new DatagramPacket(bytes, bytes.length, address, 9);
             DatagramSocket socket = new DatagramSocket();
             socket.send(packet);
             socket.close();
-            
+
             Logger.getLogger(WakeOnLan.class).info("Wake on LAN packet sent to " + ipAddress);
-            
-            if (!confirmHostIsUp) return true;
+
+            if (!confirmHostIsUp) {
+                return true;
+            }
             return address.isReachable(10000);
-        }
-        catch (IllegalArgumentException | IOException e) {
+        } catch (IllegalArgumentException | IOException e) {
             Logger.getLogger(WakeOnLan.class).error(e);
         }
-        
+
         return false;
     }
-    
+
     private static byte[] getMacBytes(String macStr) throws IllegalArgumentException {
         byte[] bytes = new byte[6];
         String[] hex = macStr.split("(\\:|\\-)");
@@ -59,8 +60,7 @@ public class WakeOnLan {
             for (int i = 0; i < 6; i++) {
                 bytes[i] = (byte) Integer.parseInt(hex[i], 16);
             }
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid hex digit in MAC address.");
         }
         return bytes;

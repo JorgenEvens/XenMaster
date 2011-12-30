@@ -21,11 +21,11 @@ import net.wgr.xenmaster.controller.BadAPICallException;
 public class VMMetrics extends XenApiEntity {
 
     protected int actualMemory;
-    protected int VCPUs;
+    protected int vcpus;
     @Fill
-    protected Map<Integer, Double> VCPUutilisation;
+    protected Map<Integer, Double> vcpuUtilisation;
     @Fill
-    protected Map<Integer, Integer> PCPUs;
+    protected Map<Integer, Integer> pcpus;
     protected Date startTime, lastUpdated;
 
     public VMMetrics(String ref, boolean autoFill) {
@@ -42,9 +42,9 @@ public class VMMetrics extends XenApiEntity {
     }
    
     public List<PCPU> getPCPUs(Host physical) throws BadAPICallException {
-        this.PCPUs = getPCPUs();
+        this.pcpus = getPCPUs();
         ArrayList<PCPU> cpus = new ArrayList<>();
-        for (Map.Entry<Integer, Integer> entry : PCPUs.entrySet()) {
+        for (Map.Entry<Integer, Integer> entry : pcpus.entrySet()) {
             cpus.add(physical.getCPU(entry.getValue().intValue()));
         }
 
@@ -52,15 +52,15 @@ public class VMMetrics extends XenApiEntity {
     }
 
     public Map<Integer, Integer> getPCPUs() {
-        return value(PCPUs, "get_VCPUs_CPU");
+        return value(pcpus, "get_VCPUs_CPU");
     }
 
     public int getVCPUs() {
-        return VCPUs;
+        return vcpus;
     }
 
     public Map<Integer, Double> getVCPUutilisation() {
-        return VCPUutilisation;
+        return vcpuUtilisation;
     }
 
     public int getActualMemory() {
@@ -79,9 +79,9 @@ public class VMMetrics extends XenApiEntity {
     protected Map<String, String> interpretation() {
         HashMap<String, String> m = new HashMap<>();
         m.put("actualMemory", "memory_actual");
-        m.put("VCPUs", "VCPUs_number");
-        m.put("VCPUutilisation", "VCPUs_utilisation");
-        m.put("PCPUs", "VCPUs_CPU");
+        m.put("vcpus", "VCPUs_number");
+        m.put("vcpuUtilisation", "VCPUs_utilisation");
+        m.put("pcpus", "VCPUs_CPU");
         return m;
     }
 }

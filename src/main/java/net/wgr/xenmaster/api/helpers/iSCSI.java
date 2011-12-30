@@ -62,6 +62,13 @@ public class iSCSI {
         return map;
     }
 
+    /**
+     * Gets target IQNs
+     * ! This is only available on XenServer hosts. Use with caution
+     * @param host
+     * @return
+     * @throws BadAPICallException 
+     */
     public List<String> getAvailableIQNs(Host host) throws BadAPICallException {
         if (target == null) {
             throw new IllegalArgumentException("Target is not set");
@@ -69,11 +76,13 @@ public class iSCSI {
         try {
             Controller.dispatch("SR.create", host.getReference(), this.toDeviceConfig(), "0", "", "", "iSCSI", "user", true, new HashMap<>());
         } catch (BadAPICallException ex) {
-            if (ex.getErrorName().equals("SR_BACKEND_FAILURE_96")) {
+            /*if (ex.getErrorName().equals("SR_BACKEND_FAILURE_96")) {
                 // TODO
             } else {
                 throw ex;
-            }
+            }*/
+             
+            throw ex;
         }
         return null;
     }

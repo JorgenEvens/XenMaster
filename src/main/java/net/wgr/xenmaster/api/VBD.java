@@ -6,7 +6,6 @@
  */
 package net.wgr.xenmaster.api;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,9 +20,9 @@ import net.wgr.xenmaster.controller.Controller;
 public class VBD extends XenApiEntity {
 
     @ConstructorArgument
-    protected String VM;
+    protected String vm;
     @ConstructorArgument
-    protected String VDI;
+    protected String vdi;
     @ConstructorArgument
     protected String deviceName;
     @ConstructorArgument
@@ -93,13 +92,15 @@ public class VBD extends XenApiEntity {
     }
 
     public String create(VM vm, VDI vdi, String deviceName) throws BadAPICallException {
-        this.VM = vm.getReference();
+        this.vm = vm.getReference();
         if (vdi == null) {
             empty = true;
         } else {
-            this.VDI = vdi.getReference();
+            this.vdi = vdi.getReference();
         }
-        if (this.deviceIndex == -1) this.deviceIndex = vm.getNextAvailableVBDIndex();
+        if (this.deviceIndex == -1) {
+            this.deviceIndex = vm.getNextAvailableVBDIndex();
+        }
 
         this.reference = (String) Controller.dispatch("VBD.create", collectConstructorArgs());
         return this.reference;
@@ -110,20 +111,20 @@ public class VBD extends XenApiEntity {
     }
 
     public VDI getVDI() {
-        VDI = value(VDI, "get_VDI");
-        return new VDI(VDI);
+        vdi = value(vdi, "get_VDI");
+        return new VDI(vdi);
     }
 
     public VM getVM() {
-        VM = value(VM, "get_VM");
-        return new VM(VM);
+        vm = value(vm, "get_VM");
+        return new VM(vm);
     }
 
     public VBDMetrics getMetrics() {
         metrics = value(metrics, "get_metrics");
         return new VBDMetrics(metrics);
     }
-    
+
     public static List<VBD> getAll() throws BadAPICallException {
         return getAllEntities(VBD.class);
     }
@@ -178,7 +179,7 @@ public class VBD extends XenApiEntity {
 
     public void setDeviceIndex(int deviceIndex) throws BadAPICallException {
         this.deviceIndex = setter(deviceIndex, "set_userdevice");
-    } 
+    }
 
     public Type getType() {
         return type;

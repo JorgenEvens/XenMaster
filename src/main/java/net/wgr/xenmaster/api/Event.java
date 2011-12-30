@@ -61,7 +61,9 @@ public class Event extends XenApiEntity {
     }
 
     public static List<Event> nextEvents() throws BadAPICallException {
-        if (connectionIndex == 0) connectionIndex = Controller.getLocal().getDispatcher().getConnections().requestNewConnection();
+        if (connectionIndex == 0) {
+            connectionIndex = Controller.getLocal().getDispatcher().getConnections().requestNewConnection();
+        }
         ArrayList<Event> events = new ArrayList<>();
         Object obj = Controller.dispatchOn("event.next", connectionIndex);
         Object[] result = (Object[]) obj;

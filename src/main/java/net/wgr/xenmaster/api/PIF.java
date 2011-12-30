@@ -7,11 +7,8 @@
 package net.wgr.xenmaster.api;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
-import net.wgr.xenmaster.controller.Controller;
 
 /**
  * Physical (Network) Interface
@@ -20,12 +17,12 @@ import net.wgr.xenmaster.controller.Controller;
  */
 public class PIF extends XenApiEntity {
 
-    protected int MTU;
-    protected int VLAN;
+    protected int mtu;
+    protected int vlan;
     protected String device;
-    protected String MAC;
+    protected String mac;
     protected boolean attached, management, physical;
-    protected String IP, netmask, gateway, dnsServer;
+    protected String ip, netmask, gateway, dnsServer;
 
     public PIF(String ref, boolean autoFill) {
         super(ref, autoFill);
@@ -56,15 +53,15 @@ public class PIF extends XenApiEntity {
     }
 
     public String getMAC() {
-        return MAC;
+        return mac;
     }
 
     public int getMTU() {
-        return MTU;
+        return mtu;
     }
 
     public int getVLAN() {
-        return VLAN;
+        return vlan;
     }
 
     public String getDevice() {
@@ -72,7 +69,7 @@ public class PIF extends XenApiEntity {
     }
 
     public String getIP() {
-        return IP;
+        return ip;
     }
 
     public boolean isAttached() {

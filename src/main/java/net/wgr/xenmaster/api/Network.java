@@ -6,12 +6,10 @@
  */
 package net.wgr.xenmaster.api;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
-import net.wgr.xenmaster.controller.Controller;
 
 /**
  * 
@@ -19,11 +17,11 @@ import net.wgr.xenmaster.controller.Controller;
  * @author double-u
  */
 public class Network extends NamedEntity {
-    
-    protected int MTU;
+
+    protected int mtu;
     protected String bridge;
     @Fill
-    protected Object[] allowedOperations, VIFs, PIFs;
+    protected Object[] allowedOperations, vifs, pifs;
     @Fill
     protected Map<String, Object> currentOperations, otherConfig;
 
@@ -34,26 +32,28 @@ public class Network extends NamedEntity {
     public Network(String ref, boolean autoFill) {
         super(ref, autoFill);
     }
-    
+
     public void create(String bridge) throws BadAPICallException {
         this.bridge = bridge;
         HashMap<String, Object> args = new HashMap<>();
         args.put("bridge", bridge);
-        if (otherConfig == null) otherConfig = new HashMap<>();
+        if (otherConfig == null) {
+            otherConfig = new HashMap<>();
+        }
         args.put("other_config", otherConfig);
         dispatch("create", args);
     }
-    
+
     public static List<Network> getAll() throws BadAPICallException {
         return getAllEntities(Network.class);
     }
 
     public int getMTU() {
-        return MTU;
+        return mtu;
     }
 
     public void setMTU(int MTU) {
-        this.MTU = MTU;
+        this.mtu = MTU;
     }
 
     public String getBridge() {

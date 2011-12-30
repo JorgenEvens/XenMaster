@@ -18,18 +18,19 @@ public class LogKeeper {
 
     protected LinkedList<LogEntry> backlog;
     protected boolean isMaster;
-    
     private static LogKeeper instance;
-    
+
     public static LogKeeper get() {
-        if (instance == null) instance = new LogKeeper();
+        if (instance == null) {
+            instance = new LogKeeper();
+        }
         return instance;
     }
-    
+
     private LogKeeper() {
         backlog = new LinkedList<>();
     }
-    
+
     public static void log(LogEntry le) {
         get().write(le);
     }
@@ -41,7 +42,7 @@ public class LogKeeper {
             le.insert(this);
             backlog.remove(le);
         } catch (Exception ex) {
-            Logger.getLogger(getClass()).error("LogKeeper failed to write log entry",ex);
+            Logger.getLogger(getClass()).error("LogKeeper failed to write log entry", ex);
         }
     }
 
@@ -50,6 +51,4 @@ public class LogKeeper {
         // todo Check if there aren't any other masters still alive
         isMaster = true;
     }
-    
-    
 }

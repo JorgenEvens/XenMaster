@@ -68,6 +68,7 @@ public class Controller {
             // new Controller(getConfigForHost(uuid))
             //Controller c = new Controller();
             //c.getDispatcher().getConnection().getSession().loginWithPassword("root", "r00tme");
+            Logger.getLogger(Controller.class).info("Creating new context for host " + hostUUID.toString());
         }
         instance.set(instances.get(hostUUID));
     }

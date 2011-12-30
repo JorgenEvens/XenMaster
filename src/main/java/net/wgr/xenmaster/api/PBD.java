@@ -6,12 +6,10 @@
  */
 package net.wgr.xenmaster.api;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
-import net.wgr.xenmaster.controller.Controller;
 
 /**
  * 
@@ -23,7 +21,7 @@ public class PBD extends XenApiEntity {
     @Fill
     protected Map<String, Object> deviceConfig, otherConfig;
     protected boolean plugged;
-    protected String SR, host;
+    protected String sr, host;
     
     public PBD() {
         
@@ -58,7 +56,7 @@ public class PBD extends XenApiEntity {
     }
 
     public SR getSR() {
-        return new SR(SR);
+        return new SR(sr);
     }
 
     public static List<PBD> getAll() throws BadAPICallException {

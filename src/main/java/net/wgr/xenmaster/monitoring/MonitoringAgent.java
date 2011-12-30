@@ -42,7 +42,7 @@ public class MonitoringAgent implements Runnable {
     // Disrupting your pants
     protected RingBuffer<Record> ringBuffer;
     protected SequenceBarrier barrier;
-    protected final int RING_SIZE = 256;
+    protected static final int RING_SIZE = 256;
     private static MonitoringAgent instance;
     protected Thread eventHandler;
 

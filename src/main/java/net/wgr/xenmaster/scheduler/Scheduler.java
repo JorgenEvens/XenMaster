@@ -28,7 +28,7 @@ public class Scheduler {
     protected void parseSlice(LoadSlice expected, LoadSlice real) {
         double deviation = real.getLoad() - expected.getLoad();
 
-        if (deviation < -75) {
+        /*if (deviation < -75) {
             // Quiet day huh?
         } else if (deviation < -50) {
             // Still way off
@@ -43,7 +43,7 @@ public class Scheduler {
         } else {
             // Uh-oh
             Logger.getLogger(getClass()).warn("The real load has deviated with +75% or more from the predicted load");
-        }
+        }*/
         
         // Lots of deviation = higher trainingFactor
         trainingFactor = Math.max(((Math.abs(deviation) / 100) * trainingFactor) * fudgeFactor, 1);

@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
  */
 public class Record {
 
-    protected double CPUusage;
+    protected double cpuUsage;
     protected int memoryUsage;
     protected int memoryTotal;
     protected String reference;
@@ -31,7 +31,7 @@ public class Record {
     protected boolean vm;
 
     public Record(float CPUusage, int memoryUsage, int memoryTotal, String ref, boolean isVM) {
-        this.CPUusage = CPUusage;
+        this.cpuUsage = CPUusage;
         this.memoryTotal = memoryTotal;
         this.memoryUsage = memoryUsage;
         this.reference = ref;
@@ -83,7 +83,7 @@ public class Record {
             ds.addValue(util);
         }
 
-        CPUusage = ds.getMean();
+        cpuUsage = ds.getMean();
         double stdDev = ds.getStandardDeviation();
 
         // TODO: actually test this and generate warning

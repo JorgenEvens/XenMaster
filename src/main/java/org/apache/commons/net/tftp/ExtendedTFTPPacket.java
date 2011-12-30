@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.commons.net.tftp;
 
 import java.net.DatagramPacket;
@@ -43,16 +42,14 @@ import java.net.InetAddress;
  * @see TFTPPacketException
  * @see TFTP
  ***/
+public abstract class ExtendedTFTPPacket {
 
-public abstract class ExtendedTFTPPacket
-{
     /***
      * The minimum size of a packet.  This is 4 bytes.  It is enough
      * to store the opcode and blocknumber or other required data
      * depending on the packet type.
      ***/
     static final int MIN_PACKET_SIZE = 4;
-
     /***
      * This is the actual TFTP spec
      * identifier and is equal to 1.
@@ -60,7 +57,6 @@ public abstract class ExtendedTFTPPacket
      * indicating a read request packet.
      ***/
     public static final int READ_REQUEST = 1;
-
     /***
      * This is the actual TFTP spec
      * identifier and is equal to 2.
@@ -68,7 +64,6 @@ public abstract class ExtendedTFTPPacket
      * indicating a write request packet.
      ***/
     public static final int WRITE_REQUEST = 2;
-
     /***
      * This is the actual TFTP spec
      * identifier and is equal to 3.
@@ -76,7 +71,6 @@ public abstract class ExtendedTFTPPacket
      * indicating a data packet.
      ***/
     public static final int DATA = 3;
-
     /***
      * This is the actual TFTP spec
      * identifier and is equal to 4.
@@ -84,7 +78,6 @@ public abstract class ExtendedTFTPPacket
      * indicating an acknowledgement packet.
      ***/
     public static final int ACKNOWLEDGEMENT = 4;
-
     /***
      * This is the actual TFTP spec
      * identifier and is equal to 5.
@@ -92,9 +85,7 @@ public abstract class ExtendedTFTPPacket
      * indicating an error packet.
      ***/
     public static final int ERROR = 5;
-    
     public static final int OPTION_ACKNOWLEDGEMENT = 6;
-
     /***
      * The TFTP data packet maximum segment size in bytes.  This is 512
      * and is useful for those familiar with the TFTP protocol who want
@@ -102,13 +93,10 @@ public abstract class ExtendedTFTPPacket
      * class methods to implement their own TFTP servers or clients.
      ***/
     public static final int SEGMENT_SIZE = 512;
-
     /*** The type of packet. ***/
     int type;
-
     /*** The port the packet came from or is going to. ***/
     int port;
-
     /*** The host the packet is going to be sent or where it came from. ***/
     InetAddress address;
 
@@ -125,37 +113,36 @@ public abstract class ExtendedTFTPPacket
      *             TFTP packet.
      ***/
     public static final TFTPPacket newTFTPPacket(DatagramPacket datagram)
-    throws TFTPPacketException
-    {
+            throws TFTPPacketException {
         byte[] data;
         TFTPPacket packet = null;
 
-        if (datagram.getLength() < MIN_PACKET_SIZE)
+        if (datagram.getLength() < MIN_PACKET_SIZE) {
             throw new TFTPPacketException(
-                "Bad packet. Datagram data length is too short.");
+                    "Bad packet. Datagram data length is too short.");
+        }
 
         data = datagram.getData();
 
-        switch (data[1])
-        {
-        case READ_REQUEST:
-            packet = new TFTPOptionReadRequestPacket(datagram);
-            break;
-        case WRITE_REQUEST:
-            packet = new TFTPWriteRequestPacket(datagram);
-            break;
-        case DATA:
-            packet = new TFTPPXEDataPacket(datagram);
-            break;
-        case ACKNOWLEDGEMENT:
-            packet = new TFTPAckPacket(datagram);
-            break;
-        case ERROR:
-            packet = new TFTPErrorPacket(datagram);
-            break;
-        default:
-            throw new TFTPPacketException(
-                "Bad packet.  Invalid TFTP operator code.");
+        switch (data[1]) {
+            case READ_REQUEST:
+                packet = new TFTPOptionReadRequestPacket(datagram);
+                break;
+            case WRITE_REQUEST:
+                packet = new TFTPWriteRequestPacket(datagram);
+                break;
+            case DATA:
+                packet = new TFTPPXEDataPacket(datagram);
+                break;
+            case ACKNOWLEDGEMENT:
+                packet = new TFTPAckPacket(datagram);
+                break;
+            case ERROR:
+                packet = new TFTPErrorPacket(datagram);
+                break;
+            default:
+                throw new TFTPPacketException(
+                        "Bad packet.  Invalid TFTP operator code.");
         }
 
         return packet;
@@ -169,8 +156,7 @@ public abstract class ExtendedTFTPPacket
      * @param address The host the packet came from or is going to be sent.
      * @param port The port the packet came from or is going to be sent.
      **/
-    ExtendedTFTPPacket(int type, InetAddress address, int port)
-    {
+    ExtendedTFTPPacket(int type, InetAddress address, int port) {
         this.type = type;
         this.address = address;
         this.port = port;
@@ -208,8 +194,7 @@ public abstract class ExtendedTFTPPacket
      * <p>
      * @return The type of the packet.
      ***/
-    public final int getType()
-    {
+    public final int getType() {
         return type;
     }
 
@@ -219,8 +204,7 @@ public abstract class ExtendedTFTPPacket
      * <p>
      * @return The type of the packet.
      ***/
-    public final InetAddress getAddress()
-    {
+    public final InetAddress getAddress() {
         return address;
     }
 
@@ -230,20 +214,17 @@ public abstract class ExtendedTFTPPacket
      * <p>
      * @return The port where the packet came from or where it is going.
      ***/
-    public final int getPort()
-    {
+    public final int getPort() {
         return port;
     }
 
     /*** Sets the port where the packet is going to be sent. ***/
-    public final void setPort(int port)
-    {
+    public final void setPort(int port) {
         this.port = port;
     }
 
     /*** Sets the host address where the packet is going to be sent. ***/
-    public final void setAddress(InetAddress address)
-    {
+    public final void setAddress(InetAddress address) {
         this.address = address;
     }
 }

@@ -19,22 +19,23 @@ import net.wgr.xenmaster.entities.Host;
  * @author double-u
  */
 public class DefaultMaster implements Master {
-    
+
     protected HashSet<Host> hosts;
-    
+
     protected void planWork() {
         // Retrieve host that are to be managed
         for (Host h : Retrieval.getRowsAs(Host.class, Retrieval.getAllRowsFromColumnFamily("xen-hosts")).values()) {
-            if (h.isActive()) hosts.add(h);
+            if (h.isActive()) {
+                hosts.add(h);
+            }
         }
         // Distribute
         int tasksPerWorker = (int) Math.ceil(hosts.size() / Pool.get().getWorkers().size());
         int currentWorker = 0;
         for (int i = 0; i < hosts.size(); i++) {
-            
         }
     }
-    
+
     // Called when a configuration change has been made
     public void reorganize() {
         planWork();
@@ -69,5 +70,4 @@ public class DefaultMaster implements Master {
     public InetAddress getAddress() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-    
 }

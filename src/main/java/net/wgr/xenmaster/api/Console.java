@@ -6,12 +6,9 @@
  */
 package net.wgr.xenmaster.api;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
-import net.wgr.xenmaster.controller.Controller;
 
 /**
  * 
@@ -21,7 +18,7 @@ import net.wgr.xenmaster.controller.Controller;
 public class Console extends XenApiEntity {
     
     protected String location;
-    protected String VM;
+    protected String vm;
     protected Protocol protocol;
     protected int port;
     @Fill
@@ -40,8 +37,8 @@ public class Console extends XenApiEntity {
     }
     
     public VM getVM() {
-        this.VM = value(VM, "get_vm");
-        return new VM(VM, false);
+        this.vm = value(vm, "get_vm");
+        return new VM(vm, false);
     }
 
     public Map<String, String> getOtherConfig() {

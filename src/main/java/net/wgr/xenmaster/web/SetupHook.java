@@ -67,11 +67,13 @@ public class SetupHook extends WebHook {
             rb.replyWithString(parseTemplate(fis, rb.getRequest().getRemoteAddr()));
         }
     }
-    
+
     protected void writePluginsToTarball(TarArchiveOutputStream tos) throws IOException {
         File f = new File("store/xapi/plugins");
-        if (!f.exists() || !f.isDirectory()) throw new IOException("Plugin directory is not present");
-        
+        if (!f.exists() || !f.isDirectory()) {
+            throw new IOException("Plugin directory is not present");
+        }
+
         for (File plugin : f.listFiles()) {
             TarArchiveEntry tae = new TarArchiveEntry(plugin);
             tae.setUserId(0);

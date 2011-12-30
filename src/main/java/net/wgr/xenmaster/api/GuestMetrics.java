@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
  */
 public class GuestMetrics extends XenApiEntity {
 
-    protected Map<String, String> osVersion, PVdriversVersion, memory, disks, networks, other;
+    protected Map<String, String> osVersion, pvDriversVersion, memory, disks, networks, other;
     protected Date lastUpdate;
 
     public GuestMetrics(String ref, boolean autoFill) {
@@ -50,7 +50,7 @@ public class GuestMetrics extends XenApiEntity {
     }
 
     public Map<String, String> getPVdriversVersion() {
-        return PVdriversVersion;
+        return pvDriversVersion;
     }
 
     public Map<String, String> getDisks() {
@@ -80,7 +80,7 @@ public class GuestMetrics extends XenApiEntity {
     @Override
     protected Map<String, String> interpretation() {
         HashMap<String, String> map = new HashMap<>();
-        map.put("PVdriversVersion", "PV_drivers_version");
+        map.put("pvDriversVersion", "PV_drivers_version");
         return map;
     }
 }

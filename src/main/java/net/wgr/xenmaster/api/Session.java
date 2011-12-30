@@ -34,9 +34,11 @@ public class Session extends XenApiEntity {
 
     public Session(String ref, boolean autoFill) {
         super(ref, autoFill);
-        if (ref != null && ref.isEmpty()) proxy = true;
+        if (ref != null && ref.isEmpty()) {
+            proxy = true;
+        }
     }
-    
+
     public void addListener(SessionActivityListener sal) {
         this.listeners.add(sal);
     }
@@ -64,8 +66,9 @@ public class Session extends XenApiEntity {
         thisHost = value(thisHost, "get_this_host");
         return new Host(thisHost);
     }
-    
+
     public static interface SessionActivityListener {
+
         public void sessionEstablished(Session session);
     }
 }

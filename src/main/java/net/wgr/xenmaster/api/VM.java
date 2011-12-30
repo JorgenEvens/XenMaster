@@ -46,24 +46,24 @@ public class VM extends NamedEntity {
     protected String poolName;
     protected boolean autoPowerOn;
     @ConstructorArgument
-    protected String PVargs, PVramdisk, PVbootloader, PVkernel, PVbootloaderArgs;
+    protected String pvArgs, pvRamdisk, pvBootloader, pvKernel, pvBootloaderArgs;
     protected PowerState powerState;
     @ConstructorArgument
-    protected String HVMbootPolicy;
+    protected String hvmBootPolicy;
     @Fill
     @ConstructorArgument
-    protected Map<String, String> HVMbootParams;
+    protected Map<String, String> hvmBootParams;
     @ConstructorArgument
     @Fill
     protected Map<String, String> platform;
     @ConstructorArgument
-    protected String PCIbus;
+    protected String pciBus;
     protected String metrics, guestMetrics;
     protected String host;
     @ConstructorArgument
     protected String hostAffinity;
     @Fill
-    protected Object[] VBDs, VIFs, consoles;
+    protected Object[] vbds, vifs, consoles;
     @Fill
     @ConstructorArgument
     protected Map<String, String> VCPUparams;
@@ -72,7 +72,7 @@ public class VM extends NamedEntity {
     protected Map<String, String> otherConfig;
     @ConstructorArgument
     protected String recommendations;
-    protected static int MEGABYTE = 1024 * 1024;
+    protected static final int MEGABYTE = 1024 * 1024;
 
     public VM() {
         this.actionsAfterReboot = ShutdownAction.RESTART;
@@ -383,7 +383,7 @@ public class VM extends NamedEntity {
     }
 
     public String getHVMBootPolicy() {
-        return HVMbootPolicy;
+        return hvmBootPolicy;
     }
 
     public void setDefaultHVMBootPolicy() throws BadAPICallException {
@@ -391,51 +391,51 @@ public class VM extends NamedEntity {
     }
 
     public void setHVMBootPolicy(String policy) throws BadAPICallException {
-        HVMbootPolicy = setter(policy, "set_HVM_boot_policy");
+        hvmBootPolicy = setter(policy, "set_HVM_boot_policy");
     }
 
     public Map<String, String> getHVMBootParams() {
-        return HVMbootParams;
+        return hvmBootParams;
     }
 
     public void setHVMBootParams(Map<String, String> params) {
-        HVMbootParams = params;
+        hvmBootParams = params;
     }
 
     public String getPVargs() {
-        return PVargs;
+        return pvArgs;
     }
 
     public String getPVBootloader() {
-        return PVbootloader;
+        return pvBootloader;
     }
 
     public void setPVBootloader(String bootloader) throws BadAPICallException {
-        PVbootloader = setter(bootloader, "set_PV_bootloader");
+        pvBootloader = setter(bootloader, "set_PV_bootloader");
     }
 
     public String getPVBootloaderArgs() {
-        return PVbootloader;
+        return pvBootloader;
     }
 
     public void setPVBootloaderArgs(String bootloaderargs) throws BadAPICallException {
-        PVbootloader = setter(bootloaderargs, "set_PV_bootloader_args");
+        pvBootloader = setter(bootloaderargs, "set_PV_bootloader_args");
     }
 
     public String getPVKernel() {
-        return PVkernel;
+        return pvKernel;
     }
 
     public void setPVKernel(String kernel) throws BadAPICallException {
-        PVkernel = setter(kernel, "set_PV_kernel");
+        pvKernel = setter(kernel, "set_PV_kernel");
     }
 
     public String getPVRamdisk() {
-        return PVramdisk;
+        return pvRamdisk;
     }
 
     public void setPVRamdisk(String ramdisk) throws BadAPICallException {
-        PVramdisk = setter(ramdisk, "set_PV_ramdisk");
+        pvRamdisk = setter(ramdisk, "set_PV_ramdisk");
     }
 
     public CrashedAction getActionsAfterCrash() {
@@ -544,19 +544,19 @@ public class VM extends NamedEntity {
         map.put("template", "is_a_template");
         map.put("controlDomain", "is_control_domain");
         map.put("domainId", "domid");
-        map.put("PVargs", "PV_args");
-        map.put("PVramdisk", "PV_ramdisk");
-        map.put("PVkernel", "PV_kernel");
-        map.put("PVbootloader", "PV_bootloader");
-        map.put("PVbootloaderArgs", "PV_bootloader_args");
-        map.put("HVMbootPolicy", "HVM_boot_policy");
-        map.put("HVMbootParams", "HVM_boot_params");
+        map.put("pvArgs", "PV_args");
+        map.put("pvRamdisk", "PV_ramdisk");
+        map.put("pvKernel", "PV_kernel");
+        map.put("pvBootloader", "PV_bootloader");
+        map.put("pvBootloaderArgs", "PV_bootloader_args");
+        map.put("hvmBootPolicy", "HVM_boot_policy");
+        map.put("hvmBootParams", "HVM_boot_params");
         map.put("startupVCPUs", "VCPUs_at_startup");
         map.put("maxVCPUs", "VCPUs_max");
         map.put("host", "resident_on");
         map.put("hostAffinity", "affinity");
-        map.put("VCPUparams", "VCPUs_params");
-        map.put("PCIbus", "PCI_bus");
+        map.put("vcpuParams", "VCPUs_params");
+        map.put("pciBus", "PCI_bus");
 
         return map;
     }
