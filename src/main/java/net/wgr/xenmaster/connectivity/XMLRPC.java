@@ -24,10 +24,12 @@ public class XMLRPC {
     protected XmlRpcClientConfigImpl cfg;
     protected final XmlRpcClient client;
     protected final Logger logger = Logger.getLogger(getClass());
+    public static final int CONNECTION_TIMEOUT = 300;
 
     public XMLRPC(URL host) {
         cfg = new XmlRpcClientConfigImpl();
         cfg.setServerURL(host);
+        cfg.setConnectionTimeout(CONNECTION_TIMEOUT);
         client = new XmlRpcClient();
         client.setConfig(cfg);
     }
@@ -35,7 +37,6 @@ public class XMLRPC {
     public Map execute(String method, List params) {
         try {
             synchronized (client) {
-                logger.debug("Called " + method);
                 return (Map) client.execute(method, params);
             }
         } catch (XmlRpcException ex) {

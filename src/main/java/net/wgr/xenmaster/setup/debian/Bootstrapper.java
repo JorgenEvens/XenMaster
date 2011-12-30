@@ -41,6 +41,10 @@ public class Bootstrapper {
 
         preseedValues.put("menuItemLabel", "^Install Debian");
     }
+    
+    public void waitForServerToQuit() throws InterruptedException {
+        tftpd.waitTillQuit();
+    }
 
     protected class PXEListener implements TFTPServer.ActivityListener {
 
@@ -55,7 +59,7 @@ public class Bootstrapper {
                 if (f.exists()) {
                     FileInputStream fis = new FileInputStream(f);
                     if (f.getName().equals("txt.cfg")) {
-                        preseedValues.put("preseedUrl", "http://" + Network.getHostAddressInSubnet(packet.getAddress().getHostAddress(), "255.255.255.0").getHostAddress() + ":" + Settings.getInstance().get("WebApplicationPort") + "/setup/xapi");
+                        preseedValues.put("preseedUrl", "http://" + Network.getHostAddressInSubnet(packet.getAddress().getHostAddress(), "255.255.0.0").getHostAddress() + ":" + Settings.getInstance().get("WebApplicationPort") + "/setup/xapi");
 
                         String txt = IOUtils.toString(fis);
                         for (Map.Entry<String, String> entry : preseedValues.entrySet()) {

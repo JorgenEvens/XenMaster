@@ -84,7 +84,8 @@ public class SetupHook extends WebHook {
 
     protected String parseTemplate(FileInputStream fis, String addr) {
         HashMap<String, String> values = new HashMap<>();
-        values.put("bootstrap-server-address", Network.getHostAddressInSubnet(addr, "255.255.255.0").getCanonicalHostName() + ':' + Settings.getInstance().get("WebApplicationPort"));
+        // todo this is not reliable
+        values.put("bootstrap-server-address", Network.getHostAddressInSubnet(addr, "255.255.0.0").getCanonicalHostName() + ':' + Settings.getInstance().get("WebApplicationPort"));
 
         try {
             String txt = IOUtils.toString(fis);

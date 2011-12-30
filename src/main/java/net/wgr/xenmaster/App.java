@@ -1,5 +1,6 @@
 package net.wgr.xenmaster;
 
+import java.io.IOException;
 import java.net.URL;
 import net.wgr.core.access.Authorize;
 import net.wgr.core.data.DataPool;
@@ -20,13 +21,14 @@ import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
 import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.EnhancedPatternLayout;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.TTCCLayout;
 
 public class App implements Daemon {
 
     protected Server server;
+    public static final String LOGPATTERN = "%d{HH:mm:ss,SSS} | %-5p | %t | %c{1.} %m%n";
 
     public static void main(String[] args) {
         try {
@@ -46,18 +48,38 @@ public class App implements Daemon {
                 Settings.loadFromFile(context.getArguments()[0]);
             }
         }
-        
+
         Logger root = Logger.getRootLogger();
         root.setLevel(Level.toLevel(Settings.getInstance().getString("Logging.Level")));
-        root.addAppender(new ConsoleAppender(new TTCCLayout()));
+        root.addAppender(new ConsoleAppender(new EnhancedPatternLayout(LOGPATTERN)));
     }
 
     @Override
     public void start() throws Exception {
+        DataPool.simpleBoot(Settings.getInstance().getString("Cassandra.PoolName"), Settings.getInstance().getString("Cassandra.Host"), Settings.getInstance().getString("Cassandra.Keyspace"));
+        Bootstrapper b = new Bootstrapper();
+        b.boot();
+
         Controller.build(new URL(Settings.getInstance().getString("Xen.URL")));
         Controller.getSession().loginWithPassword("root", "r00tme");
+
+        server = new Server();
+        server.boot();
         
-        DataPool.simpleBoot(Settings.getInstance().getString("Cassandra.PoolName"), Settings.getInstance().getString("Cassandra.Host"), Settings.getInstance().getString("Cassandra.Keyspace"));
+        Authorize.disable();
+
+        if (Controller.getSession().getReference() == null) {
+            Logger.getLogger(getClass()).error("Failed to connect to XAPI instance, running in bootstrap mode");
+
+            ServerHook sh = new ServerHook("/*");
+            sh.addWebHook(new SetupHook());
+            sh.hookIntoServer(server);
+            server.start();
+
+            b.waitForServerToQuit();
+            return;
+        }
+
         Pool.get().boot();
         MonitoringAgent.get().boot();
         MonitoringAgent.get().start();
@@ -71,17 +93,12 @@ public class App implements Daemon {
         sh.addWebHook(new SetupHook());
         sh.addWebHook(new VNCHook());
 
-        Authorize.disable();
-
         server.addServlet(sh.getHttpHandler());
         server.addServlet(sh.getWebSocketHandler());
 
         DefaultApplication da = DefaultApplication.create("/", Settings.getInstance().getString("WebContentPath"));
         server.addHook(da);
         server.start();
-
-        Bootstrapper b = new Bootstrapper();
-        b.boot();
     }
 
     @Override

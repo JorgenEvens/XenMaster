@@ -36,7 +36,7 @@ import org.apache.log4j.Logger;
  */
 public class TFTPServer implements Runnable {
 
-    protected Thread thread;
+    protected final Thread thread;
     protected boolean run;
     protected ExtendedTFTP tftp;
     protected InetAddress clientAddress;
@@ -53,6 +53,7 @@ public class TFTPServer implements Runnable {
 
         listeners = new LinkedList<>();
         resendTask = new ResendTask();
+        thread = new Thread(this, "TFTP server");
         GlobalExecutorService.get().scheduleAtFixedRate(resendTask, 500, 500, TimeUnit.MILLISECONDS);
     }
 
@@ -62,8 +63,6 @@ public class TFTPServer implements Runnable {
 
     public void boot() {
         run = true;
-
-        thread = new Thread(this, "TFTP server");
         thread.start();
     }
 
@@ -92,6 +91,11 @@ public class TFTPServer implements Runnable {
 
         tftp.endBufferedOps();
         tftp.close();
+        
+        // Send a goodbye to all threads waiting for the tftp server to finish
+        synchronized (this.thread) {
+            this.thread.notifyAll();
+        }
     }
 
     protected void handlePacket(final TFTPPacket packet) throws IOException {
@@ -171,12 +175,12 @@ public class TFTPServer implements Runnable {
                         final int bytesRead = dataInputStream.read(data);
                         blockNumber++;
                         TFTPPXEDataPacket dataPacket = new TFTPPXEDataPacket(packet.getAddress(), packet.getPort(), blockNumber, data, 0, bytesRead);
-                        
+
                         Logger.getLogger(getClass()).debug("Sending " + blockNumber + " to " + packet.getAddress().getCanonicalHostName() + " with " + bytesRead + " bytes");
-                        
+
                         tftp.bufferedSend(dataPacket);
                         resendTask.set(dataPacket, ackPacket.getBlockNumber());
-                        
+
                         // It is done
                         if (bytesRead < blockSize) {
                             clientAddress = null;
@@ -194,24 +198,32 @@ public class TFTPServer implements Runnable {
                 break;
         }
     }
-    
+
+    public void waitTillQuit() throws InterruptedException {
+        synchronized (this.thread) {
+            this.thread.wait();
+        }
+    }
+
     protected class ResendTask extends TimerTask {
-        
+
         protected TFTPPXEDataPacket packet;
         protected int blockCount;
-        
+
         public void set(TFTPPXEDataPacket packet, int blockCount) {
             this.packet = packet;
             this.blockCount = blockCount;
         }
-        
+
         public void chill() {
             this.packet = null;
         }
 
         @Override
         public void run() {
-            if (packet == null) return;
+            if (packet == null) {
+                return;
+            }
             if (blockNumber > blockCount) {
                 try {
                     Logger.getLogger(getClass()).debug("Resending " + blockNumber);
@@ -222,7 +234,6 @@ public class TFTPServer implements Runnable {
                 }
             }
         }
-        
     }
 
     public static interface ActivityListener {

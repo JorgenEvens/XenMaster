@@ -6,11 +6,10 @@
  */
 package net.wgr.xenmaster.api;
 
+import java.io.Serializable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +32,7 @@ import org.apache.log4j.Logger;
  * @created Oct 2, 2011
  * @author double-u
  */
-public class XenApiEntity {
+public class XenApiEntity implements Serializable {
 
     protected String reference;
     protected String uuid;
@@ -341,7 +340,7 @@ public class XenApiEntity {
     }
 
     public static <T extends XenApiEntity> List<T> getAllEntities(Class<T> type) throws BadAPICallException {
-        return getEntities(type, type.getSimpleName() + ".get_all", null);
+        return getEntities(type, XenApiEntity.getAPIName(type) + ".get_all", null);
     }
 
     public static <T extends XenApiEntity> List<T> getEntities(Class<T> type, String methodName, String reference) throws BadAPICallException {
