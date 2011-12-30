@@ -15,9 +15,12 @@ import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
 import org.apache.log4j.Logger;
 import org.infinispan.Cache;
-import org.infinispan.config.FluentConfiguration;
+import org.infinispan.configuration.cache.CacheMode;
+import org.infinispan.configuration.cache.ConfigurationBuilder;
+import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.manager.DefaultCacheManager;
 import org.infinispan.manager.EmbeddedCacheManager;
+import org.infinispan.remoting.transport.jgroups.JGroupsTransport;
 
 /**
  * 
@@ -29,25 +32,43 @@ public class CachingFacility {
     protected Mode mode;
     protected Cache<String, XenApiEntity> cache;
     protected CopyOnWriteArrayList<Class> loadedEntityClasses;
+    protected EmbeddedCacheManager ecm;
     private static CachingFacility instance;
 
-    private CachingFacility() {
+    private CachingFacility(boolean distributed) {
         this.mode = Mode.LAZY;
-        this.cache = buildCache();
+        this.cache = buildCache(distributed);
         this.loadedEntityClasses = new CopyOnWriteArrayList<>();
     }
-    
-    protected Cache buildCache() {
-        FluentConfiguration fc = new FluentConfiguration(null);
-        EmbeddedCacheManager ecm = new DefaultCacheManager(fc.build());
+
+    protected Cache buildCache(boolean distributed) {
+        ConfigurationBuilder cb = new ConfigurationBuilder();
+        GlobalConfigurationBuilder gcb = new GlobalConfigurationBuilder();
+        gcb.transport().transport(new JGroupsTransport());
+        gcb.transport().clusterName("XenMaster");
+        cb.clustering().cacheMode((distributed ? CacheMode.DIST_SYNC : CacheMode.LOCAL));
+
+        if (distributed) {
+            ecm = new DefaultCacheManager(gcb.build(), cb.build());
+        } else {
+            ecm = new DefaultCacheManager(cb.build());
+        }
         return ecm.getCache();
     }
 
     public static CachingFacility instance() {
+        return instance(true);
+    }
+
+    public static CachingFacility instance(boolean distributed) {
         if (instance == null) {
-            instance = new CachingFacility();
+            instance = new CachingFacility(distributed);
         }
         return instance;
+    }
+
+    public EmbeddedCacheManager getCacheManager() {
+        return ecm;
     }
 
     public static enum Mode {
@@ -76,12 +97,21 @@ public class CachingFacility {
         return instance().getEntity(reference, target);
     }
 
+    public <T extends XenApiEntity> void update(String reference, T object) {
+        if (isCached(reference, object.getClass())) {
+            cache.put(reference, object);
+        } else {
+            // We only are interested in updates for things we've cached, others will always be newest available ones when they are retreived
+            Logger.getLogger(getClass()).debug("Object " + reference + '(' + object.getClass().getCanonicalName() + ") was not inside cache and therefore could not be updated.");
+        }
+    }
+
     public boolean isCached(String reference, Class target) {
         return cache.containsKey(reference) && target != null && target.isAssignableFrom(cache.get(reference).getClass());
     }
 
     public <T extends XenApiEntity> T getEntity(String reference, Class<T> target) {
-        if (!loadedEntityClasses.contains(target)) {
+        if (!cache.containsKey(reference) && !loadedEntityClasses.contains(target)) {
             heatCache(target);
         }
 
