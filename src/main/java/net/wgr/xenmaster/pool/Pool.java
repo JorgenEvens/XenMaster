@@ -16,34 +16,38 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import net.wgr.rmi.Remote;
-import net.wgr.utility.GlobalExecutorService;
 import org.apache.log4j.Logger;
+import org.jgroups.JChannel;
+import org.jgroups.protocols.BPING;
+import org.jgroups.protocols.MERGE2;
+import org.jgroups.protocols.UDP;
+import org.jgroups.stack.ProtocolStack;
 
 /**
  * 
  * @created Oct 23, 2011
  * @author double-u
  */
-public class Pool implements Runnable {
+public class Pool {
 
     protected HashMap<InetAddress, Worker> workers;
     protected HashMap<InetAddress, Remote> remotes;
     // Pool Orchestrating Protocol
     protected DatagramSocket popSocket;
     protected ServerSocket rmiSocket;
-    protected Thread wpop, rmi;
+    protected Thread rmi;
     protected boolean run, master;
     protected Worker local;
+    protected JChannel channel;
     // The port number is completely random ... or is it?
     public final static int PORT = 24515;
     private volatile static Pool instance;
 
     private Pool() {
         workers = new HashMap<>();
-        wpop = new Thread(this, "WPOP");
         rmi = new Thread(new RMIListener(), "Pool RMI");
+        channel = buildChannel();
     }
 
     public static Pool get() {
@@ -53,11 +57,34 @@ public class Pool implements Runnable {
         return instance;
     }
 
-    public Worker getLocalWorker() {
-        if (local == null) {
-            local = WorkerFactory.getLocalWorker();
+    protected JChannel buildChannel() {
+        JChannel jc = new JChannel(false);
+        ProtocolStack stack = new ProtocolStack();
+        jc.setProtocolStack(stack);
+
+        // Transport
+        UDP udp = new UDP();
+        udp.setBindPort(PORT);
+        stack.addProtocol(udp);
+
+        // Discovery
+        BPING ping = new BPING();
+        stack.addProtocol(ping);
+
+        // Group merge
+        MERGE2 merge = new MERGE2();
+        stack.addProtocol(merge);
+
+        try {
+            stack.init();
+        } catch (Exception ex) {
+            Logger.getLogger(getClass()).error("Failed to connect to cluster", ex);
         }
-        return local;
+        return jc;
+    }
+
+    public JChannel getChannel() {
+        return channel;
     }
 
     public Map<InetAddress, Worker> getWorkers() {
@@ -65,16 +92,16 @@ public class Pool implements Runnable {
     }
 
     public void boot() throws SocketException, UnknownHostException, IOException {
-        popSocket = new DatagramSocket(PORT);
+        //popSocket = new DatagramSocket(PORT);
 
-        rmiSocket = new ServerSocket(PORT);
+        //rmiSocket = new ServerSocket(PORT);
 
         run = true;
-        wpop.start();
-        rmi.start();
-        GlobalExecutorService.get().scheduleAtFixedRate(new AliveBroadcaster(), 0, 1, TimeUnit.SECONDS);
+        //wpop.start();
+        //rmi.start();
+        //GlobalExecutorService.get().scheduleAtFixedRate(new AliveBroadcaster(), 0, 1, TimeUnit.SECONDS);
     }
-    
+
     public void stop() {
         // Send "going down" msg to pool master or to friend if this is the master
         run = false;
@@ -106,34 +133,6 @@ public class Pool implements Runnable {
             } catch (Exception ex) {
                 Logger.getLogger(getClass()).error("Exception", ex);
             }
-        }
-    }
-
-    @Override
-    public void run() {
-        DatagramPacket packet = new DatagramPacket(new byte[1512], 1512);
-        while (run) {
-            try {
-                popSocket.receive(packet);
-                process(packet);
-            } catch (IOException ex) {
-                Logger.getLogger(getClass()).warn("Receiving UDP packet failed", ex);
-            }
-        }
-    }
-
-    protected void process(DatagramPacket packet) {
-        XMPacket xm = new XMPacket();
-        xm.setContents(packet.getData(), packet.getLength());
-
-        if (xm.master && master) {
-            // Hey! I'm the master! Get out of here you!
-            Logger.getLogger(getClass()).warn("Rogue master detected at " + packet.getSocketAddress().toString());
-        }
-
-        if (!workers.containsKey(packet.getAddress())) {
-            Logger.getLogger(getClass()).info("New worker detected at " + packet.getAddress().getCanonicalHostName());
-            workers.put(packet.getAddress(), WorkerFactory.getWorkerWithAddress(packet.getAddress()));
         }
     }
 
