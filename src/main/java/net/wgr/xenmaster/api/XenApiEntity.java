@@ -36,7 +36,7 @@ public class XenApiEntity implements Serializable {
 
     protected String reference;
     protected String uuid;
-    protected final transient String packageName = getClass().getPackage().getName();
+    protected final static transient String packageName = XenApiEntity.class.getPackage().getName();
 
     public XenApiEntity() {
     }
@@ -216,74 +216,6 @@ public class XenApiEntity implements Serializable {
     public @interface ConstructorArgument {
     }
 
-    public void persistFields() {
-        for (Field f : ReflectionUtils.getAllFields(getClass())) {
-            if (f.isAnnotationPresent(ConstructorArgument.class) && Map.class.isAssignableFrom(f.getType())) {
-                try {
-                    Fill fill = f.getAnnotation(Fill.class);
-                    if (fill.storeExternally()) {
-                        PersistedField pf = new PersistedField(reference, f.getName(), f.get(this));
-                        pf.insert();
-                    }
-                } catch (IllegalAccessException | IllegalArgumentException ex) {
-                    Logger.getLogger(getClass()).error("Failed to persist field", ex);
-                }
-            }
-        }
-    }
-
-    protected static class PersistedField extends net.wgr.core.dao.Object {
-
-        protected String reference, name;
-        protected Object value;
-        protected static String COLUMN_FAMILY = "xapiPersistence";
-
-        @Override
-        public String getColumnFamily() {
-            return COLUMN_FAMILY;
-        }
-
-        @Override
-        public String getKeyFieldName() {
-            return "reference";
-        }
-
-        public PersistedField(String reference, String name, Object value) {
-            this.reference = reference;
-            this.name = name;
-            this.value = value;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getReference() {
-            return reference;
-        }
-
-        public Object getValue() {
-            return value;
-        }
-
-        private static List<PersistedField> getAllForReference(final String reference) {
-            LazyQuery<PersistedField> lq = new LazyQuery(COLUMN_FAMILY, LazyQuery.ResultStrategy.FIND_ALL);
-            lq.addMatcher(new DAObjectMatcher<PersistedField>(PersistedField.class) {
-
-                @Override
-                public boolean match(PersistedField object) {
-                    if (object.getReference().equals(reference)) {
-                        return true;
-                    }
-                    return false;
-                }
-            });
-
-            lq.run();
-            return new ArrayList<>(lq.getResults().values());
-        }
-    }
-
     protected Map<String, Object> collectConstructorArgs() {
         HashMap<String, Object> args = new HashMap<>();
         Map<String, String> interpretation = interpretation();
@@ -399,27 +331,12 @@ public class XenApiEntity implements Serializable {
 
             Object value = null;
             for (Map.Entry<String, Object> entry : data.entrySet()) {
-                if (entry.getKey().equals(processedName)) {
+                if (entry.getKey().toLowerCase().equals(processedName)) {
                     value = entry.getValue();
                     break;
                 }
             }
-
-            List<PersistedField> persistedFields = null;
-
-            // Some fields are persisted, check if there are any and load them
             if (value == null) {
-                if (f.isAnnotationPresent(Fill.class) && f.getAnnotation(Fill.class).storeExternally()) {
-                    if (persistedFields == null) {
-                        persistedFields = PersistedField.getAllForReference(this.reference);
-                    }
-
-                    for (PersistedField ps : persistedFields) {
-                        if (ps.getName().equals(f.getName())) {
-                            value = ps.getValue();
-                        }
-                    }
-                }
                 continue;
             }
 
@@ -435,8 +352,7 @@ public class XenApiEntity implements Serializable {
                     case "boolean":
                         if ((value.getClass().getName().equals("java.lang.String"))) {
                             // The API is nuts
-                            String corrected = value.toString().replace("1", "true").replace("0", "false");
-                            f.setBoolean(this, Boolean.parseBoolean(corrected));
+                            f.setBoolean(this, (value.toString().equals("true") ? true : false));
                         } else {
                             f.setBoolean(this, (boolean) value);
                         }
