@@ -23,6 +23,10 @@ public class PIF extends XenApiEntity {
     protected String mac;
     protected boolean attached, management, physical;
     protected String ip, netmask, gateway, dnsServer;
+    
+    public PIF() {
+        
+    }
 
     public PIF(String ref, boolean autoFill) {
         super(ref, autoFill);

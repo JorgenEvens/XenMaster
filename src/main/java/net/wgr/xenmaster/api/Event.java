@@ -6,6 +6,8 @@
  */
 package net.wgr.xenmaster.api;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -14,6 +16,8 @@ import java.util.Map;
 import java.util.UUID;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 
 /**
  * 
@@ -27,6 +31,7 @@ public class Event extends XenApiEntity {
     protected String eventClass;
     protected UUID subject;
     protected String operation;
+    protected XenApiEntity snapshot;
     protected static int connectionIndex;
 
     public Event() {
@@ -71,11 +76,40 @@ public class Event extends XenApiEntity {
             return events;
         }
         for (Object o : result) {
+            Map<String, Object> ev = (Map<String, Object>) o;
             Event event = new Event();
-            event.fillOut((Map<String, Object>) o);
+            event.fillOut(ev);
+            event.setSnapshot(parseSnapshot(ev.get("class").toString(), (Map<String, Object>) ev.get("snapshot")));
             events.add(event);
         }
         return events;
+    }
+
+    protected static <T extends XenApiEntity> T parseSnapshot(String className, Map<String, Object> data) {
+        try {
+            Class<T> clazz = null;
+            
+            // Todo : clean this mess up
+            try {
+                clazz = (Class<T>) Class.forName(packageName + '.' + StringUtils.capitalize(className));
+            } catch (ClassNotFoundException ex) {
+                try {
+                    clazz = (Class<T>) Class.forName(packageName + '.' + className.toUpperCase());
+                } catch (ClassNotFoundException ex1) {
+                    Logger.getLogger(Event.class).error("Failed to find class", ex1);
+                    return null;
+                }
+            }
+            
+            Constructor<T> ctor = clazz.getConstructor();
+            T newInstance = ctor.newInstance();
+            newInstance.fillOut(data);
+            return newInstance;
+        } catch (IllegalAccessException | IllegalArgumentException | NoSuchMethodException | InstantiationException | InvocationTargetException ex) {
+            Logger.getLogger(Event.class).error("Failed to create snapshot entity", ex);
+        }
+
+        return null;
     }
 
     public String getEventClass() {
@@ -100,6 +134,14 @@ public class Event extends XenApiEntity {
 
     public void setSubject(UUID subject) {
         this.subject = subject;
+    }
+
+    public XenApiEntity getSnapshot() {
+        return snapshot;
+    }
+
+    protected void setSnapshot(XenApiEntity snapshot) {
+        this.snapshot = snapshot;
     }
 
     public Date getTimestamp() {

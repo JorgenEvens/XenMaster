@@ -6,7 +6,6 @@
  */
 package net.wgr.xenmaster.api;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +28,10 @@ public class Host extends XenApiEntity {
     protected Map<String, String> softwareVersion;
     @Fill
     protected Object[] hostCPUs;
+    
+    public Host() {
+        
+    }
 
     public Host(String ref) {
         super(ref);

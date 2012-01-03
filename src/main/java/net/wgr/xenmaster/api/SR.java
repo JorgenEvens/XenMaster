@@ -70,7 +70,7 @@ public class SR extends NamedEntity {
         if (smConfig == null) {
             smConfig = new HashMap<>();
         }
-        persistFields();
+
         this.reference = (String) dispatch("create", host.getIDString(), deviceConfig, "" + size, name, description, type.toLowerCase(), contentType, shared, smConfig);
 
         return this.reference;
@@ -84,8 +84,6 @@ public class SR extends NamedEntity {
         this.type = type.name().toLowerCase();
         this.contentType = contentType;
         this.shared = shared;
-
-        persistFields();
         this.reference = (String) Controller.dispatch("SR.introduce", UUID.randomUUID().toString(), name, description, this.type, contentType, shared, smConfig);
 
         return this.reference;

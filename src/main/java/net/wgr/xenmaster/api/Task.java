@@ -6,12 +6,10 @@
  */
 package net.wgr.xenmaster.api;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
-import net.wgr.xenmaster.controller.Controller;
 
 /**
  * 
@@ -31,6 +29,10 @@ public class Task extends NamedEntity {
     protected boolean forwarded;
     @Fill
     protected Map<String, String> otherConfig;
+    
+    public Task() {
+        
+    }
 
     public Task(String ref, boolean autoFill) {
         super(ref, autoFill);

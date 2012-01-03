@@ -23,6 +23,10 @@ public class Console extends XenApiEntity {
     protected int port;
     @Fill
     protected Map<String, String> otherConfig;
+    
+    public Console() {
+        
+    }
 
     public Console(String ref, boolean autoFill) {
         super(ref, autoFill);

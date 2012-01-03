@@ -7,7 +7,6 @@
 package net.wgr.xenmaster.api;
 
 import java.net.InetAddress;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +29,10 @@ public class Pool extends NamedEntity {
     protected String master;
     @Fill
     protected Map<String, String> restrictions, otherConfig;
+    
+    public Pool() {
+        
+    }
 
     public Pool(String ref, boolean autoFill) {
         super(ref, autoFill);

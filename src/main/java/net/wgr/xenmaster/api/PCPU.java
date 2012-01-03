@@ -15,6 +15,10 @@ public class PCPU extends XenApiEntity {
     protected int number, speed;
     protected String vendor, modelname, stepping, flags, features;
     protected double utilisation;
+    
+    public PCPU() {
+        
+    }
 
     public PCPU(String ref, boolean autoFill) {
         super(ref, autoFill);
