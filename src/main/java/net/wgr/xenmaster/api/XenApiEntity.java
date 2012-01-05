@@ -12,19 +12,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.wgr.core.ReflectionUtils;
-import net.wgr.core.data.DAObjectMatcher;
-import net.wgr.core.data.LazyQuery;
 import net.wgr.xenmaster.api.util.CachingFacility;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
 import net.wgr.xenmaster.monitoring.LogEntry;
 import net.wgr.xenmaster.monitoring.LogKeeper;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -66,6 +64,15 @@ public class XenApiEntity implements Serializable {
     }
 
     public String getReference() {
+        // Try to obtain a reference by its UUID
+        if (reference == null && uuid != null) {
+            // Get reference is a safe op that does not throw errors
+            try {
+                reference = dispatch("get_by_uuid", uuid).toString();
+            } catch (BadAPICallException ex) {
+                error(ex);
+            }
+        }
         return reference;
     }
 
@@ -143,11 +150,11 @@ public class XenApiEntity implements Serializable {
         if (this.reference != null) {
             arr.add(this.reference);
         }
-        CollectionUtils.addAll(arr, params);
+        arr.addAll(Arrays.asList(params));
+
         try {
             return Controller.dispatch(getAPIName() + "." + methodName, arr.toArray());
         } catch (BadAPICallException ex) {
-
             // Check if we can handle it
             switch (ex.getMessage()) {
                 case "OPERATION_NOT_ALLOWED":
@@ -200,7 +207,6 @@ public class XenApiEntity implements Serializable {
         }
 
         LogKeeper.log(new LogEntry(reference, getClass().getCanonicalName(), title, ex.getMessage(), level));
-        //Logger.getLogger(getClass()).error(title, ex);
     }
 
     @Retention(RetentionPolicy.RUNTIME)
@@ -390,8 +396,8 @@ public class XenApiEntity implements Serializable {
                         }
                         break;
                 }
-            } catch (IllegalAccessException | IllegalArgumentException ex) {
-                Logger.getLogger(getClass()).error(ex);
+            } catch (IllegalAccessException | IllegalArgumentException | ClassCastException ex) {
+                Logger.getLogger(getClass()).error("Failed to fill out object", ex);
             }
         }
     }
