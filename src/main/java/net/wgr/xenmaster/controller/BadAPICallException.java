@@ -29,7 +29,12 @@ public class BadAPICallException extends Exception {
         this.methodName = methodName;
         this.args = params;
         this.errorName = errorName;
-        this.info = info; 
+        this.info = info;
+        this.errorDescription = getErrorDescription();
+        String betterDescription = I18N.get().getText(errorName);
+        if (betterDescription != null) {
+            this.errorDescription = betterDescription;
+        }
     }
 
     public BadAPICallException(String methodName, List params, String errorName, String errorDescription) {
@@ -52,7 +57,7 @@ public class BadAPICallException extends Exception {
         return errorName;
     }
 
-    public String getErrorDescription() {
+    public final String getErrorDescription() {
         if (this.errorDescription != null && !this.errorDescription.isEmpty()) {
             return errorDescription;
         } else if (info != null) {
@@ -61,6 +66,8 @@ public class BadAPICallException extends Exception {
                 decription = info.get(2);
             } else if (info.size() == 2) {
                 decription = info.get(1);
+            } else {
+                decription = errorName;
             }
 
             return decription;
@@ -86,7 +93,7 @@ public class BadAPICallException extends Exception {
 
     @Override
     public String getMessage() {
-        String msg = getErrorDescription();
-        return (msg == null ? "" : msg);
+        if (errorDescription == null) errorDescription = getErrorDescription();
+       return errorDescription;
     }
 }
