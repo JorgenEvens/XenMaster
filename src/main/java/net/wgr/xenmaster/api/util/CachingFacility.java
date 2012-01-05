@@ -10,9 +10,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import net.wgr.xenmaster.api.Event;
 import net.wgr.xenmaster.api.XenApiEntity;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
+import net.wgr.xenmaster.monitoring.EventHandler.EventListener;
+import net.wgr.xenmaster.monitoring.MonitoringAgent;
 import org.apache.log4j.Logger;
 import org.infinispan.Cache;
 import org.infinispan.configuration.cache.CacheMode;
@@ -39,6 +42,17 @@ public class CachingFacility {
         this.mode = Mode.LAZY;
         this.cache = buildCache(distributed);
         this.loadedEntityClasses = new CopyOnWriteArrayList<>();
+        registerCacheUpdater();
+    }
+
+    protected final void registerCacheUpdater() {
+        MonitoringAgent.instance().getEventHandler().addListener(new EventListener() {
+
+            @Override
+            public void eventOcurred(Event event) {
+                update(event.getSnapshot());
+            }
+        });
     }
 
     protected Cache buildCache(boolean distributed) {
@@ -97,20 +111,23 @@ public class CachingFacility {
         return instance().getEntity(reference, target);
     }
 
-    public <T extends XenApiEntity> void update(String reference, T object) {
-        if (isCached(reference, object.getClass())) {
-            cache.put(reference, object);
+    public <T extends XenApiEntity> void update(T object) {
+        if (isCached(object.getReference(), object.getClass())) {
+            cache.put(object.getReference(), object);
         } else {
             // We only are interested in updates for things we've cached, others will always be newest available ones when they are retreived
-            Logger.getLogger(getClass()).debug("Object " + reference + '(' + object.getClass().getCanonicalName() + ") was not inside cache and therefore could not be updated.");
+            Logger.getLogger(getClass()).debug("Object " + object.getReference() + '(' + object.getClass().getCanonicalName() + ") was not inside cache and therefore could not be updated.");
         }
     }
 
     public boolean isCached(String reference, Class target) {
-        return cache.containsKey(reference) && target != null && target.isAssignableFrom(cache.get(reference).getClass());
+        return reference != null && cache.containsKey(reference) && target != null && target.isAssignableFrom(cache.get(reference).getClass());
     }
 
     public <T extends XenApiEntity> T getEntity(String reference, Class<T> target) {
+        if (reference == null) {
+            return null;
+        }
         if (!cache.containsKey(reference) && !loadedEntityClasses.contains(target)) {
             heatCache(target);
         }
