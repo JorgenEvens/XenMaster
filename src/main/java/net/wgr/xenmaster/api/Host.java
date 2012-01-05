@@ -28,9 +28,8 @@ public class Host extends XenApiEntity {
     protected Map<String, String> softwareVersion;
     @Fill
     protected Object[] hostCPUs;
-    
+
     public Host() {
-        
     }
 
     public Host(String ref) {
@@ -42,17 +41,34 @@ public class Host extends XenApiEntity {
     }
 
     public void shutdown() throws BadAPICallException {
+        if (enabled) {
+            disable();
+        }
+        
+        // todo : If this is a host we're connected to, do something smart and break up the connection
+        
         dispatch("shutdown");
     }
 
-    public void reboot() throws BadAPICallException {
-        dispatch("reboot");
+    public void disable() throws BadAPICallException {
+        dispatch("disable");
     }
     
+    public void enable() throws BadAPICallException {
+        dispatch("enable");
+    }
+
+    public void reboot() throws BadAPICallException {
+        if (enabled) {
+            disable();
+        }
+        dispatch("reboot");
+    }
+
     public void scanPIFs() throws BadAPICallException {
         Controller.dispatch("PIF.scan", this.getReference());
     }
-    
+
     public PIF createPIFWithInterface(String interfaceName, String macAddress) throws BadAPICallException {
         String ref = (String) Controller.dispatch("PIF.introduce", this.getReference(), macAddress, interfaceName);
         return new PIF(ref);
@@ -97,11 +113,11 @@ public class Host extends XenApiEntity {
         }
         return new PCPU((String) hostCPUs[number]);
     }
-    
+
     public String callPlugin(String pluginName, String methodName, Map<String, String> args) throws BadAPICallException {
         return (String) dispatch("call_plugin", pluginName, methodName, args);
     }
-    
+
     public static List<Host> getAll() throws BadAPICallException {
         return getAllEntities(Host.class);
     }
