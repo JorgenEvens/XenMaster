@@ -19,8 +19,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
 import net.wgr.settings.Settings;
 import net.wgr.utility.GlobalExecutorService;
-import net.wgr.xenmaster.api.Event;
-import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.entities.Host;
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
@@ -35,6 +33,8 @@ import org.joda.time.DateTime;
 public class MonitoringAgent implements Runnable {
 
     protected boolean lazy = false, run;
+    protected EventHandler eventHandler;
+    protected Emitter emitter;
     protected ArrayListMultimap<String, Record> vmData, hostData;
     protected Map<String, ParsedRecord> vmParsed, hostParsed;
     protected ConcurrentSkipListMap<String, String> data;
@@ -44,7 +44,6 @@ public class MonitoringAgent implements Runnable {
     protected SequenceBarrier barrier;
     protected static final int RING_SIZE = 256;
     private static MonitoringAgent instance;
-    protected Thread eventHandler;
 
     private MonitoringAgent() {
         vmData = ArrayListMultimap.create();
@@ -53,24 +52,19 @@ public class MonitoringAgent implements Runnable {
         NTPUDPClient nuc = new NTPUDPClient();
         ringBuffer = new RingBuffer<>(Record.EVENT_FACTORY, new SingleThreadedClaimStrategy(RING_SIZE), new SleepingWaitStrategy());
         barrier = ringBuffer.newBarrier();
-
-        try {
-            // todo this should always take place on pool masters, explicitly set context
-            Event.register();
-        } catch (BadAPICallException ex) {
-            Logger.getLogger(getClass()).error("Failed to register to events", ex);
-        }
+        eventHandler = new EventHandler();
+        emitter = new Emitter();
 
         try {
             timeInfo = nuc.getTime(InetAddress.getByName("pool.ntp.org"));
             timeInfo.computeDetails();
-            Logger.getLogger(getClass()).info("It is now " + new DateTime(System.currentTimeMillis() + timeInfo.getOffset()).toString("MM/dd/yyyy hh:mm:ss.S") + ". Your host has an offset of " + (timeInfo.getOffset() / 1000) + " seconds");
+            Logger.getLogger(getClass()).info("It is now " + new DateTime(System.currentTimeMillis() + timeInfo.getOffset()).toString("dd/MM/yyyy hh:mm:ss.S") + ". Your host's clock is drifting by " + timeInfo.getOffset() + " milliseconds");
         } catch (IOException ex) {
             Logger.getLogger(getClass()).warn("NTP time retrieval failed", ex);
         }
     }
 
-    public static MonitoringAgent get() {
+    public static MonitoringAgent instance() {
         if (instance == null) {
             instance = new MonitoringAgent();
         }
@@ -79,23 +73,6 @@ public class MonitoringAgent implements Runnable {
 
     public void boot() {
         schedule();
-        eventHandler = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                while (run) {
-                    try {
-                        List<Event> events = Event.nextEvents();
-                        for (Event event : events) {
-                            LogKeeper.log(new LogEntry(event.getReference(), event.getReference(), "Operation " + event.getOperation(), null, LogEntry.Level.INFORMATION));
-                        }
-                    } catch (BadAPICallException ex) {
-                        Logger.getLogger(getClass()).error("Failed to retrieve latest events", ex);
-                    }
-                }
-            }
-        });
-        eventHandler.setName("EventListener");
     }
 
     protected void schedule() {
@@ -119,13 +96,19 @@ public class MonitoringAgent implements Runnable {
             hostData.put(ref, r);
         }
     }
-    
+
+    public EventHandler getEventHandler() {
+        return eventHandler;
+    }
+
     public void start() {
         run = true;
+        emitter.listenToEvents(eventHandler);
         eventHandler.start();
     }
-    
+
     public void stop() {
         run = false;
+        eventHandler.stop();
     }
 }

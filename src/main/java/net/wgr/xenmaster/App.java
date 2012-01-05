@@ -81,8 +81,8 @@ public class App implements Daemon {
         }
 
         Pool.get().boot();
-        MonitoringAgent.get().boot();
-        MonitoringAgent.get().start();
+        MonitoringAgent.instance().boot();
+        MonitoringAgent.instance().start();
 
         server = new Server();
         server.boot();

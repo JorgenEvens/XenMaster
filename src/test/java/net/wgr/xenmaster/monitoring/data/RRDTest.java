@@ -19,7 +19,7 @@ public class RRDTest extends TestBase {
 
     ///@Test
     public void testSomeMethod() throws MalformedURLException, IOException {
-        MonitoringAgent.get();
+        MonitoringAgent.instance();
         RRD rrd = RRD.parse(new FileInputStream("rrd.xml"));
     }
 }
