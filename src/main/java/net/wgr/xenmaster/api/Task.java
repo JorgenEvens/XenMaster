@@ -20,7 +20,7 @@ public class Task extends NamedEntity {
 
     protected Date created, finished;
     protected String residentOn;
-    protected float progress;
+    protected double progress;
     protected String result;
     protected Status status;
     protected List<String> errorInfo;
@@ -54,7 +54,7 @@ public class Task extends NamedEntity {
         return finished;
     }
 
-    public float getProgress() {
+    public double getProgress() {
         return progress;
     }
 
