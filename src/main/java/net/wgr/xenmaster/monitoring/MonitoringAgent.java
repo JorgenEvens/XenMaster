@@ -58,7 +58,7 @@ public class MonitoringAgent implements Runnable {
         try {
             timeInfo = nuc.getTime(InetAddress.getByName("pool.ntp.org"));
             timeInfo.computeDetails();
-            Logger.getLogger(getClass()).info("It is now " + new DateTime(System.currentTimeMillis() + timeInfo.getOffset()).toString("dd/MM/yyyy hh:mm:ss.S") + ". Your host's clock is drifting by " + timeInfo.getOffset() + " milliseconds");
+            Logger.getLogger(getClass()).info("It is now " + new DateTime(System.currentTimeMillis() + timeInfo.getOffset()).toString("dd/MM/yyyy HH:mm:ss.S") + ". Your host's clock is drifting by " + timeInfo.getOffset() + " milliseconds");
         } catch (IOException ex) {
             Logger.getLogger(getClass()).warn("NTP time retrieval failed", ex);
         }
