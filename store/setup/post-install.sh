@@ -51,9 +51,18 @@ echo 'Saying hi to bootstrap server';
 mv /etc/motd.tail /etc/motd.tail.default;
 wget http://#{bootstrap-server-address}/setup/motd -O /etc/motd.tail
 
+echo 'Installing keymap files';
+# The maintainer forget to include these or there has been a licensing issue 
+# Either way, you need them, otherwise qemu-dm is going to make a booboo
+mkdir -p /usr/share/qemu/
+wget http://dl.xen-master.org/install/qemu-keymaps.tar.gz -O /root/qemu-keymaps.tar.gz;
+tar -xzvf /root/qemu-keymaps.tar.gz -C /usr/share/qemu/keymaps;
+
 cat > /root/setup-done.sh << EOF
 #!/bin/sh
 echo 'Removing message...';
 mv /etc/motd.tail.default /etc/motd.tail;
 echo 'Done! Enjoy your coffee';
 EOF
+
+echo 'Post Install finished';
