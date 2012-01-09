@@ -66,7 +66,7 @@ public class VM extends NamedEntity {
     protected Object[] vbds, vifs, consoles;
     @Fill
     @ConstructorArgument
-    protected Map<String, String> VCPUparams;
+    protected Map<String, String> vcpuParams;
     @Fill
     @ConstructorArgument
     protected Map<String, String> otherConfig;
@@ -360,10 +360,10 @@ public class VM extends NamedEntity {
     }
 
     public Map<String, String> getVCPUParams() {
-        if (VCPUparams == null) {
-            VCPUparams = new HashMap<>();
+        if (vcpuParams == null) {
+            vcpuParams = new HashMap<>();
         }
-        return VCPUparams;
+        return vcpuParams;
     }
 
     public void setMemoryLimits(double maxStaticMemMb, double minStaticMemMb, double maxDynMemMb, double minDynMemMb) throws BadAPICallException {

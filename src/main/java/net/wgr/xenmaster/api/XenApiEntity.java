@@ -34,9 +34,20 @@ public class XenApiEntity implements Serializable {
 
     protected String reference;
     protected String uuid;
+    protected final static transient Map<String, String> globalInterpretation = new HashMap<>();
     protected final static transient String packageName = XenApiEntity.class.getPackage().getName();
 
     public XenApiEntity() {
+        // Translating to upper case in favor of not following code conventions
+        // todo : see if there is a better way to do this
+        if (globalInterpretation.isEmpty()) {
+            Map<String, String> i = globalInterpretation;
+            i.put("vm", "VM");
+            i.put("vdi", "VDI");
+            i.put("vbd", "VBD");
+            i.put("vif", "VIF");
+            i.put("sr", "SR");
+        }
     }
 
     public XenApiEntity(String ref) {
@@ -44,6 +55,7 @@ public class XenApiEntity implements Serializable {
     }
 
     public XenApiEntity(String ref, boolean autoFill) {
+        this();
         this.reference = ref;
         if (autoFill) {
             fillOut(getAPIName(), null);
@@ -123,8 +135,6 @@ public class XenApiEntity implements Serializable {
         }
         if (reference != null && !reference.isEmpty() && name != null && !name.isEmpty()) {
             dispatch(name, obj);
-        } else {
-            Logger.getLogger(getClass()).warn("Entity has no reference and/or setter name is not provided");
         }
 
         return obj;
@@ -225,6 +235,7 @@ public class XenApiEntity implements Serializable {
     protected Map<String, Object> collectConstructorArgs() {
         HashMap<String, Object> args = new HashMap<>();
         Map<String, String> interpretation = interpretation();
+        interpretation.putAll(globalInterpretation);
 
         for (Field f : ReflectionUtils.getAllFields(getClass())) {
 
@@ -319,6 +330,7 @@ public class XenApiEntity implements Serializable {
         }
 
         Map<String, String> interpretation = interpretation();
+        interpretation.putAll(globalInterpretation);
 
         for (Field f : ReflectionUtils.getAllFields(getClass())) {
 

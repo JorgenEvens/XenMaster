@@ -20,7 +20,7 @@ import net.wgr.xenmaster.controller.BadAPICallException;
 public class VDI extends NamedEntity {
 
     @ConstructorArgument
-    protected String SR;
+    protected String sr;
     protected Object[] VBDs;
     @ConstructorArgument
     protected long virtualSize;
@@ -47,8 +47,8 @@ public class VDI extends NamedEntity {
     }
 
     public SR getSR() {
-        this.SR = value(SR, "get_SR");
-        return new SR(SR, false);
+        this.sr = value(sr, "get_SR");
+        return new SR(sr, false);
     }
 
     // todo watch closely
@@ -64,7 +64,7 @@ public class VDI extends NamedEntity {
     public String create(double sizeInMb, Type type, SR repo, boolean shareable, boolean readOnly) throws BadAPICallException {
         this.virtualSize = (int) (sizeInMb * (megabyte));
         this.type = type;
-        this.SR = repo.getReference();
+        this.sr = repo.getReference();
         this.shareable = shareable;
         this.readOnly = readOnly;
         
