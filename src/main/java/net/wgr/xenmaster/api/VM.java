@@ -78,6 +78,8 @@ public class VM extends NamedEntity {
         this.actionsAfterReboot = ShutdownAction.RESTART;
         this.actionsAfterShutdown = ShutdownAction.DESTROY;
         this.actionsAfterCrash = CrashedAction.DESTROY;
+
+        this.platform = new HashMap<>();
     }
 
     public VM(String ref, boolean autoFill) {
@@ -400,6 +402,49 @@ public class VM extends NamedEntity {
 
     public void setHVMBootParams(Map<String, String> params) {
         hvmBootParams = params;
+    }
+
+    public Map<String, String> getPlatformOptions() {
+        return platform;
+    }
+
+    public void setPlatformOptions(Map<String, String> platform) {
+        this.platform = platform;
+    }
+
+    public boolean apicEnabled() {
+        if (this.platform == null) {
+            return false;
+        }
+        return Boolean.parseBoolean(this.platform.get("apic"));
+    }
+
+    public void enableApic(Boolean enable) {
+        if (this.platform == null) {
+            return;
+        }
+        this.platform.put("apic", enable.toString());
+    }
+
+    public boolean acpiEnabled() {
+        if (this.platform == null) {
+            return false;
+        }
+        return Boolean.parseBoolean(this.platform.get("acpi"));
+    }
+
+    public void enableAcpi(Boolean enable) {
+        if (this.platform == null) {
+            return;
+        }
+        this.platform.put("acpi", enable.toString());
+    }
+
+    public boolean paeEnabled() {
+        if (this.platform == null) {
+            return false;
+        }
+        return Boolean.parseBoolean(this.platform.get("pae"));
     }
 
     public String getPVargs() {

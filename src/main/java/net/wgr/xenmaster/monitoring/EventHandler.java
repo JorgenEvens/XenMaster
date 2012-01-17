@@ -64,6 +64,7 @@ public class EventHandler implements Runnable {
                     }
                 }
             } catch (BadAPICallException ex) {
+                run = false;
                 Logger.getLogger(getClass()).error("Failed to retrieve latest events", ex);
             }
         }

@@ -44,7 +44,7 @@ update-rc.d xapissl defaults;
 echo 'Installing XAPI plugins';
 
 wget http://#{bootstrap-server-address}/setup/plugins.tar.gz -O /root/xapi-plugins.tar.gz;
-tar -C /etc/xapi.d/plugins -xvzf /root/xapi-plugins.tar.gz;
+tar -C /usr/lib/xcp/plugins -xvzf /root/xapi-plugins.tar.gz;
 
 echo 'Saying hi to bootstrap server';
 
@@ -56,7 +56,7 @@ echo 'Installing keymap files';
 # Either way, you need them, otherwise qemu-dm is going to make a booboo
 mkdir -p /usr/share/qemu/
 wget http://dl.xen-master.org/install/qemu-keymaps.tar.gz -O /root/qemu-keymaps.tar.gz;
-tar -xzvf /root/qemu-keymaps.tar.gz -C /usr/share/qemu/keymaps;
+tar -xzvf /root/qemu-keymaps.tar.gz -C /usr/share/qemu/;
 
 cat > /root/setup-done.sh << EOF
 #!/bin/sh

@@ -76,6 +76,7 @@ public class SetupHook extends WebHook {
 
         for (File plugin : f.listFiles()) {
             TarArchiveEntry tae = new TarArchiveEntry(plugin);
+            tae.setName(plugin.getName());
             tae.setUserId(0);
             tae.setMode(0755);
             tos.putArchiveEntry(tae);
