@@ -23,7 +23,6 @@ public class Platform extends XenApiMapField {
     public Platform() {
     }
     
-
     public boolean hasAcpi() {
         return acpi;
     }
