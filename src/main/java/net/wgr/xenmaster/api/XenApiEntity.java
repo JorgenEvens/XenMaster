@@ -34,6 +34,7 @@ public class XenApiEntity implements Serializable {
 
     protected String reference;
     protected String uuid;
+    protected final static transient String NULL_REF = "OpaqueRef:NULL";
     protected final static transient Map<String, String> globalInterpretation = new HashMap<>();
     protected final static transient String packageName = XenApiEntity.class.getPackage().getName();
 
@@ -56,9 +57,23 @@ public class XenApiEntity implements Serializable {
 
     public XenApiEntity(String ref, boolean autoFill) {
         this();
+        
+        try {
+            checkReference(ref);
+        } catch (IllegalReferenceException ex) {
+            error(ex);
+            return;
+        }
         this.reference = ref;
+        
         if (autoFill) {
             fillOut(getAPIName(), null);
+        }
+    }
+    
+    protected final void checkReference(String ref) throws IllegalReferenceException {
+        if (NULL_REF.equals(ref)) {
+            throw new IllegalReferenceException();
         }
     }
 
