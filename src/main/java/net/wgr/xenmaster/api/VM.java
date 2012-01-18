@@ -9,9 +9,9 @@ package net.wgr.xenmaster.api;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import net.wgr.xenmaster.controller.BadAPICallException;
-import net.wgr.xenmaster.controller.Controller;
 import net.wgr.xenmaster.monitoring.LogEntry;
 import net.wgr.xenmaster.monitoring.LogKeeper;
 import org.apache.commons.collections.CollectionUtils;
@@ -333,20 +333,19 @@ public class VM extends NamedEntity {
     }
 
     public static List<VM> getAll() throws BadAPICallException {
-        return getAllEntities(VM.class);
+        List<VM> allVMs = getAllEntities(VM.class);
+        for (ListIterator<VM> it = allVMs.listIterator(); it.hasNext();) {
+            if (it.next().isTemplate()) it.remove();
+        }
+        return allVMs;
     }
 
     public static List<VM> getTemplates() throws BadAPICallException {
-        Map<String, Object> records = (Map) Controller.dispatch("VM.get_all_records");
-        ArrayList<VM> objects = new ArrayList<>();
-        for (Map.Entry<String, Object> entry : records.entrySet()) {
-            VM vm = new VM(entry.getKey(), false);
-            vm.fillOut((Map) entry.getValue());
-            if (vm.isTemplate()) {
-                objects.add(vm);
-            }
+        List<VM> allVMs = getAllEntities(VM.class);
+        for (ListIterator<VM> it = allVMs.listIterator(); it.hasNext();) {
+            if (!it.next().isTemplate()) it.remove();
         }
-        return objects;
+        return allVMs;
     }
 
     public List<VBD> getVBDs() {
@@ -408,8 +407,8 @@ public class VM extends NamedEntity {
         return platform;
     }
 
-    public void setPlatformOptions(Map<String, String> platform) {
-        this.platform = platform;
+    public void setPlatformOptions(Platform platform) {
+        this.platform = platform.getMap();
     }
 
     public boolean apicEnabled() {
