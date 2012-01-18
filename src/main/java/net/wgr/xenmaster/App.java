@@ -9,6 +9,7 @@ import net.wgr.server.http.Server;
 import net.wgr.server.web.handling.ServerHook;
 import net.wgr.settings.Settings;
 import net.wgr.utility.GlobalExecutorService;
+import net.wgr.xenmaster.api.util.CachingFacility;
 import net.wgr.xenmaster.controller.Controller;
 import net.wgr.xenmaster.monitoring.MonitoringAgent;
 import net.wgr.xenmaster.pool.Pool;
@@ -32,7 +33,7 @@ public class App implements Daemon {
 
     public static void main(String[] args) {
         try {
-            App app = new App();
+            final App app = new App();
             app.init(null);
             app.start();
         } catch (Exception ex) {
@@ -52,6 +53,18 @@ public class App implements Daemon {
         Logger root = Logger.getRootLogger();
         root.setLevel(Level.toLevel(Settings.getInstance().getString("Logging.Level")));
         root.addAppender(new ConsoleAppender(new EnhancedPatternLayout(LOGPATTERN)));
+        
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    stop();
+                } catch (Exception ex) {
+                    Logger.getLogger(App.class).error("Failed to shut down", ex);
+                }
+            } 
+        }));
     }
 
     @Override
@@ -65,7 +78,7 @@ public class App implements Daemon {
 
         server = new Server();
         server.boot();
-        
+
         Authorize.disable();
 
         if (Controller.getSession().getReference() == null) {
@@ -106,6 +119,7 @@ public class App implements Daemon {
         server.stop();
         Pool.get().stop();
         DataPool.stop();
+        CachingFacility.instance().stop();
         GlobalExecutorService.get().shutdownNow();
     }
 

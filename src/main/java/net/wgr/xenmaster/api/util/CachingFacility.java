@@ -80,6 +80,10 @@ public class CachingFacility {
         }
         return instance;
     }
+    
+    public void stop() {
+        cache.stop();
+    }
 
     public EmbeddedCacheManager getCacheManager() {
         return ecm;
