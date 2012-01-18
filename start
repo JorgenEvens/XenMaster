@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Setup build evironment
+export JAVA_HOME="/usr/lib/jvm/java-1.7.0-openjdk-`dpkg --print-architecture`"
+JAVA="$JAVA_HOME/jre/bin/java"
+ALL="1"
+
+update() {
+	git pull
+}
+
+build() {
+	mvn clean install -Dmaven.test.skip=true
+}
+
+start() {
+	cd conf
+	$JAVA -jar ../target/XenMaster-jar-with-dependencies.jar
+}
+
+all() {
+	update
+	build
+	start
+}
+
+exec() {
+	case $1 in
+		"build")
+			build
+		;;
+		"update")
+			update
+		;;
+		"start")
+			start
+		;;
+		"all")
+			all
+		;;
+	esac
+}
+
+for i in $*; do
+	ALL="0"
+	exec $i
+done
+
+if [[ $ALL -eq "1" ]]; then
+	exec all
+fi
