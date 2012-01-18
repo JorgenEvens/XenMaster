@@ -26,7 +26,7 @@ import net.wgr.xenmaster.monitoring.LogKeeper;
 import org.apache.log4j.Logger;
 
 /**
- * 
+ * Xen API workhorse
  * @created Oct 2, 2011
  * @author double-u
  */
@@ -348,6 +348,8 @@ public class XenApiEntity implements Serializable {
         interpretation.putAll(globalInterpretation);
 
         for (Field f : ReflectionUtils.getAllFields(getClass())) {
+            
+            if (Modifier.isTransient(f.getModifiers())) continue;
 
             String processedName = "";
             if (interpretation.containsKey(f.getName())) {
@@ -361,6 +363,7 @@ public class XenApiEntity implements Serializable {
                     processedName = f.getName().replaceAll("(.)(\\p{Lu})", "$1_$2").toLowerCase();
                 }
             }
+            processedName = processedName.toLowerCase();
 
             Object value = null;
             for (Map.Entry<String, Object> entry : data.entrySet()) {
@@ -369,6 +372,7 @@ public class XenApiEntity implements Serializable {
                     break;
                 }
             }
+            
             if (value == null) {
                 continue;
             }
