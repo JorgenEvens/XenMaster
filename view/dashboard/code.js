@@ -30,11 +30,22 @@
 		
 		tpl.capture( 'click' );
 		tpl.bind( 'vm_clicked', function( e ) {
-			app.load( 'tpl://vm/detail', 'js://ui/template', function( vm, Template ) {
+			app.load( 'tpl://vm/list', 'js://ui/template', function( list, Template ) {
 				
-				var vm_ui = new Template({ resource: vm });
-				vm_ui.show( e.dataset.config );
+				var vm_list = new Template({ resource: list });
 				
+				vm_list.bind( 'tpl_show', function(){
+					vm_list.loadVM( e.dataset.config );
+				});
+				
+				vm_list.show();
+			});
+		});
+		
+		tpl.bind('all_show', function(e){
+			app.load( 'tpl://vm/list', 'js://ui/template', function( list, Template ) {
+				var list_ui = new Template({resource: list});
+				list_ui.show();
 			});
 		});
 		

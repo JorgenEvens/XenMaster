@@ -15,23 +15,22 @@
 		});
 	});
 	
-	this.bind( 'ui_vm_create', function() {
-		
-		app.load( 'tpl://vm/new', 'js://ui/template', function( vm_create, Template ){
-			
-			var create = new Template({ resource: vm_create });
-			create.show();
+	
+	this.bind( 'ui_storage', function(){
+
+		app.load( 'tpl://storage/list', 'js://ui/template', function( list, Template ){
+			var sr_list = new Template({ resource: list });
+			sr_list.show();
 			
 		});
 		
 	});
 	
-	this.bind( 'ui_storage', function(){
-		
-		app.load( 'tpl://storage/list', 'js://ui/template', function( vm_create, Template ){
-			
-			var create = new Template({ resource: vm_create });
-			create.show();
+	this.bind( 'ui_machines', function(){
+
+		app.load( 'tpl://vm/list', 'js://ui/template', function( list, Template ){
+			var vm_list = new Template({ resource: list });
+			vm_list.show();
 			
 		});
 		

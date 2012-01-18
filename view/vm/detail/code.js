@@ -73,7 +73,6 @@
 						i = null;
 					
 					add.siblings( '.disk, .harddisk' ).remove();
-					
 					for( i in vbds ) {
 						(function( vbd ){
 							vbd.getVDI(function(vdi){
@@ -190,8 +189,8 @@
 		actions.parent(':not(.onshift)').show();
 	});
 	
-	this.show = function( vm ) {
-		show.call(this);
+	this.onshow = function() {
+		var vm = tpl.vm;
 		vm_data = vm;
 		
 		loadVBDs();

@@ -21,6 +21,12 @@
 			if( typeof res.code === 'function' ) {
 				res.code.call( this, $, app );
 			}
+			
+			// TODO: Deprecated
+			var tpl = this;
+			this.bind( 'tpl_show', function(){
+				tpl.onshow();
+			});
 		},
 		defaultHandler = function( action, data, target, source ) {
 			$(this).trigger({
@@ -94,7 +100,7 @@
 			
 			placeholder.append( this.dom );
 			
-			this.onshow();
+			this.action( 'tpl_show', Dataset.get( this.dom ), this, this );
 		};
 		
 		ready( Template );

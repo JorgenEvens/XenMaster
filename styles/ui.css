@@ -13,6 +13,11 @@ html {
 	height: 100%;
 }
 
+a:hover {
+	cursor: pointer;
+	text-decoration: underline;
+}
+
 body {
 	background: #FDFDFD;
 	text-align: center;
@@ -149,8 +154,8 @@ header .quick_access:hover li:hover {
 }
 
 h1, h2, h3, h4, h5, h6,
-#dashboard th,
-#dashboard td,
+.vm_list th,
+.vm_list td,
 #vm_detail ul.hardware li {
 	font-family: Code;
 	text-transform: uppercase;
@@ -164,6 +169,15 @@ h2 {
 	font-size: 18px;
 	border-bottom: solid 1px #EEE;
 	box-shadow: 0 0 3px #EEE;
+}
+
+h2 span.actions {
+	float: right;
+	margin-left: 10px;
+	font-family: Arial;
+	font-size: 12px;
+	font-weight: normal;
+	text-transform: none;
 }
 
 h2.sub {
@@ -189,28 +203,6 @@ h2.corner:before {
 #dashboard .column_right {
 	width: 29%;
 	margin-left: 71%;
-}
-
-/* Style */
-#dashboard th:first-child, #dashboard h3 {
-	color: #F7931E;
-	font-size: 18px;
-}
-
-#dashboard th, #dashboard td {
-	border-bottom: 1px solid #BBB;
-}
-
-
-#dashboard table {
-	width: 100%;
-	border: 0;
-}
-
-#dashboard tbody td+td, #dashboard thead th+th {
-	width: 15px;
-	padding: 5px 5px;
-	text-align: center;
 }
 
 #dashboard tbody td:last-child, #dashboard thead th:last-child {
@@ -532,4 +524,38 @@ footer {
 	left: 0;
 	bottom: 0;
 	background: white;
+}
+
+#vm_list .column_left {
+	width: 30%;
+	float: left;
+}
+
+#vm_list .column_right {
+	width: 69%;
+	margin-left: 31%;
+}
+
+.vm_list th:first-child, .vm_list h3 {
+	color: #F7931E;
+	font-size: 18px;
+}
+
+.vm_list th, .vm_list td {
+	border-bottom: 1px solid #BBB;
+}
+
+.vm_list tbody tr {
+	cursor: pointer;
+}
+
+.vm_list table {
+	width: 100%;
+	border: 0;
+}
+
+.vm_list tbody td+td, .vm_list thead th+th {
+	width: 15px;
+	padding: 5px 5px;
+	text-align: center;
 }
