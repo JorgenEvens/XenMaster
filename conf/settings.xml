@@ -6,7 +6,16 @@
             <entry>
                 <!-- temporary measure until proper cfg backend is set up -->
                 <string>URL</string>
-                <string>http://172.16.1.104:9363</string>
+                <string>http://x.x.x.x</string>
+            </entry>
+        </map>
+    </entry>
+    <entry>
+        <string>Logging</string>
+        <map>
+            <entry>
+                <string>Level</string>
+                <string>INFO</string>
             </entry>
         </map>
     </entry>
@@ -19,11 +28,32 @@
         <string>../web</string>
     </entry>
     <entry>
+        <string>StorePath</string>
+        <string>store</string>
+    </entry>
+    <entry>
         <string>Monitoring</string>
         <map>
             <entry>
                 <string>Interval</string>
                 <double>0.5</double>
+            </entry>
+        </map>
+    </entry>
+    <entry>
+        <string>Cassandra</string>
+        <map>
+            <entry>
+                <string>Keyspace</string>
+                <string>XenMaster</string>
+            </entry>
+            <entry>
+                <string>Host</string>
+                <string>localhost</string>
+            </entry>
+            <entry>
+                <string>PoolName</string>
+                <string>Main</string>
             </entry>
         </map>
     </entry>
