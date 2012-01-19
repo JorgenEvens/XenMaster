@@ -54,8 +54,8 @@ public class LogEntry extends net.wgr.core.dao.Object {
     public LogEntry(String reference, Class entityType, String title, Level level) {
         this.reference = reference;
         this.entityType = entityType.getSimpleName();
-        this.title = title.replace('_', ' ');
-        this.message = I18N.instance().getTextForLocale(title, Locale.ENGLISH);
+        this.title = title;
+        this.message = title + "_MESSAGE";
         this.level = level;
         this.date = System.currentTimeMillis();
     }
@@ -73,6 +73,9 @@ public class LogEntry extends net.wgr.core.dao.Object {
     }
 
     public String getMessage() {
+        if (args != null || subject == null) {
+            return String.format(I18N.getText(message), args);
+        }
         return message;
     }
 
@@ -81,7 +84,7 @@ public class LogEntry extends net.wgr.core.dao.Object {
     }
 
     public String getTitle() {
-        if (args != null) {
+        if (args != null || subject == null) {
             return String.format(I18N.getText(title), args);
         }
         return title;

@@ -119,7 +119,7 @@ public class VM extends NamedEntity {
 
     public void start(boolean startPaused, boolean force, Host host) throws BadAPICallException {
         try {
-            ensureStart();
+            easeStart();
             if (host != null) {
                 dispatch("start", host.getReference(), startPaused, force);
             } else {
@@ -147,11 +147,16 @@ public class VM extends NamedEntity {
      * Check if this VM will be able to start up properly
      * @return 
      */
-    public void ensureStart() throws BadAPICallException {
+    public void easeStart() throws BadAPICallException {
         for (VBD vbd : this.getVBDs()) {
+            if (vbd.getType() != VBD.Type.DISK) continue;
+            if (vbd.getVDI() == null) {
+                LogKeeper.log(new LogEntry(vbd.getReference(), getClass(), "VM_START_COULD_NOT_PLUG_VBD", LogEntry.Level.WARNING));
+                continue;
+            }
             for (PBD pbd : vbd.getVDI().getSR().getPBDs()) {
                 if (!pbd.isPlugged()) {
-                    LogKeeper.log(new LogEntry(pbd.getReference(), getClass(), "Plugged_in_PBD", LogEntry.Level.INFORMATION));
+                    LogKeeper.log(new LogEntry(pbd.getReference(), getClass(), "PLUGGED_IN_PBD", LogEntry.Level.INFORMATION));
                     pbd.plug();
                 }
             }
