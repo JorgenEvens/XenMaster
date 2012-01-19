@@ -31,7 +31,7 @@ public class BadAPICallException extends Exception {
         this.errorName = errorName;
         this.info = info;
         this.errorDescription = getErrorDescription();
-        String betterDescription = I18N.get().getText(errorName);
+        String betterDescription = I18N.instance().getText(errorName);
         if (betterDescription != null) {
             this.errorDescription = betterDescription;
         }
@@ -41,7 +41,7 @@ public class BadAPICallException extends Exception {
         this.methodName = methodName;
         this.args = params;
         this.errorName = errorName;
-        String betterDescription = I18N.get().getText(errorName);
+        String betterDescription = I18N.instance().getText(errorName);
         this.errorDescription = (betterDescription == null ? errorDescription : betterDescription);
     }
 
