@@ -6,7 +6,6 @@
  */
 package net.wgr.xenmaster.api;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +27,7 @@ public class SR extends NamedEntity {
     @Fill
     protected Map<String, String> currentOperations;
     protected long virtualAllocation, physicalUtilisation;
+    protected long physicalSize;
     protected boolean shared;
     @Fill(storeExternally = true)
     protected Map<String, String> smConfig, otherConfig;
@@ -174,6 +174,10 @@ public class SR extends NamedEntity {
 
     public long getPhysicalUtilisation() {
         return physicalUtilisation;
+    }
+    
+    public long getPhysicalSize() {
+        return physicalSize;
     }
 
     public boolean isShared() {
