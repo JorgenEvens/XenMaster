@@ -34,6 +34,7 @@ public class MonitoringAgent implements Runnable {
 
     protected boolean lazy = false, run;
     protected EventHandler eventHandler;
+    protected Comptroller comptroller;
     protected Emitter emitter;
     protected ArrayListMultimap<String, Record> vmData, hostData;
     protected Map<String, ParsedRecord> vmParsed, hostParsed;
@@ -53,6 +54,7 @@ public class MonitoringAgent implements Runnable {
         ringBuffer = new RingBuffer<>(Record.EVENT_FACTORY, new SingleThreadedClaimStrategy(RING_SIZE), new SleepingWaitStrategy());
         barrier = ringBuffer.newBarrier();
         eventHandler = new EventHandler();
+        comptroller = new Comptroller();
         emitter = new Emitter();
 
         try {
@@ -101,14 +103,20 @@ public class MonitoringAgent implements Runnable {
         return eventHandler;
     }
 
+    public Comptroller getComptroller() {
+        return comptroller;
+    }
+
     public void start() {
         run = true;
         emitter.listenToEvents(eventHandler);
         eventHandler.start();
+        comptroller.scheduleSensors();
     }
 
     public void stop() {
         run = false;
         eventHandler.stop();
+        comptroller.stop();
     }
 }
