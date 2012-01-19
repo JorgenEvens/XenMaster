@@ -25,6 +25,7 @@ import net.wgr.wcp.command.CommandException;
 import net.wgr.wcp.command.Result;
 import net.wgr.xenmaster.api.util.APIUtil;
 import net.wgr.xenmaster.api.util.CachingFacility;
+import net.wgr.xenmaster.controller.BadAPICallException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -60,7 +61,7 @@ public class Hook extends WebCommandHandler {
 
         return executeInstruction(cmd.getName(), apic.ref, apic.args);
     }
-    
+
     protected <T> String createLocalObject(Class<T> clazz, Object[] args) throws Exception {
         T obj = clazz.newInstance();
 
@@ -214,7 +215,11 @@ public class Hook extends WebCommandHandler {
                 current = new CommandException(ex, commandName);
             } else {
                 Logger.getLogger(getClass()).info("Hook call threw Exception", ex.getCause());
-                current = new CommandException(ex.getCause(), commandName);
+                if (ex.getCause() instanceof BadAPICallException) {
+                    current = new DetailedCommandException(commandName, ((BadAPICallException) ex.getCause()).getErrorName());
+                } else {
+                    current = new CommandException(ex.getCause(), commandName);
+                }
             }
         }
 
