@@ -428,7 +428,7 @@ public class XenApiEntity implements Serializable {
                         break;
                 }
             } catch (IllegalAccessException | IllegalArgumentException | ClassCastException ex) {
-                Logger.getLogger(getClass()).error("Failed to fill out object", ex);
+                Logger.getLogger(getClass()).error("Failed to fill out object field " + f.getName(), ex);
             }
         }
     }
