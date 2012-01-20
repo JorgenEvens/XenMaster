@@ -46,13 +46,16 @@ public class CachingFacility {
     }
 
     protected final void registerCacheUpdater() {
+        // We need to be the first to react, otherwise we'll be feeding old data
         MonitoringAgent.instance().getEventHandler().addListener(new EventListener() {
 
             @Override
             public void eventOcurred(Event event) {
+                if (event.getSnapshot() == null) return;
+                
                 update(event.getSnapshot());
             }
-        });
+        }, 0);
     }
 
     protected Cache buildCache(boolean distributed) {
@@ -116,6 +119,8 @@ public class CachingFacility {
     }
 
     public <T extends XenApiEntity> void update(T object) {
+        if (object == null) throw new IllegalArgumentException("Cannot update null");
+        
         if (isCached(object.getReference(), object.getClass())) {
             cache.put(object.getReference(), object);
         } else {

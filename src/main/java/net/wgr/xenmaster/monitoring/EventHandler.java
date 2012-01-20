@@ -33,6 +33,10 @@ public class EventHandler implements Runnable {
         this.listeners.add(el);
     }
     
+    public void addListener(EventListener el, int index) {
+        this.listeners.add(index, el);
+    }
+    
     public void stopListener(EventListener el) {
         this.listeners.remove(el);
     }
