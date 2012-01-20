@@ -29,6 +29,7 @@ public class Emitter {
             
             @Override
             public void eventOcurred(Event event) {
+                if (event.getSnapshot() == null) return;
                 Map<String, Object> diff = ReflectionUtils.diff(CachingFacility.get(event.getSnapshot().getReference(), event.getSnapshot().getClass()), event.getSnapshot());
                 if (diff.size() < 1) {
                     // Nothing was changed?

@@ -22,13 +22,13 @@ public class DetailedCommandException extends CommandException {
     protected String title;
     protected String name;
     // Uppercase alfanumeric + underscores, must contain at least one underscore
-    protected final static Pattern UPPERCASE_WORD = Pattern.compile("[A-Z0-9_]+_[A-Z0-9_]+");
+    protected final static Pattern ERROR_NAME = Pattern.compile("[A-Z0-9_]+_[A-Z0-9_]+");
 
     public DetailedCommandException(String commandName, BadAPICallException ex) {
         super(ex.getErrorName(), commandName);
 
         this.name = ex.getErrorName();
-        String betterName = getMostRelevantName(ex.getErrorDescription());
+        String betterName = getNestedErrorName(ex.getErrorDescription());
         if (betterName == null) {
             betterName = ex.getErrorName();
         }
@@ -45,8 +45,8 @@ public class DetailedCommandException extends CommandException {
      * @param name original name
      * @return deepest error name
      */
-    protected final String getMostRelevantName(String name) {
-        Matcher matcher = UPPERCASE_WORD.matcher(name);
+    protected final String getNestedErrorName(String name) {
+        Matcher matcher = ERROR_NAME.matcher(name);
 
         String lastMatch = null;
         while (matcher.find()) {

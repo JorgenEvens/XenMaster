@@ -408,12 +408,12 @@ public class VM extends NamedEntity {
         hvmBootParams = params;
     }
 
-    public Platform getPlatformOptions() {
+    public Platform getPlatform() {
         return new Platform(platform);
     }
 
-    public void setPlatformOptions(Platform platform) {
-        this.platform = platform.getMap();
+    public void setPlatform(Platform platform) throws BadAPICallException {
+        this.platform = setter(platform.getMap(), "set_platform");
     }
 
     public String getPVargs() {

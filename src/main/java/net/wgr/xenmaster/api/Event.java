@@ -92,10 +92,10 @@ public class Event extends XenApiEntity {
             // Todo : clean this mess up
             try {
                 clazz = (Class<T>) Class.forName(packageName + '.' + StringUtils.capitalize(className));
-            } catch (ClassNotFoundException ex) {
+            } catch (NoClassDefFoundError | ClassNotFoundException ex) {
                 try {
                     clazz = (Class<T>) Class.forName(packageName + '.' + className.toUpperCase());
-                } catch (ClassNotFoundException ex1) {
+                } catch (NoClassDefFoundError | ClassNotFoundException ex1) {
                     Logger.getLogger(Event.class).error("Failed to find class", ex1);
                     return null;
                 }

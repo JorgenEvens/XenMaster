@@ -62,7 +62,7 @@ public class VDI extends NamedEntity {
     }
 
     public String create(double sizeInMb, Type type, SR repo, boolean shareable, boolean readOnly) throws BadAPICallException {
-        this.virtualSize = (int) (sizeInMb * (megabyte));
+        this.virtualSize = (long) (sizeInMb * (megabyte));
         this.type = type;
         this.sr = repo.getReference();
         this.shareable = shareable;
