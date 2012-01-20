@@ -1,9 +1,96 @@
 <div id="vm_general">
 	<h3>General</h3>
-	<ul>
-		<li><span>CPU:</span>10%</li>
-		<li><span>Memory:</span>13.33%</li>
-		<li><span>LAN Adapter:</span>1%</li>
-		<li><span>Home Adapter:</span>0%</li>
-	</ul>
+	
+	<div class="form_line">
+		<label for="vm_name">Name:</label>
+		<input type="text" id="vm_name" name="name" />
+	</div>
+	
+	<div class="form_line">
+		<label for="vm_description">Description:</label>
+		<textarea id="vm_description" name="description"></textarea>
+	</div>
+	
+	<div class="form_line">
+		<label for="vm_poweron" style="width: auto;">Automatically poweron this VM</label>
+		<input type="checkbox" id="vm_poweron" name="autoPoweron" />
+	</div>
+	
+	<div class="form_line">
+		<label for="vm_crash">On crash:</label>
+		<select id="vm_crash" name="actionsAfterCrash">
+			<option value="COREDUMP_AND_DESTROY">Coredump and destroy</option>
+			<option value="COREDUMP_AND_RESTART">Coredump and restart</option>
+			<option value="DESTROY">Shutdown</option>
+			<option value="PRESERVE">Leave paused</option>
+			<option value="RESTART">Restart</option>
+		</select>
+	</div>
+	
+	<div class="form_line">
+		<label for="vm_reboot">On reboot:</label>
+		<select id="vm_reboot" name="actionsAfterReboot">
+			<option value="DESTROY">Shutdown</option>
+			<option value="RESTART">Restart</option>
+		</select>
+	</div>
+	
+	<div class="form_line">
+		<label for="vm_shutdown">On shutdown:</label>
+		<select id="vm_shutdown" name="name">
+			<option value="DESTROY">Shutdown</option>
+			<option value="RESTART">Restart</option>
+		</select>
+	</div>
+	
+	<div class="form_line">
+		<label for="vm_type">Virtualization type:</label>
+		<select id="vm_type" name="type" data-action="vm_type_changed">
+			<option value="hvm">HVM</option>
+			<option value="pv">Paravirtualised</option>
+		</select>
+	</div>
+	
+	<div class="type hvm">
+		<div class="form_line">
+			<label for="hvm_boot">Boot:</label>
+		</div>
+		<div class="hvm_boot_option">
+			<label for="hvm_boot_harddisk">Harddisk:</label>
+			<input type="checkbox" id="hvm_boot_harddisk" value="c" name="hvm_boot[0]" />
+			<span data-action="hvm_boot_up">up</span>	
+			<span data-action="hvm_boot_down">down</span>			
+		</div>
+		<div class="hvm_boot_option">
+			<label for="hvm_boot_disk">DVD/CD Drive:</label>
+			<input type="checkbox" id="hvm_boot_disk" value="d" name="hvm_boot[1]" />
+			<span data-action="hvm_boot_up">up</span>	
+			<span data-action="hvm_boot_down">down</span>	
+		</div>
+		<div class="hvm_boot_option">
+			<label for="hvm_boot_network">Network:</label>
+			<input type="checkbox" id="hvm_boot_network" value="n" name="hvm_boot[2]" />
+			<span data-action="hvm_boot_up">up</span>	
+			<span data-action="hvm_boot_down">down</span>		
+		</div>
+	</div>
+	
+	<div class="type pv">
+		<div class="form_line">
+			<label for="pv_kernel">Kernel:</label>
+			<select id="pv_kernel" name="pvkernel"></select>
+		</div>		
+		<div class="form_line">
+			<label for="pv_ramdisk">Ramdisk:</label>
+			<select id="pv_ramdisk" name="pvramdisk"></select>
+		</div>
+		<div class="form_line">
+			<label for="pv_bootloader">Bootloader (optional):</label>
+			<select id="pv_bootloader" name="pvbootloader"></select>
+		</div>
+		<div class="form_line">
+			<label for="pv_bootloader_args">Bootloader arguments:</label>
+			<select id="pv_bootloader_args" name="pvbootloaderargs"></select>
+		</div>
+	</div>
 </div>

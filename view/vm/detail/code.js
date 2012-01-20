@@ -164,7 +164,8 @@
 			 * Device has been created.
 			 */
 			view.bind( 'vm_device_ready', function( e ) {
-				tpl.show( vm_data ); // reload view.
+				tpl.vm = vm_data;
+				tpl.show(); // reload view.
 			});
 			
 			view.vm = vm_data;

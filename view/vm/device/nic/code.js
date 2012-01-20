@@ -75,7 +75,7 @@
 				vif.create( tpl.vm, network, this.next );
 			},
 			function( vif ) {
-				tpl.vm.VIFs.push(vif.reference);
+				tpl.vm.vifs.push(vif.reference);
 				tpl.action( 'device_ready', vif );
 			}
 		).start();
@@ -83,7 +83,7 @@
 	});
 	
 	tpl.on( 'network_select', function( e ) {
-		dom.find('#dev_mtu').val( networks[$(e.source).val()].MTU );
+		dom.find('#dev_mtu').val( networks[$(e.source).val()].mtu );
 	});
 	
 });

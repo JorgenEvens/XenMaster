@@ -17,6 +17,7 @@
 			this.action = options.action || defaultHandler;
 			this.capture( options.events );
 			this.onshow = function(){};
+			this.placeholder = 'main';
 			
 			if( typeof res.code === 'function' ) {
 				res.code.call( this, $, app );
@@ -25,6 +26,7 @@
 			// TODO: Deprecated
 			var tpl = this;
 			this.bind( 'tpl_show', function(){
+				console.trace();
 				tpl.onshow();
 			});
 		},
@@ -91,8 +93,8 @@
 		};
 		
 		Template.prototype.show = function( placeholder ) {
-			placeholder = placeholder || 'main';
-			placeholder = $('.placeholder.' + placeholder );
+			this.placeholder = placeholder || this.placeholder;
+			placeholder = $('.placeholder.' + this.placeholder );
 			
 			placeholder
 				.children()
@@ -101,6 +103,10 @@
 			placeholder.append( this.dom );
 			
 			this.action( 'tpl_show', Dataset.get( this.dom ), this, this );
+		};
+		
+		Template.prototype.isVisible = function(){
+			return $(this.dom).parents('body').length > 0;
 		};
 		
 		ready( Template );
