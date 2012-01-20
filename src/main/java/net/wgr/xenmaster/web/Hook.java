@@ -216,7 +216,7 @@ public class Hook extends WebCommandHandler {
             } else {
                 Logger.getLogger(getClass()).info("Hook call threw Exception", ex.getCause());
                 if (ex.getCause() instanceof BadAPICallException) {
-                    current = new DetailedCommandException(commandName, ((BadAPICallException) ex.getCause()).getErrorName());
+                    current = new DetailedCommandException(commandName, ((BadAPICallException) ex.getCause()));
                 } else {
                     current = new CommandException(ex.getCause(), commandName);
                 }
