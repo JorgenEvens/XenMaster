@@ -180,18 +180,18 @@ public class Hook extends WebCommandHandler {
                 Class<?> type = types[j];
                 Object value = args[j];
 
-                if (!(value instanceof String) || String.class.isAssignableFrom(type)) {
-                    continue;
-                }
+                if (value instanceof String) {
+                    String str = value.toString();
 
-                String str = value.toString();
-
-                if (str.startsWith("LocalRef:")) {
-                    Integer localRef = Integer.parseInt(str.substring(str.indexOf(":") + 1));
-                    if (!store.containsKey(localRef)) {
-                        current = new CommandException("Local object reference does not exist", commandName);
+                    if (str.startsWith("LocalRef:")) {
+                        Integer localRef = Integer.parseInt(str.substring(str.indexOf(":") + 1));
+                        if (!store.containsKey(localRef)) {
+                            current = new CommandException("Local object reference does not exist", commandName);
+                        }
+                        args[j] = store.get(localRef).value;
+                    } else {
+                        args[j] = APIUtil.deserializeToTargetType(value, type);
                     }
-                    args[j] = store.get(localRef).value;
                 } else {
                     args[j] = APIUtil.deserializeToTargetType(value, type);
                 }

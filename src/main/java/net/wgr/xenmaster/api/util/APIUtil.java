@@ -9,7 +9,9 @@ package net.wgr.xenmaster.api.util;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.net.InetAddress;
+import java.util.Map;
 import net.wgr.xenmaster.api.XenApiEntity;
+import net.wgr.xenmaster.api.XenApiMapField;
 
 /**
  * 
@@ -53,6 +55,9 @@ public class APIUtil {
                     return arr;
                 } else if (InetAddress.class.isAssignableFrom(type)) {
                     return InetAddress.getByName(value.toString());
+                } else if (XenApiMapField.class.isAssignableFrom(type)) {
+                    Constructor c = type.getConstructor(Map.class);
+                    return c.newInstance((Map<String, String>) value);
                 } else if (XenApiEntity.class.isAssignableFrom(type)) {
                     Constructor c = type.getConstructor(String.class, boolean.class);
                     return c.newInstance(value.toString(), false);
