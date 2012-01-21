@@ -57,7 +57,7 @@ public class XenApiEntity implements Serializable {
 
     public XenApiEntity(String ref, boolean autoFill) {
         this();
-        
+
         try {
             checkReference(ref);
         } catch (IllegalReferenceException ex) {
@@ -65,12 +65,12 @@ public class XenApiEntity implements Serializable {
             return;
         }
         this.reference = ref;
-        
+
         if (autoFill) {
             fillOut(getAPIName(), null);
         }
     }
-    
+
     protected final void checkReference(String ref) throws IllegalReferenceException {
         if (NULL_REF.equals(ref)) {
             throw new IllegalReferenceException();
@@ -89,10 +89,10 @@ public class XenApiEntity implements Serializable {
             return sn.toLowerCase();
         }
     }
-
-    public String getReference() {
-        // Try to obtain a reference by its UUID
-        if (reference == null && uuid != null) {
+    
+    public String getReference(boolean deriveFromUUID) {
+         // Try to obtain a reference by its UUID
+        if (reference == null && uuid != null && deriveFromUUID == true) {
             // Get reference is a safe op that does not throw errors
             try {
                 reference = dispatch("get_by_uuid", uuid).toString();
@@ -101,6 +101,10 @@ public class XenApiEntity implements Serializable {
             }
         }
         return reference;
+    }
+
+    public String getReference() {
+       return getReference(true);
     }
 
     public UUID getUUID() {
@@ -341,15 +345,17 @@ public class XenApiEntity implements Serializable {
         }
 
         if (data == null) {
-            throw new Error("Get record failed");
+            throw new IllegalStateException("Failed to retrieve record for " + className + " : " + this.reference);
         }
 
         Map<String, String> interpretation = interpretation();
         interpretation.putAll(globalInterpretation);
 
         for (Field f : ReflectionUtils.getAllFields(getClass())) {
-            
-            if (Modifier.isTransient(f.getModifiers())) continue;
+
+            if (Modifier.isTransient(f.getModifiers())) {
+                continue;
+            }
 
             String processedName = "";
             if (interpretation.containsKey(f.getName())) {
@@ -372,7 +378,7 @@ public class XenApiEntity implements Serializable {
                     break;
                 }
             }
-            
+
             if (value == null) {
                 continue;
             }

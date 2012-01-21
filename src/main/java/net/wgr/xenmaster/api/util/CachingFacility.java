@@ -59,7 +59,7 @@ public class CachingFacility {
 
                 update(event.getSnapshot());
             }
-        }, 0);
+        });
     }
 
     protected Cache buildCache(boolean distributed) {

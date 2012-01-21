@@ -30,15 +30,17 @@ public class Emitter {
             @Override
             public void eventOcurred(Event event) {
                 if (event.getSnapshot() == null) return;
-                Map<String, Object> diff = ReflectionUtils.diff(CachingFacility.get(event.getSnapshot().getReference(), event.getSnapshot().getClass()), event.getSnapshot());
+                boolean isDeletion = (event.getOperation() == Event.Operation.DEL ? false : true);
+                // Cache will contain newest as it is updates first
+                Map<String, Object> diff = ReflectionUtils.diff(CachingFacility.get(event.getSnapshot().getReference(isDeletion), event.getSnapshot().getClass()), event.getSnapshot());
                 if (diff.size() < 1) {
                     // Nothing was changed?
                     return;
                 }
-                LogEntry le = new LogEntry(event.getReference(), event.getEventClass(), event.getOperation(), diff, event.getTimestamp(), LogEntry.Level.INFORMATION);
+                LogEntry le = new LogEntry(event.getReference(), event.getEventClass(), event.getOperation().name(), diff, event.getTimestamp(), LogEntry.Level.INFORMATION);
                 emit(le);
             }
-        });
+        }, 0);
     }
     
     public static void emit(LogEntry le) {

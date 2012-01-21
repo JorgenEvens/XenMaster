@@ -18,7 +18,6 @@ import java.util.UUID;
 import net.wgr.core.ReflectionUtils;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -32,7 +31,7 @@ public class Event extends XenApiEntity {
     protected Date timestamp;
     protected String eventClass;
     protected UUID subject;
-    protected String operation;
+    protected Operation operation;
     protected XenApiEntity snapshot;
     protected static int connectionIndex;
 
@@ -100,7 +99,9 @@ public class Event extends XenApiEntity {
             } catch (ClassNotFoundException | IOException ex) {
                 Logger.getLogger(Event.class).error("Failed to list classes in package", ex);
             }
-            if (clazz == null) return null;
+            if (clazz == null) {
+                return null;
+            }
 
             Constructor<T> ctor = clazz.getConstructor();
             T newInstance = ctor.newInstance();
@@ -121,11 +122,11 @@ public class Event extends XenApiEntity {
         this.eventClass = eventClass;
     }
 
-    public String getOperation() {
+    public Operation getOperation() {
         return operation;
     }
 
-    public void setOperation(String operation) {
+    public void setOperation(Operation operation) {
         this.operation = operation;
     }
 
@@ -159,5 +160,9 @@ public class Event extends XenApiEntity {
         map.put("eventClass", "class");
         map.put("subject", "obj_uuid");
         return map;
+    }
+    
+    public static enum Operation {
+        ADD, MOD, DEL
     }
 }
