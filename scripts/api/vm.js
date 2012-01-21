@@ -30,6 +30,8 @@
 		
 		VM.createMethod( 'getVIFs', VIF, true );
 
+		VM.createMethod( 'setPlatform' );
+		
 		ready( VM );
 	});
 });

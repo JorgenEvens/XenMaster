@@ -26,7 +26,6 @@
 			// TODO: Deprecated
 			var tpl = this;
 			this.bind( 'tpl_show', function(){
-				console.trace();
 				tpl.onshow();
 			});
 		},

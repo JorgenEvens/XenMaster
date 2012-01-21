@@ -59,7 +59,7 @@
 				vbd.create( tpl.vm, this.vdi, '', this.next );
 			},
 			function( vbd ) {
-				tpl.vm.VBDs.push(vbd.reference);
+				tpl.vm.vbds.push(vbd.reference);
 				tpl.action( 'device_ready', vbd );
 			}
 		).start();

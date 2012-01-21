@@ -132,6 +132,19 @@
 					}
 				}
 			).start();
+		},
+		
+		stateButtonMap = {
+			'HALTED': actions.filter('.start'),
+			'PAUSED': actions.filter('.start, .stop, .reboot, .kill'),
+			'RUNNING': actions.filter('.stop, .reboot, .pause, .kill, .suspend'),
+			'SUSPENDED': actions.filter('.start, .stop, .reboot, .kill')
+		},
+		
+		setState = function() {
+			dom.find('.vm_state span').text( vm_data.powerState.toLowerCase() );
+			actions.hide();
+			stateButtonMap[vm_data.powerState].show();
 		};
 		
 	
@@ -193,9 +206,10 @@
 	this.onshow = function() {
 		var vm = tpl.vm;
 		vm_data = vm;
-		
+		console.log( vm_data );
 		loadVBDs();
 		loadVIFs();
+		setState();
 		
 		dom
 			.find('.vm_name')

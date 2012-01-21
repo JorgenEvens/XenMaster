@@ -1,6 +1,18 @@
 <div id="vm_detail" data-action="ui_alternate">
 	<h2>
 		VM | <span class="vm_name">VM_NAME</span>
+		<span class="vm_state">
+			<span>Halted</span>
+			<ul>
+				<li data-action="vm_state" data-state="RUNNING" class="start">Start</li>
+				<li data-action="vm_state" data-state="STOPPED" class="stop">Stop</li>
+				<li data-action="vm_state" data-state="REBOOT" class="reboot">Reboot</li>
+				<li data-action="vm_state" data-state="PAUSED" class="pause">Pause</li>
+				<li data-action="vm_state" data-state="ABORTED" class="kill">Kill</li>
+				<li data-action="vm_state" data-state="SUSPENDED" class="suspend">Suspend</li>
+			</ul>
+		</span>
+		<!-- 
 		<ul>
 			<li data-action="vm_state" data-state="RUNNING" class="start">Start</li>
 			<li data-action="vm_state" data-state="STOPPED" class="stop">Stop</li>
@@ -11,6 +23,7 @@
 			<li data-action="vm_state" data-state="ABORTED" class="kill">Kill</li>
 			<li data-action="vm_state" data-state="SUSPENDED" class="suspend">Suspend</li>
 		</ul>
+		 -->
 	</h2>
 	
 	<div class="usage_graph">
