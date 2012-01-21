@@ -404,8 +404,8 @@ public class VM extends NamedEntity {
         return hvmBootParams;
     }
 
-    public void setHVMBootParams(Map<String, String> params) {
-        hvmBootParams = params;
+    public void setHVMBootParams(Map<String, String> params) throws BadAPICallException {
+        hvmBootParams = setter(params, "set_HVM_boot_params");
     }
 
     public Platform getPlatform() {

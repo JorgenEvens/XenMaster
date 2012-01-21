@@ -37,6 +37,15 @@ MANAGEMENT_INTERFACE='xenbr0'
 PRIMARY_DISK='/dev/sda1'
 EOF
 
+echo 'Setting xl as the toolstack';
+cat > /etc/default/xen << EOF
+TOOLSTACK=xl
+EOF
+
+echo 'Make sure xend does *not* start';
+sed -i -e 's/xend_start\n/#xend_start\n/' /etc/init.d/xend;
+sed -i -e 's/xend_stop\n/#xend_stop\n/' /etc/init.d/xend;
+
 echo 'Make SSL comms start on boot';
 
 update-rc.d xapissl defaults;
