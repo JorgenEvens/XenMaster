@@ -32,6 +32,8 @@
 
 		VM.createMethod( 'setPlatform' );
 		
+		VM.createMethod( 'getPlatform' );
+		
 		ready( VM );
 	});
 });
