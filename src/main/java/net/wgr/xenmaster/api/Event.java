@@ -6,6 +6,7 @@
  */
 package net.wgr.xenmaster.api;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import net.wgr.core.ReflectionUtils;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
 import org.apache.commons.lang.StringUtils;
@@ -88,19 +90,18 @@ public class Event extends XenApiEntity {
     protected static <T extends XenApiEntity> T parseSnapshot(String className, Map<String, Object> data) {
         try {
             Class<T> clazz = null;
-            
-            // Todo : clean this mess up
             try {
-                clazz = (Class<T>) Class.forName(packageName + '.' + StringUtils.capitalize(className));
-            } catch (NoClassDefFoundError | ClassNotFoundException ex) {
-                try {
-                    clazz = (Class<T>) Class.forName(packageName + '.' + className.toUpperCase());
-                } catch (NoClassDefFoundError | ClassNotFoundException ex1) {
-                    Logger.getLogger(Event.class).error("Failed to find class", ex1);
-                    return null;
+                for (Class c : ReflectionUtils.getClasses(packageName)) {
+                    if (className.toLowerCase().equals(c.getSimpleName().toLowerCase())) {
+                        clazz = c;
+                        break;
+                    }
                 }
+            } catch (ClassNotFoundException | IOException ex) {
+                Logger.getLogger(Event.class).error("Failed to list classes in package", ex);
             }
-            
+            if (clazz == null) return null;
+
             Constructor<T> ctor = clazz.getConstructor();
             T newInstance = ctor.newInstance();
             newInstance.fillOut(data);

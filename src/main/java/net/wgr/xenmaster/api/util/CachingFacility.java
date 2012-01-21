@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import net.wgr.xenmaster.api.Event;
+import net.wgr.xenmaster.api.Task;
 import net.wgr.xenmaster.api.XenApiEntity;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
@@ -51,8 +52,11 @@ public class CachingFacility {
 
             @Override
             public void eventOcurred(Event event) {
-                if (event.getSnapshot() == null) return;
-                
+                // Tasks are bound to a process, not the a result so we're not interested in storing these
+                if (event.getSnapshot() == null || Task.class.isAssignableFrom(event.getSnapshot().getClass())) {
+                    return;
+                }
+
                 update(event.getSnapshot());
             }
         }, 0);
@@ -83,7 +87,7 @@ public class CachingFacility {
         }
         return instance;
     }
-    
+
     public void stop() {
         cache.stop();
     }
@@ -119,8 +123,10 @@ public class CachingFacility {
     }
 
     public <T extends XenApiEntity> void update(T object) {
-        if (object == null) throw new IllegalArgumentException("Cannot update null");
-        
+        if (object == null) {
+            throw new IllegalArgumentException("Cannot update null");
+        }
+
         if (isCached(object.getReference(), object.getClass())) {
             cache.put(object.getReference(), object);
         } else {
