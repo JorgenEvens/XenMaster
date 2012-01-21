@@ -17,33 +17,6 @@
 	</div>
 	
 	<div class="form_line">
-		<label for="vm_crash">On crash:</label>
-		<select id="vm_crash" name="actionsAfterCrash">
-			<option value="COREDUMP_AND_DESTROY">Coredump and destroy</option>
-			<option value="COREDUMP_AND_RESTART">Coredump and restart</option>
-			<option value="DESTROY">Shutdown</option>
-			<option value="PRESERVE">Leave paused</option>
-			<option value="RESTART">Restart</option>
-		</select>
-	</div>
-	
-	<div class="form_line">
-		<label for="vm_reboot">On reboot:</label>
-		<select id="vm_reboot" name="actionsAfterReboot">
-			<option value="DESTROY">Shutdown</option>
-			<option value="RESTART">Restart</option>
-		</select>
-	</div>
-	
-	<div class="form_line">
-		<label for="vm_shutdown">On shutdown:</label>
-		<select id="vm_shutdown" name="name">
-			<option value="DESTROY">Shutdown</option>
-			<option value="RESTART">Restart</option>
-		</select>
-	</div>
-	
-	<div class="form_line">
 		<label for="vm_type">Virtualization type:</label>
 		<select id="vm_type" name="type" data-action="vm_type_changed">
 			<option value="hvm">HVM</option>

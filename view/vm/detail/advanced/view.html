@@ -1,19 +1,46 @@
 <div id="vm_advanced">
-	<h3>Advanced settings</h3>
+	<h3>Powerstate Settings</h3>	
+	<div class="form_line">
+		<label for="vm_crash">On crash:</label>
+		<select id="vm_crash" name="actionsAfterCrash">
+			<option value="COREDUMP_AND_DESTROY">Coredump and destroy</option>
+			<option value="COREDUMP_AND_RESTART">Coredump and restart</option>
+			<option value="DESTROY">Shutdown</option>
+			<option value="PRESERVE">Leave paused</option>
+			<option value="RESTART">Restart</option>
+		</select>
+	</div>
+	
+	<div class="form_line">
+		<label for="vm_reboot">On reboot:</label>
+		<select id="vm_reboot" name="actionsAfterReboot">
+			<option value="DESTROY">Shutdown</option>
+			<option value="RESTART">Restart</option>
+		</select>
+	</div>
+	
+	<div class="form_line">
+		<label for="vm_shutdown">On shutdown:</label>
+		<select id="vm_shutdown" name="name">
+			<option value="DESTROY">Shutdown</option>
+			<option value="RESTART">Restart</option>
+		</select>
+	</div>
+	<h3>Platform Settings</h3>
 	<div class="form_line">
 		<label for="adv_apic">APIC:</label>
-		<input type="checkbox" id="adv_apic" name="adv_apic" />
+		<input data-action="platform_changed" type="checkbox" id="adv_apic" name="adv_apic" />
 	</div>
 	<div class="form_line">
 		<label for="adv_acpi">ACPI:</label>
-		<input type="checkbox" id="adv_acpi" name="adv_acpi" />
+		<input data-action="platform_changed" type="checkbox" id="adv_acpi" name="adv_acpi" />
 	</div>
 	<div class="form_line">
 		<label for="adv_pae">PAE:</label>
-		<input type="checkbox" id="adv_pae" name="adv_pae" />
+		<input data-action="platform_changed" type="checkbox" id="adv_pae" name="adv_pae" />
 	</div>
 	<div class="form_line">
 		<label for="adv_viridian">Viridian:</label>
-		<input type="checkbox" id="adv_viridian" name="adv_viridian" />
+		<input data-action="platform_changed" type="checkbox" id="adv_viridian" name="adv_viridian" />
 	</div>
 </div>

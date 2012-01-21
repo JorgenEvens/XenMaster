@@ -2,11 +2,33 @@
 
 	var tpl = this,
 		dom = $(tpl.dom),
+		vm_data = null,
+		
 		ctl = {
+			// General
+			name: dom.find('#vm_name'),
+			description: dom.find( '#vm_description' ),
+			poweron: dom.find( '#vm_poweron' ),
+			
+			// Virtualization type
 			type: dom.find('#vm_type'),
-			kernel: dom.find('#pv_kernel'),
-			ramdisk: dom.find('#pv_ramdisk')
+			
+			// HVM Virtualization
+			hvm: {
+				hdd: dom.find( '#hvm_boot_harddisk' ),
+				cd: dom.find( '#hvm_boot_disk' ),
+				net: dom.find( '#hvm_boot_network' )
+			},
+			
+			// PV Virtualization
+			pv: {
+				kernel: dom.find('#pv_kernel'),
+				ramdisk: dom.find('#pv_ramdisk')
+			}
+			
 		},
+		
+		// Property updating functions
 		update = {
 			hvm: {},
 			pv: {}
@@ -17,13 +39,19 @@
 		loadKernels = function( host ){
 			app.load( 'js://api/plugins/filesystem', function( FS ){
 				FS.getKernels(host, function( kernels ){
-					var i = null;
+					var i = null,
+						option = null;
+					
 					for( i in kernels ) {
 						i = kernels[i];
 						
-						$('<option></option>').val( i )
+						option = $('<option></option>').val( i )
 							.text(i)
 							.appendTo( ctl.kernel );
+						
+						if( i == vm_data.pvKernel ) {
+							option.attr( 'selected', 'selected' );
+						}
 					}
 				});
 			});
@@ -32,13 +60,19 @@
 		loadRamdisks = function( host ){
 			app.load( 'js://api/plugins/filesystem', function( FS ){
 				FS.getRamdisks(host, function( disks ){
-					var i = null;
+					var i = null,
+						option = null;
+					
 					for( i in disks ) {
 						i = disks[i];
 						
-						$('<option></option>').val( i )
+						option = $('<option></option>').val( i )
 							.text(i)
 							.appendTo( ctl.ramdisk );
+						
+						if( i == vm_data.pvRamdisk ) {
+							option.attr( 'selected', 'selected' );
+						}
 					}
 				});
 			});
@@ -54,7 +88,33 @@
 		}
 	};
 	
+	// Event handling
 	tpl.capture(['click','change']);
+	
+	tpl.bind( 'tpl_show', function( e ){
+		vm_data = tpl.vm;
+		
+		var bootorder = vm_data.hvmBootParam?vm_data.hvmBootParam.order:'';
+		
+		ctl.name.val( vm_data.name );
+		ctl.description.val( vm_data.description );
+		ctl.poweron.attr( 'checked', vm_data.autoPowerOn );
+		ctl.type.val( vm_data.hvmBootPolicy?'hvm':'pv' );
+		
+		ctl.hvm.cd
+			.attr('checked', bootorder.indexOf( 'd' ) > -1 );
+		
+		ctl.hvm.hdd
+			.attr('checked', bootorder.indexOf( 'c' ) > -1 );
+		
+		ctl.hvm.net
+			.attr('checked', bootorder.indexOf( 'n' ) > -1 );
+		
+		ctl.pv.kernel.val( vm_data.pvKernel );
+		ctl.pv.ramdisk.val( vm_data.pvRamdisk );
+		
+		ctl.type.change();
+	});
 	
 	tpl.bind( 'hvm_boot_up', function( e ) {
 		var elem = $(e.source),
@@ -110,6 +170,4 @@
 			});
 		}
 	});
-	
-	ctl.type.change();
 });

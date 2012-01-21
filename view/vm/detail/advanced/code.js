@@ -8,7 +8,10 @@
 				acpi: dom.find( '#adv_acpi' ),
 				pae: dom.find( '#adv_pae' ),
 				viridian: dom.find( '#adv_viridian' )
-			}
+			},
+			actionOnCrash: dom.find( '#vm_crash' ),
+			actionOnReboot: dom.find('#vm_reboot'),
+			actionOnShutdown: dom.find('#vm_shutdown'),
 		},
 		vm = null;
 	
@@ -22,6 +25,10 @@
 				ctl.platform[i].attr('checked', platform[i]?'checked':'' );
 			}
 		});
+		
+		ctl.actionOnCrash.val( vm.actionsOnCrash );
+		ctl.actionOnReboot.val( vm.actionsOnReboot );
+		ctl.actionOnShutdown.val( vm.actionsOnShutdown );
 	};
 	
 	tpl.capture( 'change' );
@@ -35,6 +42,7 @@
 		}
 		
 		vm.setPlatform( platform );
+		console.log( platform );
 	});
 	
 });
