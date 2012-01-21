@@ -192,7 +192,7 @@
 		changeVMState( VMState[e.source.dataset.state] );
 	});
 	
-	$(document).keydown(function(e){
+	/*$(document).keydown(function(e){
 		if( e.keyCode != 16 ) return;
 		actions.parent('.onshift').show();
 		actions.parent(':not(.onshift)').hide();
@@ -201,7 +201,7 @@
 	$(document).keyup(function(e){
 		actions.parent('.onshift').hide();
 		actions.parent(':not(.onshift)').show();
-	});
+	});*/
 	
 	this.onshow = function() {
 		var vm = tpl.vm;
