@@ -27,21 +27,11 @@ public class LogEntry extends net.wgr.core.dao.Object {
     protected String title, message;
     protected Level level;
     @TypeOverride(type="BytesType")
-    protected Object subject;
-    @TypeOverride(type="BytesType")
     protected Object[] args;
     
-    public LogEntry(String reference, String entityType, String title, Object subject, Date date, Level level) {
-        this.reference = reference;
-        this.entityType = entityType;
-        this.title = title;
-        this.level = level;
-        this.subject = subject;
-        this.date = (date != null ? date.getTime() : System.currentTimeMillis());
-    }
     
     public LogEntry(String reference, String entityType, String title, String message, Level level) {
-        this(reference, entityType, title, message, new Date(), level);
+        this(reference, entityType, title, message, null, level);
     }
 
     public LogEntry(String reference, String entityType, String title, String message, Object[] args, Level level) {
@@ -63,10 +53,6 @@ public class LogEntry extends net.wgr.core.dao.Object {
         this.date = System.currentTimeMillis();
     }
 
-    public Object getSubject() {
-        return subject;
-    }
-
     public String getEntityType() {
         return entityType;
     }
@@ -76,7 +62,7 @@ public class LogEntry extends net.wgr.core.dao.Object {
     }
 
     public String getMessage() {
-        if (args != null || subject == null) {
+        if (args != null) {
             return String.format(I18N.getText(message), args);
         }
         return message;
@@ -87,7 +73,7 @@ public class LogEntry extends net.wgr.core.dao.Object {
     }
 
     public String getTitle() {
-        if (args != null || subject == null) {
+        if (args != null) {
             return String.format(I18N.getText(title), args);
         }
         return title;
