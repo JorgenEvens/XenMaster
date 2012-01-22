@@ -102,14 +102,13 @@ public class Emitter {
 
         protected String className;
         protected String field;
-        protected String originalValue, newValue;
+        protected String newValue;
         protected String title, description;
         protected final static Pattern EVENT_DESCRIPTOR_LINE = Pattern.compile("([^\\.]+)\\.([^:]+):([^=]+)=([^;]+);(.+)");
 
-        public EventDescriptor(String className, String field, String originalValue, String newValue, String title, String description) {
+        public EventDescriptor(String className, String field, String newValue, String title, String description) {
             this.className = className;
             this.field = field;
-            this.originalValue = originalValue;
             this.newValue = newValue;
             this.title = title;
             this.description = description;
@@ -125,7 +124,7 @@ public class Emitter {
                 return null;
             }
 
-            EventDescriptor ed = new EventDescriptor(m.group(1).trim(), m.group(2).trim(), m.group(3).trim(), m.group(4).trim(), m.group(5).trim(), m.group(6).trim());
+            EventDescriptor ed = new EventDescriptor(m.group(1).trim(), m.group(2).trim(), m.group(3).trim(), m.group(4).trim(), m.group(5).trim());
             return ed;
         }
 
@@ -139,10 +138,6 @@ public class Emitter {
 
         public String getNewValue() {
             return newValue;
-        }
-
-        public String getOriginalValue() {
-            return originalValue;
         }
 
         public String getTitle() {
