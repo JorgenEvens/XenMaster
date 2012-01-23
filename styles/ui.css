@@ -85,7 +85,9 @@ table thead {
 }
 
 /* fonts */
-@font-face { font-family: Code; src: url('../fonts/code_bold.otf'); } 
+@font-face { font-family: Code; font-weight: bold; src: url('../fonts/code_bold.otf'); }
+@font-face { font-family: Code; font-weight: 100; src: url('../fonts/code_light.otf'); }
+@font-face { font-family: Futurist; src: url('../fonts/futurist_fixed_width.otf'); } 
 
 /* Main design */
 #container {
@@ -95,6 +97,57 @@ table thead {
 
 header {
 	position: relative;
+}
+header .eventviewer {
+	position: absolute;
+	top: 13px;
+	left: 250px;
+	width: 470px;
+	height: 49px;
+	border-color: #AAA;
+	border-width: 1px;
+	border-style: solid;
+	overflow: hidden;
+}
+
+header .eventviewer .event {
+	width: 100%;
+	height: 24px;
+	cursor: pointer;
+	background-color: #F2F2F2;
+	line-height: 24px;
+	border-bottom: solid 1px #E6E6E6;
+}
+
+header .eventviewer .event:hover {
+	background-color: #FDFDFD;
+}
+
+header .eventviewer .event:first-letter {
+	background-color: #CCC;
+	padding-left: 5px;
+	padding-right: 5px;
+	padding-top: 3px;
+	padding-bottom: 4px;
+	font-size: 14px;
+	font-family: Futurist;
+	color: #FFF;
+}
+
+header .eventviewer .event.success:first-letter {
+	background-color: #8CC63F;
+}
+
+header .eventviewer .event.information:first-letter {
+	background-color: #0071BC;
+}
+
+header .eventviewer .event.error:first-letter {
+	background-color: #C1272D;
+}
+
+header .eventviewer .event.warning:first-letter {
+	background-color: #F15A24;
 }
 
 header .quick_access
@@ -226,37 +279,13 @@ h2.corner:before {
 }
 
 /* VM Detail page */
-#vm_detail h2 {
-	position: relative;
-}
-
-#vm_detail h2 .vm_state {
-	position: absolute;
-	right: 0;
-	top: 0;
+#vm_detail h2 ul {
 	float: right;
-	width: 100px;
-	height: 33px;
-	line-height: 33px;
-	background: #E6E6E6;
-	text-align: right;
-	padding-right: 7px;
-}
-
-#vm_detail h2 .vm_state ul {
-	display: none;
-	position: absolute;
-	width: 100px;
-	top: 100%;
-	right: 0;
-	background: #E6E6E6;
-}
-
-#vm_detail h2 .vm_state:hover ul {
-	display: block;
 }
 
 #vm_detail h2 li {
+	float: left;
+	border-right: 2px solid #CFCFCF;
 	padding: 0 10px;
 	cursor: pointer;
 }
@@ -267,6 +296,11 @@ h2.corner:before {
 
 #vm_detail h2 ul.onshift {
 	display: none;
+}
+
+#vm_detail h2 li:last-child {
+	float: left;
+	border-right: none;
 }
 
 #vm_detail .usage_graph {
