@@ -10,7 +10,7 @@ DEBUG = document.location.toString().indexOf('debug') > -1;
 		M.load( 'tpl://global/ui', 'tpl://dashboard', 'js://ui/template', 'js://tools/notifier', 'js://ui/notifier',
 				function( ui, dashboard, Template, Notifier, Notif ) {
 			
-			Notifier.publish( 'XenMaster', 'Connection to backend established!' );
+			Notifier.publish( 'XenMaster', 'SUCCESS', 'Connection to backend established!', M );
 			
 			var global_ui = new Template({ resource: ui }),
 				dashboard_ui = new Template({ resource: dashboard });

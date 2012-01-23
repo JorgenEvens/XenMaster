@@ -19,7 +19,7 @@
 			return function( data ){
 				if( data.type == 'ERROR' ) {
 					app.load( 'js://tools/notifier', function( Notifier ) {
-						Notifier.publish( 'XenMaster', 'Request to backend failed! ' + data.result.message );
+						Notifier.publish( 'XenMaster', data.type, 'Request to backend failed! ' + data.result.message, data );
 					});
 				} else {
 					callback( data.result );

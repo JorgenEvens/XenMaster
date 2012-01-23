@@ -25,11 +25,11 @@
 		}
 	};
 	
-	Notifier.prototype.publish = function( app_key, message ) {
+	Notifier.prototype.publish = function( app_key, msg_type, message, data ) {
 		var i = null;
 		
 		for( i in subscribers ) {
-			subscribers[i]( app_key, message );
+			subscribers[i]( app_key, msg_type, message, data );
 		}
 	};
 	

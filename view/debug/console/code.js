@@ -64,4 +64,22 @@
 		});
 	});
 	
+	app.load( 'js://tools/bindable', function( Bindable ) {
+		var obj1 = $('<div>test</div>'),
+			obj2 = $('<span>abc</span>'),
+			
+			b_obj1 = new Bindable( 'jQuery', obj1, 'text', 'text', 'change' ),
+			b_obj2 = new Bindable( 'jQuery', obj2, 'text', 'text' );
+		
+		b_obj1.link( b_obj2 );
+		
+		console.log( 'obj1.text(): ', b_obj1.get() );
+		console.log( 'obj2.text(): ', b_obj2.get() );
+		
+		console.log( 'obj1.change(): ', obj1.change() );
+		
+		console.log( 'obj1.text(): ', b_obj1.get() );
+		console.log( 'obj2.text(): ', b_obj2.get() );
+	});
+	
 });

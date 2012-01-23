@@ -1,16 +1,14 @@
 (function( ready, app ){
 	
-	var Bindable = function( object, get, set, events ) {
-			var concreetType = null;
-			if( arguments.length == 5 ) {
-				concreetType = Bindable[arguments[0]];
-				return new concreetType( arguments[1], arguments[2], arguments[3], arguments[4] );
+	var Bindable = function( object, get, set ) {
+			var concreetType = Bindable[object];
+			if( concreetType ) {
+				return new concreetType( [].slice.call( arguments, 1 ) );
 			}
 			
 			this._object = object;
 			this._get = get;
 			this._set = set;
-			this._events = Util.isArray( events ) ? events : [ events ];
 			this._handlers = [];
 
 			this.attach();
@@ -19,9 +17,10 @@
 	/**
 	 * Create an inheriting instance
 	 */
-	Bindable.create = function() {
-		var target = function(){
-				Bindable.apply( this, arguments );
+	Bindable.create = function( constructor ) {
+		var target = function( args ){
+				constructor.apply( this, args );
+				Bindable.apply( this, args );
 			},
 			f = function(){};
 		f.prototype = Bindable.prototype;
@@ -108,10 +107,19 @@
 	/* Concreet Bindables */
 	
 	Bindable.jQuery = (function(){
-		var binding = Bindable.create(),
+		var binding = Bindable.create(function( object, get, set, events ){
+				this._events = [];
+				if( Util.isArray( events ) ) {
+					this._events = [];
+				} else if( events != null ) {
+					this._events.push( events );
+				}
+			}),
 			p = binding.prototype;
 		
 		p.attach = function() {
+			this.release();
+			
 			var me = this,
 				handler = function() { me._handler(); };
 			
@@ -123,6 +131,51 @@
 		};
 		
 		p.release = function() {};
+		
+		return binding;
+	}());
+	
+	Bindable.Entity = (function(){
+		var binding = Bindable.create(function(){});
+			p = binding.prototype;
+			
+		p.attach = function() {
+			this.release();
+			
+			var me = this,
+			handler = function( data ) {
+				if( data.entityType == 'vm' ) console.log( data );
+				if( data.reference == me._object.reference && 
+					data.entityType == 'vm' &&
+					me._get in data.subject ) {
+					
+					me._handler();
+				}
+			};
+			
+			// TODO: Insert middleman ( EntityObserver )
+			app.load( 'js://net/xmconnection', function( xm ) {
+				xm = xm.getInstance();
+
+				xm.addHook( 'log', 'event', handler );
+			});
+			
+			this.release = function() {
+				xm.removeHook( 'log', 'event', handler );
+			};
+		};
+		
+		p.release = function() {};
+		
+		return binding;
+	}());
+	
+	Bindable.Static = (function(){
+		var binding = Bindable.create(function(){}),
+			p = binding.prototype;
+		
+		p.attach = function(){};
+		p.release = function(){};
 		
 		return binding;
 	}());
