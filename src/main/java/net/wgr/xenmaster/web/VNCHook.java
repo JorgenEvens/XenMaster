@@ -161,7 +161,12 @@ public class VNCHook extends WebCommandHandler {
             }
 
             if (conn == null) {
-                Logger.getLogger(getClass()).warn("Received data on unexisting connection " + connection);
+                Logger.getLogger(getClass()).warn("Received data on inactive connection " + connection + ". Closing ...");
+                try {
+                    cm.close(connection);
+                } catch (IOException ex) {
+                    Logger.getLogger(getClass()).error("Failed to close connection " + connection, ex);
+                }
                 return;
             }
 
