@@ -34,6 +34,8 @@ public class Event extends XenApiEntity {
     protected Operation operation;
     protected XenApiEntity snapshot;
     protected static int connectionIndex;
+    // It's less expensive to keep this list in memory then to do file and ZIP IO
+    protected static List<Class> apiEntityClasses;
 
     public Event() {
     }
@@ -90,7 +92,11 @@ public class Event extends XenApiEntity {
         try {
             Class<T> clazz = null;
             try {
-                for (Class c : ReflectionUtils.getClasses(packageName)) {
+                if (apiEntityClasses == null) {
+                    apiEntityClasses = ReflectionUtils.getClasses(packageName, Event.class);
+                }
+                
+                for (Class c : apiEntityClasses) {
                     if (className.toLowerCase().equals(c.getSimpleName().toLowerCase())) {
                         clazz = c;
                         break;
@@ -161,8 +167,9 @@ public class Event extends XenApiEntity {
         map.put("subject", "obj_uuid");
         return map;
     }
-    
+
     public static enum Operation {
+
         ADD, MOD, DEL
     }
 }

@@ -46,7 +46,7 @@ public class Comptroller {
 
     protected void scheduleSensors() {
         try {
-            List<Class> classes = ReflectionUtils.getClasses(SENSORS_PACKAGE);
+            List<Class> classes = ReflectionUtils.getClasses(SENSORS_PACKAGE, getClass());
             for (Class clazz : classes) {
                 if (Sensor.class.isAssignableFrom(clazz)) {
                     try {
