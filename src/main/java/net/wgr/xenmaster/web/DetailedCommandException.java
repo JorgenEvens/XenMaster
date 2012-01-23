@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.wgr.lang.I18N;
 import net.wgr.wcp.command.CommandException;
+import net.wgr.xenmaster.api.NamedEntity;
 import net.wgr.xenmaster.controller.BadAPICallException;
 
 /**
@@ -33,11 +34,21 @@ public class DetailedCommandException extends CommandException {
             betterName = ex.getErrorName();
         }
         this.message = getMessage(betterName);
-        this.title = (I18N.hasText(betterName) ? I18N.getText(betterName) : betterName);
+        this.title = getTitle(betterName);
+        
+        if (ex.getOrigin() instanceof NamedEntity) {
+            NamedEntity ne = (NamedEntity) ex.getOrigin();
+            this.title = String.format(this.title, ne.getName(), ne.getDescription());
+            this.message = String.format(this.message, ne.getName(), ne.getDescription());
+        }
     }
 
     protected final String getMessage(String errorName) {
         return (I18N.hasText(errorName + "_MESSAGE") ? I18N.getText(errorName + "_MESSAGE") : errorName);
+    }
+    
+    protected final String getTitle(String errorName) {
+        return (I18N.hasText(errorName) ? I18N.getText(errorName) : errorName);
     }
 
     /**

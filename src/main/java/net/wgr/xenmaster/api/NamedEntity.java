@@ -16,7 +16,7 @@ import net.wgr.xenmaster.controller.BadAPICallException;
  * @author double-u
  */
 public class NamedEntity extends XenApiEntity {
-    
+
     @ConstructorArgument
     protected String name, description = "";
 
@@ -50,11 +50,20 @@ public class NamedEntity extends XenApiEntity {
     }
 
     @Override
+    protected Object dispatch(String methodName, Object... params) throws BadAPICallException {
+        try {
+            return super.dispatch(methodName, params);
+        } catch (BadAPICallException ex) {
+            ex.setOrigin(this);
+            throw ex;
+        }
+    }
+
+    @Override
     protected Map<String, String> interpretation() {
         HashMap<String, String> map = new HashMap<>();
         map.put("name", "name_label");
         map.put("description", "name_description");
         return map;
     }
-    
 }

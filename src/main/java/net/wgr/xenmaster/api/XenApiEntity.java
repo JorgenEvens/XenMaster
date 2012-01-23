@@ -184,17 +184,7 @@ public class XenApiEntity implements Serializable {
         try {
             return Controller.dispatch(getAPIName() + "." + methodName, arr.toArray());
         } catch (BadAPICallException ex) {
-            // Check if we can handle it
-            switch (ex.getMessage()) {
-                case "OPERATION_NOT_ALLOWED":
-                    ex.setErrorDescription("Tried to perform an unallowed operation");
-                    break;
-                case "OTHER_OPERATION_IN_PROGRESS":
-                    ex.setErrorDescription("Another operation is in progress");
-                    break;
-            }
-
-            error(ex);
+            Logger.getLogger(getClass()).error("Error in method call", ex);
             throw ex;
         }
     }

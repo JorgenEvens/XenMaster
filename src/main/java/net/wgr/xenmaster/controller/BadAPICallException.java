@@ -20,6 +20,7 @@ public class BadAPICallException extends Exception {
     protected List args;
     protected String errorName, errorDescription;
     protected List<String> info;
+    protected Object origin;
 
     public BadAPICallException(String methodName, List args) {
         this(methodName, args, "Call " + methodName + " failed", "");
@@ -31,7 +32,7 @@ public class BadAPICallException extends Exception {
         this.errorName = errorName;
         this.info = info;
         this.errorDescription = getErrorDescription();
-        String betterDescription = I18N.instance().getText(errorName);
+        String betterDescription = I18N.getText(errorName);
         if (betterDescription != null) {
             this.errorDescription = betterDescription;
         }
@@ -41,7 +42,7 @@ public class BadAPICallException extends Exception {
         this.methodName = methodName;
         this.args = params;
         this.errorName = errorName;
-        String betterDescription = I18N.instance().getText(errorName);
+        String betterDescription = I18N.getText(errorName);
         this.errorDescription = (betterDescription == null ? errorDescription : betterDescription);
     }
 
@@ -55,6 +56,21 @@ public class BadAPICallException extends Exception {
 
     public String getErrorName() {
         return errorName;
+    }
+
+    /**
+     * When you can provide something more helpful in describing the error
+     * @param errorName 
+     */
+    public void redefineErrorName(String errorName) {
+        this.errorName = errorName;
+        
+        if (I18N.hasText(errorName)) {
+            this.errorName = I18N.getText(errorName);
+        }
+        if (I18N.hasText(errorName + "_MESSAGE")) {
+            this.errorDescription = I18N.getText(errorName + "_MESSAGE");
+        }
     }
 
     public final String getErrorDescription() {
@@ -91,9 +107,19 @@ public class BadAPICallException extends Exception {
         return "The method " + methodName + " returned following error " + errorName + " : " + getErrorDescription();
     }
 
+    public Object getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(Object origin) {
+        this.origin = origin;
+    }
+
     @Override
     public String getMessage() {
-        if (errorDescription == null) errorDescription = getErrorDescription();
-       return errorDescription;
+        if (errorDescription == null) {
+            errorDescription = getErrorDescription();
+        }
+        return errorDescription;
     }
 }

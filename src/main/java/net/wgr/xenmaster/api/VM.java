@@ -129,7 +129,7 @@ public class VM extends NamedEntity {
 
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":
-                    ex.setErrorDescription("The VM has a bad power state. It might be already running");
+                    ex.redefineErrorName("VM_ALREADY_RUNNING");
                     break;
                 case "VM_HVM_REQUIRED":
                     ex.setErrorDescription("Your CPU(s) does not support VT-x or AMD-v, which this VM requires");
@@ -206,7 +206,7 @@ public class VM extends NamedEntity {
 
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":
-                    ex.setErrorDescription("The VM has a bad power state. It might not be running");
+                    ex.redefineErrorName("VM_ALREADY_HALTED");
             }
 
             throw ex;

@@ -41,7 +41,7 @@ public class LogEntry extends net.wgr.core.dao.Object {
         this.message = message;
         this.level = level;
         this.date = System.currentTimeMillis();
-        this.args = Arrays.copyOf(args, args.length);
+        this.args = (args != null ? Arrays.copyOf(args, args.length) : null);
     }
     
     public LogEntry(String reference, Class entityType, String title, Level level) {
