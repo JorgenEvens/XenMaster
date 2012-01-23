@@ -34,6 +34,10 @@
 		
 		VM.createMethod( 'getPlatform' );
 		
+		VM.createMethod( 'setName' );
+		
+		VM.createMethod( 'setDescription' );
+		
 		ready( VM );
 	});
 });

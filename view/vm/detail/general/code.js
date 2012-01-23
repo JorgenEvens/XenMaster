@@ -96,8 +96,16 @@
 		
 		var bootorder = vm_data.hvmBootParam?vm_data.hvmBootParam.order:'';
 		
-		ctl.name.val( vm_data.name );
-		ctl.description.val( vm_data.description );
+		app.load( 'js://tools/bindable', function( Bindable ){
+			(new Bindable( 'Entity', vm_data, 'name', 'setName' ))
+				.link(new Bindable( 'jQuery', ctl.name, 'val', 'val', 'blur' ), true);
+			
+			(new Bindable( 'Entity', vm_data, 'description', 'setDescription' ))
+				.link(new Bindable( 'jQuery', ctl.description, 'val', 'val', 'blur' ), true);
+		});
+		
+		//ctl.name.val( vm_data.name );
+		//ctl.description.val( vm_data.description );
 		ctl.poweron.attr( 'checked', vm_data.autoPowerOn );
 		ctl.type.val( vm_data.hvmBootPolicy?'hvm':'pv' );
 		

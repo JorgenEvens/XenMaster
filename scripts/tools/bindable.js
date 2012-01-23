@@ -89,14 +89,18 @@
 	};
 	
 	Bindable.prototype.link = function( bindable, twoWay ) {
+		var me = this;
+		
 		this.bind(function( value ){
 			bindable.set( value );
 		});
 		if( twoWay ) {
 			bindable.bind(function( value ){
-				this.set( value );
+				me.set( value );
 			});
 		}
+		
+		bindable.set( me.get() );
 	};
 	
 	Bindable.prototype.unlink = function() {
@@ -144,6 +148,7 @@
 			
 			var me = this,
 			handler = function( data ) {
+				if( data.entityType == 'vm' ) console.log( 'Entity changed: ', data );
 				if( data.reference == me._object.reference && 
 					data.entityType == 'vm' &&
 					me._get in data.changes ) {
