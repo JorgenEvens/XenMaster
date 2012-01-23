@@ -6,7 +6,6 @@
  */
 package net.wgr.xenmaster.monitoring;
 
-import java.util.Date;
 import net.wgr.core.dao.TypeOverride;
 import net.wgr.xenmaster.api.XenApiEntity;
 
@@ -21,8 +20,18 @@ public class ApiEventEntry extends LogEntry {
     protected XenApiEntity subject;
     protected String operation;
 
-    public ApiEventEntry(String entityType, String title, String message, XenApiEntity subject, String operation, Level level) {
-        super(subject.getReference(), entityType, title, message, level);
+    /**
+     * ApiEventEntry ctor
+     * @param reference cannot be retrieved from the XenApiEntity as it might not be available
+     * @param entityType entity class name
+     * @param title error title
+     * @param message error message
+     * @param subject entity who caused event
+     * @param operation ADD, MOD, DEL
+     * @param level event level
+     */
+    public ApiEventEntry(String reference, String entityType, String title, String message, XenApiEntity subject, String operation, Level level) {
+        super(reference, entityType, title, message, level);
         
         this.subject = subject;
         this.date = System.currentTimeMillis();

@@ -1,3 +1,3 @@
 #VM
-VM.powerState : RUNNING = VM %1$s started; VM %1$s ( %2$s ) was started successfully.
-VM.powerState : HALTED = VM %1$s halted; VM %1$s ( %2$s ) was stopped successfully.
+VM.powerState : RUNNING = SUCCESS; VM %1$s started; VM %1$s ( %2$s ) was started successfully.
+VM.powerState : HALTED = SUCCESS; VM %1$s halted; VM %1$s ( %2$s ) was stopped successfully.

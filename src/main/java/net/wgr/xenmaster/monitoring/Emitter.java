@@ -23,6 +23,7 @@ import net.wgr.xenmaster.api.Event;
 import net.wgr.xenmaster.api.NamedEntity;
 import net.wgr.xenmaster.api.Task;
 import net.wgr.xenmaster.api.util.CachingFacility;
+import net.wgr.xenmaster.monitoring.LogEntry.Level;
 import org.apache.log4j.Logger;
 
 /**
@@ -43,7 +44,9 @@ public class Emitter {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/trans_" + I18N.instance().getDefaultLocale().getLanguage() + ".events")))) {
             String line = "";
             while ((line = br.readLine()) != null) {
-                if (line.startsWith("#")) continue;
+                if (line.startsWith("#")) {
+                    continue;
+                }
                 descriptors.add(EventDescriptor.fromString(line));
             }
         } catch (IOException ex) {
@@ -59,36 +62,45 @@ public class Emitter {
                 if (event.getSnapshot() == null) {
                     return;
                 }
-                boolean isDeletion = event.getOperation() == Event.Operation.DEL;
-                Map<String, Object> diff = ReflectionUtils.diff(CachingFacility.get(event.getSnapshot().getReference(!isDeletion), event.getSnapshot().getClass()), event.getSnapshot());
+                
+                // Task come and go too quickly, they are mostly already gone before we can get their reference
+                boolean hasValidReference = event.getOperation() == Event.Operation.MOD && !(event.getSnapshot() instanceof Task);
+                Map<String, Object> diff = ReflectionUtils.diff(CachingFacility.get(event.getSnapshot().getReference(hasValidReference), event.getSnapshot().getClass()), event.getSnapshot());
                 if (diff.size() < 1) {
                     // Nothing was changed?
                     return;
                 }
-                
+
                 String title = event.getOperation().name();
                 String message = "";
-                
-                if (!isDeletion && !Task.class.isAssignableFrom(event.getSnapshot().getClass())) {
+                ApiEventEntry.Level level = LogEntry.Level.INFORMATION;
+
+                if (hasValidReference) {
                     diffIt:
                     for (Map.Entry<String, Object> d : diff.entrySet()) {
                         for (EventDescriptor ed : descriptors) {
+                            if (event.getSnapshot() == null) {
+                                continue;
+                            }
+                            
                             if (ed.match(event.getSnapshot().getClass().getSimpleName(), d.getKey(), d.getValue().toString())) {
                                 title = ed.getTitle();
                                 message = ed.getDescription();
-                                
+
                                 if (NamedEntity.class.isAssignableFrom(event.getSnapshot().getClass())) {
                                     NamedEntity ne = (NamedEntity) event.getSnapshot();
                                     title = String.format(title, ne.getName(), ne.getDescription());
                                     message = String.format(message, ne.getName(), ne.getDescription());
+                                    level = ed.getLevel();
                                 }
                                 break diffIt;
                             }
                         }
-                    } 
+                    }
                 }
-                
-                ApiEventEntry le = new ApiEventEntry(event.getEventClass(), title, message, event.getSnapshot(), event.getOperation().name(), LogEntry.Level.INFORMATION);
+
+                ApiEventEntry le = new ApiEventEntry(event.getSnapshot().getReference(hasValidReference), event.getEventClass(),
+                        title, message, event.getSnapshot(), event.getOperation().name(), level);
                 emit(le);
             }
         }, 0);
@@ -104,14 +116,16 @@ public class Emitter {
         protected String field;
         protected String newValue;
         protected String title, description;
-        protected final static Pattern EVENT_DESCRIPTOR_LINE = Pattern.compile("([^\\.]+)\\.([^:]+):([^=]+)=([^;]+);(.+)");
+        protected ApiEventEntry.Level level;
+        protected final static Pattern EVENT_DESCRIPTOR_LINE = Pattern.compile("([^\\.]+)\\.([^:]+):([^=]+)=([^;]+);([^;]+);(.+)");
 
-        public EventDescriptor(String className, String field, String newValue, String title, String description) {
+        public EventDescriptor(String className, String field, String newValue, ApiEventEntry.Level level, String title, String description) {
             this.className = className;
             this.field = field;
             this.newValue = newValue;
             this.title = title;
             this.description = description;
+            this.level = level;
         }
 
         public boolean match(String className, String fieldName, String newValue) {
@@ -121,10 +135,10 @@ public class Emitter {
         public static EventDescriptor fromString(String string) {
             Matcher m = EVENT_DESCRIPTOR_LINE.matcher(string);
             if (!m.find()) {
-                return null;
+                throw new IllegalArgumentException("Event descriptor line is not valid");
             }
 
-            EventDescriptor ed = new EventDescriptor(m.group(1).trim(), m.group(2).trim(), m.group(3).trim(), m.group(4).trim(), m.group(5).trim());
+            EventDescriptor ed = new EventDescriptor(m.group(1).trim(), m.group(2).trim(), m.group(3).trim(), ApiEventEntry.Level.valueOf(m.group(4).trim()), m.group(5).trim(), m.group(6).trim());
             return ed;
         }
 
@@ -146,6 +160,10 @@ public class Emitter {
 
         public String getDescription() {
             return description;
+        }
+
+        public Level getLevel() {
+            return level;
         }
     }
 }
