@@ -13,7 +13,7 @@
 		showDetail = function( detail, device ) {
 			if( !detail ) return;
 			
-			app.load( 'tpl://vm/detail/' + detail, 'js://ui/template', 'js://tools/notifier', function( tpl_detail, Template, N ) {
+			app.load( 'tpl://vm/detail/' + detail, 'js://ui/template', function( tpl_detail, Template ) {
 				
 				var view = new Template({ resource: tpl_detail });
 				view.vm = vm_data;
@@ -141,10 +141,11 @@
 			'SUSPENDED': actions.filter('.start, .stop, .reboot, .kill')
 		},
 		
-		setState = function() {
-			dom.find('.vm_state span').text( vm_data.powerState.toLowerCase() );
+		setState = function( state ) {
+			debugger;
+			dom.find('.vm_state span').text( state );
 			actions.hide();
-			stateButtonMap[vm_data.powerState].show();
+			stateButtonMap[state].show();
 		};
 		
 	
@@ -170,7 +171,7 @@
 	});
 	
 	this.bind('vm_device_add', function( e ) {
-		app.load( 'tpl://vm/device/new', 'js://ui/template', 'js://tools/notifier', function( tpl_add, Template, N ) {
+		app.load( 'tpl://vm/device/new', 'js://ui/template', function( tpl_add, Template ) {
 			var view = new Template({ resource: tpl_add });
 			
 			/*
@@ -192,7 +193,7 @@
 		changeVMState( VMState[e.source.dataset.state] );
 	});
 	
-	$(document).keydown(function(e){
+	/*$(document).keydown(function(e){
 		if( e.keyCode != 16 ) return;
 		actions.parent('.onshift').show();
 		actions.parent(':not(.onshift)').hide();
@@ -201,7 +202,7 @@
 	$(document).keyup(function(e){
 		actions.parent('.onshift').hide();
 		actions.parent(':not(.onshift)').show();
-	});
+	});*/
 	
 	this.onshow = function() {
 		var vm = tpl.vm;
@@ -209,7 +210,10 @@
 		console.log( vm_data );
 		loadVBDs();
 		loadVIFs();
-		setState();
+		app.load( 'js://tools/bindable', function( Bindable ) {
+			( new Bindable( 'Entity', vm, 'powerState', 'powerState' ) )
+				.link(new Bindable( 'Static', this, '', 'setState' ));
+		});
 		
 		dom
 			.find('.vm_name')

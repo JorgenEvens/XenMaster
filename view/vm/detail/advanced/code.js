@@ -22,7 +22,7 @@
 			var i = null;
 			
 			for( i in ctl.platform ) {
-				ctl.platform[i].attr('checked', platform[i]?'checked':'' );
+				ctl.platform[i].attr('checked', platform[i] );
 			}
 		});
 		

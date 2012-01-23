@@ -1,7 +1,7 @@
 (function( ready, app ) {
 	
 	var view = null,
-		callback = function( app_key, message ) {
+		callback = function( app_key, msg_type, message, data ) {
 			view.show( app_key, message );
 			if( console ) console.log( app_key, message );
 		};
@@ -16,5 +16,5 @@
 		ready( true );
 		
 	});
-		
+	
 });

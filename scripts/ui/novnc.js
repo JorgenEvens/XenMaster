@@ -2,7 +2,7 @@
 
 	var notify = function( message ) {
 		app.load( 'js://tools/notifier', function( Notifier ){
-			Notifier.publish( 'NoVNC', message );
+			Notifier.publish( 'NoVNC', 'Message', message, null );
 		});
 	};
 	
