@@ -65,7 +65,10 @@ public class Emitter {
                 
                 // Task come and go too quickly, they are mostly already gone before we can get their reference
                 boolean hasValidReference = event.getOperation() == Event.Operation.MOD && !(event.getSnapshot() instanceof Task);
-                Map<String, Object> diff = ReflectionUtils.diff(CachingFacility.get(event.getSnapshot().getReference(hasValidReference), event.getSnapshot().getClass()), event.getSnapshot());
+                String reference = event.getSnapshot().getReference(hasValidReference);
+                Object cachedObject = CachingFacility.get(reference, event.getSnapshot().getClass());
+                Map<String, Object> diff = ReflectionUtils.diff(cachedObject, event.getSnapshot());
+                
                 if (diff.size() < 1) {
                     // Nothing was changed?
                     return;

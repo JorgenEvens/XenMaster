@@ -37,7 +37,7 @@ public class NamedEntity extends XenApiEntity {
     }
 
     public void setDescription(String description) throws BadAPICallException {
-        this.description = setter(description, "set_name_description");
+        setter(description, "set_name_description");
     }
 
     public String getName() {
@@ -46,7 +46,7 @@ public class NamedEntity extends XenApiEntity {
     }
 
     public void setName(String name) throws BadAPICallException {
-        this.name = setter(name, "set_name_label");
+        setter(name, "set_name_label");
     }
 
     @Override

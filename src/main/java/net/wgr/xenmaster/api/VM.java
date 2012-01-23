@@ -377,15 +377,15 @@ public class VM extends NamedEntity {
     }
 
     public void setActionsAfterCrash(CrashedAction actionsAfterCrash) throws BadAPICallException {
-        this.actionsAfterCrash = setter(actionsAfterCrash, "set_actions_after_crash");
+        setter(actionsAfterCrash, "set_actions_after_crash");
     }
 
     public void setActionsAfterReboot(ShutdownAction actionsAfterReboot) throws BadAPICallException {
-        this.actionsAfterReboot = setter(actionsAfterReboot, "set_actions_after_reboot");
+        setter(actionsAfterReboot, "set_actions_after_reboot");
     }
 
     public void setActionsAfterShutdown(ShutdownAction actionsAfterShutdown) throws BadAPICallException {
-        this.actionsAfterShutdown = setter(actionsAfterShutdown, "set_actions_after_shutdown");
+        setter(actionsAfterShutdown, "set_actions_after_shutdown");
     }
 
     public String getHVMBootPolicy() {
@@ -397,7 +397,7 @@ public class VM extends NamedEntity {
     }
 
     public void setHVMBootPolicy(String policy) throws BadAPICallException {
-        hvmBootPolicy = setter(policy, "set_HVM_boot_policy");
+        setter(policy, "set_HVM_boot_policy");
     }
 
     public Map<String, String> getHVMBootParams() {
@@ -405,7 +405,7 @@ public class VM extends NamedEntity {
     }
 
     public void setHVMBootParams(Map<String, String> params) throws BadAPICallException {
-        hvmBootParams = setter(params, "set_HVM_boot_params");
+        setter(params, "set_HVM_boot_params");
     }
 
     public Platform getPlatform() {
@@ -413,7 +413,7 @@ public class VM extends NamedEntity {
     }
 
     public void setPlatform(Platform platform) throws BadAPICallException {
-        this.platform = setter(platform.getMap(), "set_platform");
+        setter(platform.getMap(), "set_platform");
     }
 
     public String getPVargs() {
@@ -425,7 +425,7 @@ public class VM extends NamedEntity {
     }
 
     public void setPVBootloader(String bootloader) throws BadAPICallException {
-        pvBootloader = setter(bootloader, "set_PV_bootloader");
+        setter(bootloader, "set_PV_bootloader");
     }
 
     public String getPVBootloaderArgs() {
@@ -433,7 +433,7 @@ public class VM extends NamedEntity {
     }
 
     public void setPVBootloaderArgs(String bootloaderargs) throws BadAPICallException {
-        pvBootloader = setter(bootloaderargs, "set_PV_bootloader_args");
+        setter(bootloaderargs, "set_PV_bootloader_args");
     }
 
     public String getPVKernel() {
@@ -441,7 +441,7 @@ public class VM extends NamedEntity {
     }
 
     public void setPVKernel(String kernel) throws BadAPICallException {
-        pvKernel = setter(kernel, "set_PV_kernel");
+        setter(kernel, "set_PV_kernel");
     }
 
     public String getPVRamdisk() {
@@ -449,7 +449,7 @@ public class VM extends NamedEntity {
     }
 
     public void setPVRamdisk(String ramdisk) throws BadAPICallException {
-        pvRamdisk = setter(ramdisk, "set_PV_ramdisk");
+        setter(ramdisk, "set_PV_ramdisk");
     }
 
     public CrashedAction getActionsAfterCrash() {
@@ -489,7 +489,7 @@ public class VM extends NamedEntity {
     }
 
     public void setStartupVCPUs(int startupVCPUs) throws BadAPICallException {
-        this.startupVCPUs = setter(startupVCPUs, "set_VCPUs_at_startup");
+        setter(startupVCPUs, "set_VCPUs_at_startup");
     }
 
     public long getMaximumDynamicMemory() {
@@ -497,7 +497,7 @@ public class VM extends NamedEntity {
     }
 
     public void setMaximumDynamicMemory(double mdmMb) throws BadAPICallException {
-        this.maximumDynamicMemory = setter((long) mdmMb * MEGABYTE, "set_memory_dynamic_max");
+        setter((long) mdmMb * MEGABYTE, "set_memory_dynamic_max");
     }
 
     public long getMaximumStaticMemory() {
@@ -505,7 +505,7 @@ public class VM extends NamedEntity {
     }
 
     public void setMaximumStaticMemory(double msmMb) throws BadAPICallException {
-        this.maximumStaticMemory = setter((long) msmMb * MEGABYTE, "set_memory_static_max");
+        setter((long) msmMb * MEGABYTE, "set_memory_static_max");
     }
 
     public long getMinimumStaticMemory() {

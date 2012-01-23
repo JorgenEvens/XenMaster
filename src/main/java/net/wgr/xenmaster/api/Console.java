@@ -58,7 +58,7 @@ public class Console extends XenApiEntity {
     }
 
     public void setPort(int port) throws BadAPICallException {
-        this.port = setter(port, "set_port");
+        setter(port, "set_port");
     }
     
     public static List<Console> getAll() throws BadAPICallException {
