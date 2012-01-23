@@ -7,8 +7,8 @@ DEBUG = document.location.toString().indexOf('debug') > -1;
 		 * Initialize application
 		 ********************************************************************************************
 		 */
-		M.load( 'tpl://global/ui', 'tpl://dashboard', 'js://ui/template', 'js://tools/notifier', 'js://ui/notifier',
-				function( ui, dashboard, Template, Notifier, Notif ) {
+		M.load( 'tpl://global/ui', 'tpl://dashboard', 'js://ui/template', 'js://tools/notifier',
+				function( ui, dashboard, Template, Notifier ) {
 			
 			Notifier.publish( 'XenMaster', 'SUCCESS', 'Connection to backend established!', M );
 			

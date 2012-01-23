@@ -144,11 +144,11 @@
 			
 			var me = this,
 			handler = function( data ) {
-				if( data.entityType == 'vm' ) console.log( data );
 				if( data.reference == me._object.reference && 
 					data.entityType == 'vm' &&
-					me._get in data.subject ) {
+					me._get in data.changes ) {
 					
+					me.set( data.changes[me._get] );
 					me._handler();
 				}
 			};

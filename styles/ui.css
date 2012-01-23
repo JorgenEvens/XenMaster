@@ -279,13 +279,42 @@ h2.corner:before {
 }
 
 /* VM Detail page */
-#vm_detail h2 ul {
+#vm_detail h2 {
+	position: relative;
+}
+
+#vm_detail h2 .vm_state {
+	position: absolute;
+	right: 0;
+	top: 0;
 	float: right;
+	width: 100px;
+	height: 33px;
+	line-height: 33px;
+	background: #E6E6E6;
+	text-align: right;
+	padding-right: 7px;
+}
+
+#vm_detail h2 .vm_state ul {
+	display: none;
+	position: absolute;
+	width: 100px;
+	top: 100%;
+	right: 0;
+	background: #E6E6E6;
+}
+
+#vm_detail h2 .vm_state:hover ul {
+	display: block;
 }
 
 #vm_detail h2 li {
-	float: left;
-	border-right: 2px solid #CFCFCF;
+	padding: 0 10px;
+	cursor: pointer;
+}
+
+#vm_detail h2 li {
 	padding: 0 10px;
 	cursor: pointer;
 }
@@ -296,11 +325,6 @@ h2.corner:before {
 
 #vm_detail h2 ul.onshift {
 	display: none;
-}
-
-#vm_detail h2 li:last-child {
-	float: left;
-	border-right: none;
 }
 
 #vm_detail .usage_graph {

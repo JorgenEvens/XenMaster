@@ -45,7 +45,7 @@
 				var action = state[0],
 					args = state[1];
 				
-				Notifier.publish( vm.name, 'Changing state of virtual machine to <b>' + state[2] + '</b>.' );
+				Notifier.publish( 'XenMaster', 'CHANGE', vm.name, 'Changing state of virtual machine to <b>' + state[2] + '</b>.' );
 				
 				vm[action](args, function() {
 					Notifier.publish( vm.name, 'State changed to <b>' + state[2] + '</b>' );
@@ -142,7 +142,6 @@
 		},
 		
 		setState = function( state ) {
-			debugger;
 			dom.find('.vm_state span').text( state );
 			actions.hide();
 			stateButtonMap[state].show();
@@ -212,7 +211,7 @@
 		loadVIFs();
 		app.load( 'js://tools/bindable', function( Bindable ) {
 			( new Bindable( 'Entity', vm, 'powerState', 'powerState' ) )
-				.link(new Bindable( 'Static', this, '', 'setState' ));
+				.link(new Bindable( 'Static', {setState:setState}, '', 'setState' ));
 		});
 		
 		dom
