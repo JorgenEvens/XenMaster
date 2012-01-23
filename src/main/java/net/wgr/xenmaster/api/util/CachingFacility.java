@@ -56,7 +56,7 @@ public class CachingFacility {
                 if (event.getSnapshot() == null || Task.class.isAssignableFrom(event.getSnapshot().getClass())) {
                     return;
                 }
-
+                
                 update(event.getSnapshot());
             }
         });
@@ -127,11 +127,11 @@ public class CachingFacility {
             throw new IllegalArgumentException("Cannot update null");
         }
 
-        if (isCached(object.getReference(), object.getClass())) {
+        if (isCached(object.getReference(false), object.getClass())) {
             cache.put(object.getReference(), object);
         } else {
             // We only are interested in updates for things we've cached, others will always be newest available ones when they are retreived
-            Logger.getLogger(getClass()).debug("Object " + object.getReference() + '(' + object.getClass().getCanonicalName() + ") was not inside cache and therefore could not be updated.");
+            Logger.getLogger(getClass()).debug("Object " + object.getReference(false) + '(' + object.getClass().getCanonicalName() + ") was not inside cache and therefore could not be updated.");
         }
     }
 
