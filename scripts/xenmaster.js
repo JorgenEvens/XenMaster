@@ -18,6 +18,11 @@ DEBUG = document.location.toString().indexOf('debug') > -1;
 			global_ui.show();
 			dashboard_ui.show();
 			
+			M.load('tpl://global/eventviewer', function(viewer) {
+				var viewerTemplate = new Template({resource: viewer});
+				viewerTemplate.show('eventviewer');
+			});
+			
 			if( DEBUG ) {
 				M.load( 'tpl://debug/console', 'js://ui/template', function( dc, Template ) {
 					var tpl = new Template({resource: dc});
