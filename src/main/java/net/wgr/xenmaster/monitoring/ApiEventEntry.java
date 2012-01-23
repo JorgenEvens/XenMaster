@@ -6,8 +6,8 @@
  */
 package net.wgr.xenmaster.monitoring;
 
+import java.util.Map;
 import net.wgr.core.dao.TypeOverride;
-import net.wgr.xenmaster.api.XenApiEntity;
 
 /**
  * 
@@ -17,7 +17,7 @@ import net.wgr.xenmaster.api.XenApiEntity;
 public class ApiEventEntry extends LogEntry {
 
     @TypeOverride(type = "BytesType")
-    protected XenApiEntity subject;
+    protected Map<String, Object> changes;
     protected String operation;
 
     /**
@@ -30,10 +30,10 @@ public class ApiEventEntry extends LogEntry {
      * @param operation ADD, MOD, DEL
      * @param level event level
      */
-    public ApiEventEntry(String reference, String entityType, String title, String message, XenApiEntity subject, String operation, Level level) {
+    public ApiEventEntry(String reference, String entityType, String title, String message, Map<String, Object> subject, String operation, Level level) {
         super(reference, entityType, title, message, level);
         
-        this.subject = subject;
+        this.changes = subject;
         this.date = System.currentTimeMillis();
         this.operation = operation;
     }
@@ -42,7 +42,7 @@ public class ApiEventEntry extends LogEntry {
         return operation;
     }
 
-    public XenApiEntity getSubject() {
-        return subject;
-    } 
+    public Map<String, Object> getChanges() {
+        return changes;
+    }
 }

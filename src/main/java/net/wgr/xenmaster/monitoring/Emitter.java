@@ -100,7 +100,7 @@ public class Emitter {
                 }
 
                 ApiEventEntry le = new ApiEventEntry(event.getSnapshot().getReference(hasValidReference), event.getEventClass(),
-                        title, message, event.getSnapshot(), event.getOperation().name(), level);
+                        title, message, diff, event.getOperation().name(), level);
                 emit(le);
             }
         }, 0);
