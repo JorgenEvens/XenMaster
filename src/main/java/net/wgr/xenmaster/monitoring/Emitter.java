@@ -27,7 +27,7 @@ import net.wgr.xenmaster.monitoring.LogEntry.Level;
 import org.apache.log4j.Logger;
 
 /**
- * Issues requested monitoring data "formally and with authority"
+ * Issues requested monitoring data "formally and with authority" 
  * @created Oct 30, 2011
  * @author double-u
  */
@@ -42,7 +42,7 @@ public class Emitter {
 
     protected final void buildDescriptors() {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/trans_" + I18N.instance().getDefaultLocale().getLanguage() + ".events")))) {
-            String line = "";
+            String line;
             while ((line = br.readLine()) != null) {
                 if (line.startsWith("#")) {
                     continue;
@@ -62,13 +62,13 @@ public class Emitter {
                 if (event.getSnapshot() == null) {
                     return;
                 }
-                
+
                 // Task come and go too quickly, they are mostly already gone before we can get their reference
                 boolean hasValidReference = event.getOperation() == Event.Operation.MOD && !(event.getSnapshot() instanceof Task);
                 String reference = event.getSnapshot().getReference(hasValidReference);
                 Object cachedObject = CachingFacility.get(reference, event.getSnapshot().getClass());
                 Map<String, Object> diff = ReflectionUtils.diff(cachedObject, event.getSnapshot());
-                
+
                 if (diff.size() < 1) {
                     // Nothing was changed?
                     return;
@@ -82,10 +82,10 @@ public class Emitter {
                     diffIt:
                     for (Map.Entry<String, Object> d : diff.entrySet()) {
                         for (EventDescriptor ed : descriptors) {
-                            if (event.getSnapshot() == null) {
+                            if (event.getSnapshot() == null || d.getValue() == null) {
                                 continue;
                             }
-                            
+
                             if (ed.match(event.getSnapshot().getClass().getSimpleName(), d.getKey(), d.getValue().toString())) {
                                 title = ed.getTitle();
                                 message = ed.getDescription();
@@ -110,6 +110,8 @@ public class Emitter {
     }
 
     public static void emit(LogEntry le) {
+    	LogEntry filledIn = le;
+    	filledIn.doLocalization();
         Commander.getInstance().commandeer(new Command("log", "event", le), new Scope(Scope.Target.ALL));
     }
 
