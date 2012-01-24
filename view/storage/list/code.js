@@ -1,12 +1,11 @@
 (function( $, app ){
 	var tpl = this,
-		dom = $(tpl.dom);
+		dom = $(tpl.dom),
+		base = dom.find('.repo tr:first').clone();
 	
 	tpl.capture( 'click' );
 		
 	app.load( 'js://api/sr', function( SR ) {
-		
-		var base = dom.find('.repo tr:first').clone();
 		
 		tpl.on( 'sr_remove', function() {
 			dom.find( '.repo input:checked' ).each(function(){
@@ -40,21 +39,26 @@
 		});
 		
 		base.find('td').filter(':not(.selection)').html('');
-		
-		SR.getAll( function( result ) {
-			for( item in result ) {
-				item = result[item];
-				
-				var row = base.clone(),
-					fields = row.find('td');
-				
-				fields.filter('.selection').find('input').val( item.reference );
-				fields.filter('.name').html( item.name );
-				fields.filter('.location').html( item.otherConfig.location );
-				fields.filter('.type').html( item.type );
-				
-				dom.find('.repo').append( row );
-			}
+	});
+	
+	tpl.on( 'tpl_show', function() {
+		app.load( 'js://api/sr', function( SR ) {
+			dom.find('.repo').html('');
+			SR.getAll( function( result ) {
+				for( item in result ) {
+					item = result[item];
+					
+					var row = base.clone(),
+						fields = row.find('td');
+					
+					fields.filter('.selection').find('input').val( item.reference );
+					fields.filter('.name').html( item.name );
+					fields.filter('.location').html( item.otherConfig.location );
+					fields.filter('.type').html( item.type );
+					
+					dom.find('.repo').append( row );
+				}
+			});
 		});
 	});
 })

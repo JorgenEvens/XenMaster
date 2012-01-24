@@ -35,7 +35,11 @@
 	Bindable.prototype.get = function() {
 		if( !this._get ) throw "No getter property supplied";
 		
-		if( typeof this._object[this._get] == 'function' ) {
+		if( typeof this._get == 'function' ) {
+			this.get = function() {
+				return this._get.apply( this._object );
+			};
+		} else if( typeof this._object[this._get] == 'function' ) {
 			this.get = function() {
 				return this._object[this._get]();
 			};
@@ -50,7 +54,11 @@
 	Bindable.prototype.set = function( value ) {
 		if( !this._set ) throw "No setter property supplied";
 		
-		if( typeof this._object[this._set] == 'function' ) {
+		if( typeof this._set == 'function' ) {
+			this.set = function( value ) {
+				this._set.call( this._object, value );
+			};
+		} else if( typeof this._object[this._set] == 'function' ) {
 			this.set = function( value ) {
 				this._object[this._set]( value );
 			};
@@ -128,7 +136,7 @@
 				handler = function() { me._handler(); };
 			
 			this.release = function() {
-				this._object.off( this._events.join(' '), handler );
+				me._object.off( this._events.join(' '), handler );
 			};
 			
 			this._object.on( this._events.join(' '), handler);
@@ -148,12 +156,11 @@
 			
 			var me = this,
 			handler = function( data ) {
-				if( data.entityType == 'vm' ) console.log( 'Entity changed: ', data );
 				if( data.reference == me._object.reference && 
 					data.entityType == 'vm' &&
 					me._get in data.changes ) {
 					
-					me.set( data.changes[me._get] );
+					me._object[me._get] = data.changes[me._get];
 					me._handler();
 				}
 			};

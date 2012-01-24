@@ -12,6 +12,14 @@
 		
 		clearFields = function() {
 			dom.find('input,select,textarea').val('');
+		},
+		
+		creationReady = function( sr ) {
+			app.load( 'tpl://storage/list', 'js://ui/template', function( list, Template ){
+				var list_ui = new Template({resource: list});
+				list_ui.show();
+			});
+			$('.placeholder .sr_create').html(''); // TODO: Fix hacky hacky.
 		};
 		
 	creation.nfs = function( name, host, data ) {
@@ -43,7 +51,7 @@
 				}, type, type=='ISO'?'iso':'user', true, 0, this.next );
 			},
 			function( sr ) {
-				console.log( 'sr created: ', sr );
+				creationReady( sr );
 			}
 		).start();
 	};
@@ -60,7 +68,7 @@
 					sr.create( host, iscsi, 'user', true, 0,
 							function( r ) {
 						clearFields();
-						if( console ) console.log( 'sr result ', r );
+						creationReady();
 					});
 				};
 			
@@ -88,7 +96,7 @@
 			SR.build({name: name}, function( sr ) {
 				sr.create( host, data, 'Ext', 'user', true, 0, function( result ){
 					clearFields();
-					if( console ) console.log( result );
+					creationReady();
 				});
 			});
 		});
@@ -99,7 +107,7 @@
 			SR.build({name: name}, function( sr ) {
 				sr.create( host, data, 'File', 'user', true, 0, function( result ){
 					clearFields();
-					if( console ) console.log( result );
+					creationReady();
 				});
 			});
 		});
@@ -114,7 +122,7 @@
 			SR.build({name: name}, function( sr ) {
 				sr.create( host, data, 'Lvm', 'user', true, 0, function( result ){
 					clearFields();
-					if( console ) console.log( result );
+					creationReady();
 				});
 			});
 		});

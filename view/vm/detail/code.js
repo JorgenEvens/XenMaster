@@ -206,7 +206,7 @@
 	this.onshow = function() {
 		var vm = tpl.vm;
 		vm_data = vm;
-		console.log( vm_data );
+		
 		loadVBDs();
 		loadVIFs();
 		app.load( 'js://tools/bindable', function( Bindable ) {

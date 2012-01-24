@@ -96,18 +96,38 @@
 		
 		var bootorder = vm_data.hvmBootParam?vm_data.hvmBootParam.order:'';
 		
-		app.load( 'js://tools/bindable', function( Bindable ){
-			(new Bindable( 'Entity', vm_data, 'name', 'setName' ))
-				.link(new Bindable( 'jQuery', ctl.name, 'val', 'val', 'blur' ), true);
+		app.load( 'js://tools/bindable', function( B ){
+			var checked = {
+					get: function() { return this.is(':checked'); },
+					set: function( v ) { v ? this.attr('checked','checked') : this.removeAttr('checked'); }
+				},
+				bootPolicy = {
+					get: function() { return this.val() == 'hvm' ? 'BIOS order' : ''; },
+					set: function( v ) { this.val( v.length > 0 ? 'hvm' : 'pv' ); }
+				};
+			(new B( 'Entity', vm_data, 'name', 'setName' ))
+				.link(new B( 'jQuery', ctl.name, 'val', 'val', 'blur' ), true);
 			
-			(new Bindable( 'Entity', vm_data, 'description', 'setDescription' ))
-				.link(new Bindable( 'jQuery', ctl.description, 'val', 'val', 'blur' ), true);
+			(new B( 'Entity', vm_data, 'description', 'setDescription' ))
+				.link(new B( 'jQuery', ctl.description, 'val', 'val', 'blur' ), true);
+			
+			(new B( 'Entity', vm_data, 'autoPowerOn', 'setAutoPowerOn' ))
+				.link(new B( 'jQuery', ctl.poweron, checked.get, checked.set, 'blur' ), true );
+			
+			(new B( 'Entity', vm_data, 'hvmBootPolicy', 'setHVMBootPolicy' ))
+				.link(new B( 'jQuery', ctl.type, bootPolicy.get, bootPolicy.set, 'blur' ));
+			
+			(new B( 'Entity', vm_data, 'pvKernel', 'setPVKernel' ))
+				.link(new B( 'jQuery', ctl.pv.kernel, 'val', 'val', 'blur' ));
+			
+			(new B('Entity', vm_data, 'pvRamdisk', 'setPVRamdisk' ))
+				.link(new B( 'jQuery', ctl.pv.ramdisk, 'val', 'val', 'blur' ));
 		});
 		
 		//ctl.name.val( vm_data.name );
 		//ctl.description.val( vm_data.description );
-		ctl.poweron.attr( 'checked', vm_data.autoPowerOn );
-		ctl.type.val( vm_data.hvmBootPolicy?'hvm':'pv' );
+		//ctl.poweron.attr( 'checked', vm_data.autoPowerOn );
+		//ctl.type.val( vm_data.hvmBootPolicy?'hvm':'pv' );
 		
 		ctl.hvm.cd
 			.attr('checked', bootorder.indexOf( 'd' ) > -1 );

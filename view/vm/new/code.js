@@ -139,14 +139,32 @@
 		delete data.type;
 		
 		data = builder[type]( data );
-
-		app.load( 'js://api/vm', function( VM ){
+		
+		Util.chain(function(){
+			app.load( 'js://api/vm', this.next );
+		},function( VM ) {
+			this.VM = VM;
+			VM.build( data, this.next );
+		}, function( vm ) {
+			vm.create( cpus, this.next );
+		}, function( vm ) {
+			new this.VM( vm, this.next );
+		}, function( vm ) {
+			this.vm = vm;
+			app.load( 'tpl://vm/list', 'js://ui/template', this.next );
+		}, function( vm_list, Template ) {
+			var list = new Template({ resource: vm_list });
+			list.loadVM( this.vm );
+			list.show();
+		}).start();
+		
+		/*app.load( 'js://api/vm', function( VM ){
 			VM.build(data,function( vm ) {
 				vm.create(cpus,function( vm ) {
 					console.log( vm );
 				});
 			});
-		});
+		});*/
 	});
 	
 	tpl.bind('vm_type_changed',function( e ){

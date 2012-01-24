@@ -879,6 +879,7 @@
 	
 	
 			    case 'disconnect':
+			    	display.clear(); // TODO: Move into disconnected state
 		            disconnTimer = setTimeout(function () {
 		                    fail("Disconnect timeout");
 		                }, conf.disconnectTimeout * 1000);
@@ -892,8 +893,7 @@
 			        setTimeout(function() { updateState('disconnected'); }, 50);
 	
 			        break;
-	
-	
+			        
 			    default:
 			        // No state change action to take
 
@@ -2415,10 +2415,11 @@
 		    }
 		    evt = (e ? e : window.event);
 		    pos = Util.getEventPosition(e, conf.target, conf.scale);
+		    
 		    /* Stop propagation if inside canvas area */
 		    if ((pos.x >= 0) && (pos.y >= 0) &&
-		        (pos.x < conf.target.offsetWidth) &&
-		        (pos.y < conf.target.offsetHeight)) {
+		        (pos.x < conf.target.width) &&
+		        (pos.y < conf.target.height)) {
 		        Util.stopEvent(e);
 		        return false;
 		    }
@@ -4126,7 +4127,6 @@
 	};
 
 	that.clear = function() {
-
 	    if (conf.logo) {
 	        that.resize(conf.logo.width, conf.logo.height);
 	        that.blitStringImage(conf.logo.data, 0, 0);
