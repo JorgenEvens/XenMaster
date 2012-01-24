@@ -46,7 +46,7 @@ public class VM extends NamedEntity {
     protected String poolName;
     protected boolean autoPowerOn;
     @ConstructorArgument
-    protected String pvArgs, pvRamdisk, pvBootloader, pvKernel, pvBootloaderArgs;
+    protected String pvArgs, pvRamdisk, pvBootloader, pvKernel,pvBootloaderArgs;
     protected PowerState powerState;
     @ConstructorArgument
     protected String hvmBootPolicy;
@@ -78,7 +78,6 @@ public class VM extends NamedEntity {
         this.actionsAfterReboot = ShutdownAction.RESTART;
         this.actionsAfterShutdown = ShutdownAction.DESTROY;
         this.actionsAfterCrash = CrashedAction.DESTROY;
-
         this.platform = new HashMap<>();
     }
 
@@ -143,20 +142,26 @@ public class VM extends NamedEntity {
         }
     }
 
-    /** 
+    /**
      * Check if this VM will be able to start up properly
-     * @return 
+     * 
+     * @return
      */
     public void easeStart() throws BadAPICallException {
         for (VBD vbd : this.getVBDs()) {
-            if (vbd.getType() != VBD.Type.DISK) continue;
+            if (vbd.getType() != VBD.Type.DISK) {
+                continue;
+            }
+
             if (vbd.getVDI() == null) {
                 LogKeeper.log(new LogEntry(vbd.getReference(), getClass(), "VM_START_COULD_NOT_PLUG_VBD", LogEntry.Level.WARNING));
                 continue;
             }
+
             for (PBD pbd : vbd.getVDI().getSR().getPBDs()) {
                 if (!pbd.isPlugged()) {
-                    LogKeeper.log(new LogEntry(pbd.getReference(), getClass(), "PLUGGED_IN_PBD", LogEntry.Level.INFORMATION));
+                    LogKeeper.log(new LogEntry(pbd.getReference(), getClass(), "PLUGGING_IN_PBD", 
+                            new Object[]{vbd.getVDI().getSR().getName()}, LogEntry.Level.INFORMATION));
                     pbd.plug();
                 }
             }
@@ -167,7 +172,6 @@ public class VM extends NamedEntity {
         try {
             dispatch("pause");
         } catch (BadAPICallException ex) {
-
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":
                     ex.setErrorDescription("The VM has a bad power state. It might be already paused");
@@ -181,7 +185,6 @@ public class VM extends NamedEntity {
         try {
             dispatch("unpause");
         } catch (BadAPICallException ex) {
-
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":
                     ex.setErrorDescription("The VM has a bad power state. It might be already running");
@@ -193,6 +196,7 @@ public class VM extends NamedEntity {
 
     /**
      * Stop the VM
+     * 
      * @param polite it's up to you to keep your manners
      */
     public void stop(boolean polite) throws BadAPICallException {
@@ -203,7 +207,6 @@ public class VM extends NamedEntity {
                 dispatch("hard_shutdown");
             }
         } catch (BadAPICallException ex) {
-
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":
                     ex.redefineErrorName("VM_ALREADY_HALTED");
@@ -215,6 +218,7 @@ public class VM extends NamedEntity {
 
     /**
      * Reboot the VM
+     * 
      * @param polite it's up to you to keep your manners
      */
     public void reboot(boolean polite) throws BadAPICallException {
@@ -225,7 +229,6 @@ public class VM extends NamedEntity {
                 dispatch("hard_reboot");
             }
         } catch (BadAPICallException ex) {
-
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":
                     ex.setErrorDescription("The VM has a bad power state. It might not be running");
@@ -239,7 +242,6 @@ public class VM extends NamedEntity {
         try {
             dispatch("suspend");
         } catch (BadAPICallException ex) {
-
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":
                     ex.setErrorDescription("The VM has a bad power state. It might not be running");
@@ -291,9 +293,9 @@ public class VM extends NamedEntity {
     }
 
     // todo check what this does and decide on good name
-//    public int computeMaximumAvailableMemory() throws BadAPICallException {
-//        
-//    }
+    // public int computeMaximumAvailableMemory() throws BadAPICallException {
+    //
+    // }
     public List<Object> getDataSources() throws BadAPICallException {
         Object[] result = (Object[]) dispatch("get_data_sources");
         ArrayList<Object> arrr = new ArrayList<>();
@@ -340,7 +342,9 @@ public class VM extends NamedEntity {
     public static List<VM> getAll() throws BadAPICallException {
         List<VM> allVMs = getAllEntities(VM.class);
         for (ListIterator<VM> it = allVMs.listIterator(); it.hasNext();) {
-            if (it.next().isTemplate()) it.remove();
+            if (it.next().isTemplate()) {
+                it.remove();
+            }
         }
         return allVMs;
     }
@@ -348,7 +352,9 @@ public class VM extends NamedEntity {
     public static List<VM> getTemplates() throws BadAPICallException {
         List<VM> allVMs = getAllEntities(VM.class);
         for (ListIterator<VM> it = allVMs.listIterator(); it.hasNext();) {
-            if (!it.next().isTemplate()) it.remove();
+            if (!it.next().isTemplate()) {
+                it.remove();
+            }
         }
         return allVMs;
     }
@@ -377,15 +383,15 @@ public class VM extends NamedEntity {
     }
 
     public void setActionsAfterCrash(CrashedAction actionsAfterCrash) throws BadAPICallException {
-        setter(actionsAfterCrash, "set_actions_after_crash");
+        this.actionsAfterCrash=setter(actionsAfterCrash, "set_actions_after_crash");
     }
 
     public void setActionsAfterReboot(ShutdownAction actionsAfterReboot) throws BadAPICallException {
-        setter(actionsAfterReboot, "set_actions_after_reboot");
+        this.actionsAfterReboot=setter(actionsAfterReboot, "set_actions_after_reboot");
     }
 
     public void setActionsAfterShutdown(ShutdownAction actionsAfterShutdown) throws BadAPICallException {
-        setter(actionsAfterShutdown, "set_actions_after_shutdown");
+        this.actionsAfterShutdown =setter(actionsAfterShutdown, "set_actions_after_shutdown");
     }
 
     public String getHVMBootPolicy() {
@@ -397,7 +403,7 @@ public class VM extends NamedEntity {
     }
 
     public void setHVMBootPolicy(String policy) throws BadAPICallException {
-        setter(policy, "set_HVM_boot_policy");
+        this.hvmBootPolicy=setter(policy, "set_HVM_boot_policy");
     }
 
     public Map<String, String> getHVMBootParams() {
@@ -405,7 +411,7 @@ public class VM extends NamedEntity {
     }
 
     public void setHVMBootParams(Map<String, String> params) throws BadAPICallException {
-        setter(params, "set_HVM_boot_params");
+        this.hvmBootParams=setter(params, "set_HVM_boot_params");
     }
 
     public Platform getPlatform() {
@@ -413,7 +419,7 @@ public class VM extends NamedEntity {
     }
 
     public void setPlatform(Platform platform) throws BadAPICallException {
-        setter(platform.getMap(), "set_platform");
+        this.platform=setter(platform.getMap(), "set_platform");
     }
 
     public String getPVargs() {
@@ -425,7 +431,7 @@ public class VM extends NamedEntity {
     }
 
     public void setPVBootloader(String bootloader) throws BadAPICallException {
-        setter(bootloader, "set_PV_bootloader");
+        this.pvBootloader=setter(bootloader, "set_PV_bootloader");
     }
 
     public String getPVBootloaderArgs() {
@@ -433,7 +439,7 @@ public class VM extends NamedEntity {
     }
 
     public void setPVBootloaderArgs(String bootloaderargs) throws BadAPICallException {
-        setter(bootloaderargs, "set_PV_bootloader_args");
+        this.pvBootloaderArgs = setter(bootloaderargs, "set_PV_bootloader_args");
     }
 
     public String getPVKernel() {
@@ -441,7 +447,7 @@ public class VM extends NamedEntity {
     }
 
     public void setPVKernel(String kernel) throws BadAPICallException {
-        setter(kernel, "set_PV_kernel");
+        this.pvKernel = setter(kernel, "set_PV_kernel");
     }
 
     public String getPVRamdisk() {
@@ -449,7 +455,7 @@ public class VM extends NamedEntity {
     }
 
     public void setPVRamdisk(String ramdisk) throws BadAPICallException {
-        setter(ramdisk, "set_PV_ramdisk");
+        this.pvRamdisk=setter(ramdisk, "set_PV_ramdisk");
     }
 
     public CrashedAction getActionsAfterCrash() {
@@ -489,7 +495,7 @@ public class VM extends NamedEntity {
     }
 
     public void setStartupVCPUs(int startupVCPUs) throws BadAPICallException {
-        setter(startupVCPUs, "set_VCPUs_at_startup");
+        this.startupVCPUs=setter(startupVCPUs, "set_VCPUs_at_startup");
     }
 
     public long getMaximumDynamicMemory() {
@@ -497,7 +503,7 @@ public class VM extends NamedEntity {
     }
 
     public void setMaximumDynamicMemory(double mdmMb) throws BadAPICallException {
-        setter((long) mdmMb * MEGABYTE, "set_memory_dynamic_max");
+        this.maximumDynamicMemory= setter((long) mdmMb * MEGABYTE, "set_memory_dynamic_max");
     }
 
     public long getMaximumStaticMemory() {
@@ -505,7 +511,7 @@ public class VM extends NamedEntity {
     }
 
     public void setMaximumStaticMemory(double msmMb) throws BadAPICallException {
-        setter((long) msmMb * MEGABYTE, "set_memory_static_max");
+        this.maximumStaticMemory=setter((long) msmMb * MEGABYTE, "set_memory_static_max");
     }
 
     public long getMinimumStaticMemory() {

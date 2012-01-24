@@ -154,6 +154,7 @@ public class XenApiEntity implements Serializable {
         }
         if (reference != null && !reference.isEmpty() && name != null && !name.isEmpty()) {
             dispatch(name, obj);
+            return null;
         }
 
         return obj;
@@ -168,6 +169,7 @@ public class XenApiEntity implements Serializable {
                 throw new IllegalArgumentException("Null value is not allowed for " + name);
             } else {
                 dispatch(getAPIName() + "." + name, obj.getReference());
+                return null;
             }
         }
 

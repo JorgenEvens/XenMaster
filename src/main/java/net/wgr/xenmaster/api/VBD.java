@@ -134,7 +134,7 @@ public class VBD extends XenApiEntity {
     }
 
     public void setBootable(boolean bootable) throws BadAPICallException {
-        setter(bootable, "set_bootable");
+        this.bootable = setter(bootable, "set_bootable");
     }
 
     public boolean isAttached() {
@@ -150,7 +150,7 @@ public class VBD extends XenApiEntity {
     }
 
     public void setMode(Mode mode) throws BadAPICallException {
-        setter(mode, "set_mode");
+        this.mode = setter(mode, "set_mode");
     }
 
     public String getQosAlgorithm() {
@@ -178,7 +178,7 @@ public class VBD extends XenApiEntity {
     }
 
     public void setDeviceIndex(int deviceIndex) throws BadAPICallException {
-        setter(deviceIndex, "set_userdevice");
+        this.deviceIndex = setter(deviceIndex, "set_userdevice");
     }
 
     public Type getType() {
@@ -186,7 +186,7 @@ public class VBD extends XenApiEntity {
     }
 
     public void setType(Type type) throws BadAPICallException {
-        setter(type, "set_type");
+        this.type = setter(type, "set_type");
     }
 
     @Override
