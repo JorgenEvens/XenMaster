@@ -126,8 +126,8 @@ public class VM extends NamedEntity {
             }
         } catch (BadAPICallException ex) {
 
-            switch (ex.getMessage()) {
-                case "BAD_POWER_STATE":
+            switch (ex.getErrorName()) {
+                case "VM_BAD_POWER_STATE":
                     ex.redefineErrorName("VM_ALREADY_RUNNING");
                     break;
                 case "VM_HVM_REQUIRED":

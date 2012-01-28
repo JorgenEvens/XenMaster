@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
  * 
  * @created Dec 9, 2011
  * @author double-u
- */
+ */ 
 public class Event extends XenApiEntity {
 
     protected int id;
