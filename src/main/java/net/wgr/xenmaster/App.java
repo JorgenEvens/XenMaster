@@ -1,12 +1,13 @@
 package net.wgr.xenmaster;
 
-import java.io.IOException;
 import java.net.URL;
+
 import net.wgr.core.access.Authorize;
 import net.wgr.core.data.DataPool;
 import net.wgr.server.application.DefaultApplication;
 import net.wgr.server.http.Server;
 import net.wgr.server.web.handling.ServerHook;
+import net.wgr.server.web.hooks.SinglePageHook;
 import net.wgr.settings.Settings;
 import net.wgr.utility.GlobalExecutorService;
 import net.wgr.xenmaster.api.util.CachingFacility;
@@ -18,9 +19,11 @@ import net.wgr.xenmaster.web.Hook;
 import net.wgr.xenmaster.web.SetupHook;
 import net.wgr.xenmaster.web.TemplateHook;
 import net.wgr.xenmaster.web.VNCHook;
+
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.EnhancedPatternLayout;
 import org.apache.log4j.Level;
@@ -79,6 +82,7 @@ public class App implements Daemon {
         server = new Server();
         server.boot();
 
+        CachingFacility.instance(false);
         Authorize.disable();
 
         if (Controller.getSession().getReference() == null) {
@@ -86,6 +90,8 @@ public class App implements Daemon {
 
             ServerHook sh = new ServerHook("/*");
             sh.addWebHook(new SetupHook());
+            sh.addWebHook(new SinglePageHook(IOUtils.toString(getClass().getResourceAsStream("/content/error.html")), "Failed to connect to the Xen server." +
+                    "<br /><a href=\"http://wiki.xen-master.org/wiki/Bootstrap\">Bootstrap</a> only mode has been engaged."));
             sh.hookIntoServer(server);
             server.start();
 
@@ -125,5 +131,6 @@ public class App implements Daemon {
 
     @Override
     public void destroy() {
+        server = null;
     }
 }
