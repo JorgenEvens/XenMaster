@@ -95,6 +95,10 @@ public class SR extends NamedEntity {
         }
         return (String) Controller.dispatch("SR.probe", host.getReference(), cfg.toDeviceConfig(), cfg.getType().name().toLowerCase(), smConfig);
     }
+    
+    public void scan() throws BadAPICallException {
+        dispatch("scan");
+    }
 
     public void setAsDefault(Pool p) throws BadAPICallException {
         Controller.dispatch("pool.set_default_SR", p.getReference(), this.reference);

@@ -120,7 +120,7 @@ public class VM extends NamedEntity {
         try {
             easeStart();
             if (host != null) {
-                dispatch("start", host.getReference(), startPaused, force);
+                dispatch("start_on", host.getReference(), startPaused, force);
             } else {
                 dispatch("start", startPaused, force);
             }
@@ -269,7 +269,7 @@ public class VM extends NamedEntity {
             options = new HashMap<>();
         }
         try {
-            dispatch("pool_migrate", host, options);
+            dispatch("pool_migrate", host.getReference(), options);
         } catch (BadAPICallException ex) {
             switch (ex.getMessage()) {
                 case "BAD_POWER_STATE":

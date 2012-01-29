@@ -53,7 +53,7 @@ public class LogEntry extends net.wgr.core.dao.Object {
         this.title = title;
         this.message = title + "_MESSAGE";
         this.level = level;
-        this.args = args;
+        this.args = Arrays.copyOf(args, args.length);
         this.date = System.currentTimeMillis();
     }
 
