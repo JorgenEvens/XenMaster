@@ -2,7 +2,9 @@
 
 	var tpl = this,
 		dom = $(tpl.dom),
-		vm_data = null,
+		vm_entity = null,
+		
+		vm_bindable = null,
 		
 		ctl = {
 			// General
@@ -49,7 +51,7 @@
 							.text(i)
 							.appendTo( ctl.kernel );
 						
-						if( i == vm_data.pvKernel ) {
+						if( i == vm_entity.pvKernel ) {
 							option.attr( 'selected', 'selected' );
 						}
 					}
@@ -70,11 +72,49 @@
 							.text(i)
 							.appendTo( ctl.ramdisk );
 						
-						if( i == vm_data.pvRamdisk ) {
+						if( i == vm_entity.pvRamdisk ) {
 							option.attr( 'selected', 'selected' );
 						}
 					}
 				});
+			});
+		},
+		
+		updateBinding = function() {
+			if( !vm_bindable ) {
+				return createBinding();
+			}
+			
+			vm_bindable.setSource( vm_entity );
+		},
+		
+		createBinding = function() {
+			app.load( 'js://api/entity_bindable', 'js://ui/jquery_bindable', 'js://tools/binding',
+					function( bindEntity, bindjQuery, Binding ) {
+				
+				vm_bindable = bindEntity( vm_entity );
+				
+				
+				var vm = vm_bindable,
+				
+				/**
+				 * Custom methods for manipulating get and set.
+				 */
+					checked = {
+						get: function() { return this.is(':checked'); },
+						set: function( v ) { v ? this.attr('checked','checked') : this.removeAttr('checked'); }
+					},
+					bootPolicy = {
+						get: function() { return this.val() == 'hvm' ? 'BIOS order' : ''; },
+						set: function( v ) { this.val( v.length > 0 ? 'hvm' : 'pv' ); }
+					};
+				
+				new Binding( vm, {get:'name',set:'setName'}, bindjQuery( ctl.name ), 'val', true );
+				new Binding( vm, {get:'description',set:'setDescription'}, bindjQuery( ctl.description ), 'val', true );
+				new Binding( vm, {get:'autoPowerOn',set:'autoPowerOn'}, bindjQuery( ctl.poweron ), checked, true );
+				new Binding( vm, {get:'hvmBootPolicy',set:'setHVMBootPolicy'},bindjQuery( ctl.type ), bootPolicy, true );
+				new Binding( vm, {get:'pvKernel',set:'setPVKernel'},bindjQuery( ctl.pv.kernel ), 'val', true );
+				new Binding( vm, {get:'pvRamdisk',set:'setPVRamdisk'},bindjQuery( ctl.pv.ramdisk ), 'val', true );
 			});
 		};
 		
@@ -92,42 +132,11 @@
 	tpl.capture(['click','change']);
 	
 	tpl.bind( 'tpl_show', function( e ){
-		vm_data = tpl.vm;
+		vm_entity = tpl.vm;
 		
-		var bootorder = vm_data.hvmBootParam?vm_data.hvmBootParam.order:'';
+		updateBinding();
 		
-		app.load( 'js://tools/bindable', function( B ){
-			var checked = {
-					get: function() { return this.is(':checked'); },
-					set: function( v ) { v ? this.attr('checked','checked') : this.removeAttr('checked'); }
-				},
-				bootPolicy = {
-					get: function() { return this.val() == 'hvm' ? 'BIOS order' : ''; },
-					set: function( v ) { this.val( v.length > 0 ? 'hvm' : 'pv' ); }
-				};
-			(new B( 'Entity', vm_data, 'name', 'setName' ))
-				.link(new B( 'jQuery', ctl.name, 'val', 'val', 'blur' ), true);
-			
-			(new B( 'Entity', vm_data, 'description', 'setDescription' ))
-				.link(new B( 'jQuery', ctl.description, 'val', 'val', 'blur' ), true);
-			
-			(new B( 'Entity', vm_data, 'autoPowerOn', 'setAutoPowerOn' ))
-				.link(new B( 'jQuery', ctl.poweron, checked.get, checked.set, 'blur' ), true );
-			
-			(new B( 'Entity', vm_data, 'hvmBootPolicy', 'setHVMBootPolicy' ))
-				.link(new B( 'jQuery', ctl.type, bootPolicy.get, bootPolicy.set, 'blur' ));
-			
-			(new B( 'Entity', vm_data, 'pvKernel', 'setPVKernel' ))
-				.link(new B( 'jQuery', ctl.pv.kernel, 'val', 'val', 'blur' ));
-			
-			(new B('Entity', vm_data, 'pvRamdisk', 'setPVRamdisk' ))
-				.link(new B( 'jQuery', ctl.pv.ramdisk, 'val', 'val', 'blur' ));
-		});
-		
-		//ctl.name.val( vm_data.name );
-		//ctl.description.val( vm_data.description );
-		//ctl.poweron.attr( 'checked', vm_data.autoPowerOn );
-		//ctl.type.val( vm_data.hvmBootPolicy?'hvm':'pv' );
+		var bootorder = vm_entity.hvmBootParam?vm_entity.hvmBootParam.order:'';		
 		
 		ctl.hvm.cd
 			.attr('checked', bootorder.indexOf( 'd' ) > -1 );
@@ -138,8 +147,8 @@
 		ctl.hvm.net
 			.attr('checked', bootorder.indexOf( 'n' ) > -1 );
 		
-		ctl.pv.kernel.val( vm_data.pvKernel );
-		ctl.pv.ramdisk.val( vm_data.pvRamdisk );
+		ctl.pv.kernel.val( vm_entity.pvKernel );
+		ctl.pv.ramdisk.val( vm_entity.pvRamdisk );
 		
 		ctl.type.change();
 	});

@@ -4,7 +4,8 @@
 		dom = $(this.dom),
 		actions = dom.find('h2 li'),
 		canvas = dom.find('canvas.graph'),
-		vm_data = null,
+		vm_entity = null,
+		vm_bindable = null,
 		show = this.show,
 		
 		/*
@@ -16,7 +17,7 @@
 			app.load( 'tpl://vm/detail/' + detail, 'js://ui/template', function( tpl_detail, Template ) {
 				
 				var view = new Template({ resource: tpl_detail });
-				view.vm = vm_data;
+				view.vm = vm_entity;
 				view.device = device;
 				view.show( 'vm_detail_panel' );
 				
@@ -39,7 +40,7 @@
 		 * Handles state changes of the VM
 		 */
 		changeVMState = function( state ) {
-			var vm = vm_data;
+			var vm = vm_entity;
 			
 			app.load( 'js://tools/notifier', function( Notifier ) {
 				var action = state[0],
@@ -66,7 +67,7 @@
 				function( Dataset ) {
 					this.Dataset = Dataset;
 					
-					vm_data.getVBDs( this.next );
+					vm_entity.getVBDs( this.next );
 				},
 				function( vbds ) {
 					var Dataset = this.Dataset;
@@ -106,7 +107,7 @@
 					this.Network = Network;
 					this.Dataset = Dataset;
 					
-					vm_data.getVIFs( this.next );
+					vm_entity.getVIFs( this.next );
 				},
 				function( vifs ) {
 					var Network = this.Network,
@@ -145,6 +146,25 @@
 			dom.find('.vm_state span').text( state );
 			actions.hide();
 			stateButtonMap[state].show();
+		},
+		
+		updateBinding = function() {
+			if( !vm_bindable ) {
+				return createBinding();
+			}
+			
+			vm_bindable.setSource( vm_entity );
+		},
+		
+		createBinding = function() {
+			app.load( 'js://api/entity_bindable', 'js://tools/bindable', 'js://ui/jquery_bindable', 'js://tools/binding',
+					function( bindEntity, Bindable, bindjQuery, Binding ) {
+				
+				vm_bindable = bindEntity( vm_entity );
+				
+				new Binding( vm_bindable, 'powerState', new Bindable({state:setState}), 'state' );
+				new Binding( vm_bindable, 'name', bindjQuery( dom.find('.vm_name') ), 'text' );
+			});
 		};
 		
 	
@@ -177,11 +197,11 @@
 			 * Device has been created.
 			 */
 			view.bind( 'vm_device_ready', function( e ) {
-				tpl.vm = vm_data;
+				tpl.vm = vm_entity;
 				tpl.show(); // reload view.
 			});
 			
-			view.vm = vm_data;
+			view.vm = vm_entity;
 			
 			view.show( 'vm_detail_panel' );
 			
@@ -205,18 +225,11 @@
 	
 	this.onshow = function() {
 		var vm = tpl.vm;
-		vm_data = vm;
+		vm_entity = vm;
 		
 		loadVBDs();
 		loadVIFs();
-		app.load( 'js://tools/bindable', function( Bindable ) {
-			( new Bindable( 'Entity', vm, 'powerState', 'powerState' ) )
-				.link(new Bindable( 'Static', {setState:setState}, '', 'setState' ));
-		});
-		
-		dom
-			.find('.vm_name')
-			.text( vm.name );
+		updateBinding();
 		
 		showDetail( 'general' );
 		

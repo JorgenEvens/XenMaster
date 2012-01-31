@@ -19,7 +19,7 @@
 				
 				r = record.clone();
 				
-				r.find('td:first').html( vm.name );
+				r.find('td.name').html( vm.name );
 				
 				ds = Dataset.get( r.get(0) );
 				ds.config = vm;
