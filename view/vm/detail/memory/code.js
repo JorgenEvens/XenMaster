@@ -5,23 +5,45 @@
 		ctl = {
 			memory: dom.find( '#memory_assigned' ),
 		},
-		vm = null,
-		mem_units = [ 'B', 'KB', 'MB', 'GB', 'TB' ];
+		vm_entity = null,
+		vm_bindable = null,
+		
+		mem_units = { 'B': 1/(1024*1024), 'KB': 1/1024, 'MB': 1, 'GB': 1024, 'TB': Math.pow( 1024, 2 ) },
+		
+		updateBinding = function() {
+			if( !vm_bindable ) {
+				return createBinding();
+			}
+			
+			vm_bindable.setSource( vm_entity );
+		},
+		
+		createBinding = function() {
+			app.load( 'js://api/entity_bindable', 'js://ui/jquery_bindable', 'js://tools/binding',
+					function( bindEntity, bindjQuery, Binding ) {
+				
+				vm_bindable = bindEntity( vm_entity );
+				var vm = vm_bindable,
+				
+					memory = {
+						get: function() { var v=/(\d+)\s?([KMGTkmgt]?B)/.exec(this.val()); if(!v)return 0; return v[1] * mem_units[v[2].toUpperCase()]; },
+						set: function(v) { var i=null;
+							for( i in mem_units ) {
+								if( v < 1024 ) break;
+								v /= 1024;
+							}
+							this.val( v + ' ' + i );
+						}
+					};
+				
+				new Binding( vm, {get:'maximumDynamicMemory',set:'setMaximumDynamicMemory'}, bindjQuery( ctl.memory ), memory, true );
+			});
+		};
 	
 	tpl.onshow = function() {
-		var memory = 0,
-			unit = 0;
+		vm_entity = tpl.vm;
 		
-		vm = tpl.vm;
-		
-		memory = vm.maximumDynamicMemory;
-		
-		while( memory > 1024 ) {
-			unit++;
-			memory /= 1024;
-		}
-		
-		ctl.memory.val( memory + mem_units[unit] );
+		updateBinding();
 	};
 	
 });

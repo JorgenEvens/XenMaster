@@ -38,6 +38,10 @@
 		
 		VM.createMethod( 'setDescription' );
 		
+		VM.createMethod( 'setMaximumDynamicMemory' );
+		
+		VM.createMethod( 'setVCPUs' );
+		
 		ready( VM );
 	});
 });

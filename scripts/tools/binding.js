@@ -63,7 +63,7 @@
 		
 		getPropType = function( obj, prop ) {
 			if( typeof prop == 'function' ) {
-				return 'function';
+				return 'func';
 			} else if( typeof obj[prop] == 'function' ) {
 				return 'method';
 			}

@@ -13,12 +13,64 @@
 			actionOnReboot: dom.find('#vm_reboot'),
 			actionOnShutdown: dom.find('#vm_shutdown'),
 		},
-		vm = null;
+		vm_entity = null,
+		vm_bindable = null,
+		
+		updateBinding = function() {
+			if( !vm_bindable ) {
+				return createBinding();
+			}
+			
+			vm_bindable.setSource( vm_entity );
+		},
+		
+		createBinding = function() {
+			app.load( 'js://api/entity_bindable', 'js://ui/jquery_bindable', 'js://tools/binding',
+					function( bindEntity, bindjQuery, Binding ) {
+				
+				vm_bindable = bindEntity( vm_entity );
+				
+				
+				var vm = vm_bindable,
+				
+				/**
+				 * Custom methods for manipulating get and set.
+				 */
+					checked = {
+						get: function() { return this.is(':checked'); },
+						set: function( v ) { v ? this.attr('checked','checked') : this.removeAttr('checked'); }
+					},
+					platform = {
+						get: function() { var ret={},i=null;
+								for( i in ctl.platform )
+									ret[i] = checked.get.apply( ctl.platform[i] );
+								return ret;
+							},
+						set: function( v ) { var i=null;
+								for( i in v )  // TODO: Temp fix for backend.. should remove eval
+									checked.set.call( ctl.platform[i], eval( v[i] ) );
+							}
+					};
+				
+				new Binding( vm, {get:'actionsAfterCrash',set:'setActionsAfterCrash'}, bindjQuery( ctl.actionOnCrash ), 'val', true );
+				new Binding( vm, {get:'actionsAfterReboot',set:'setActionsAfterReboot'}, bindjQuery( ctl.actionOnReboot), 'val', true );
+				new Binding( vm, {get:'actionsAfterShutdown',set:'setActionsAfterShutdown'}, bindjQuery( ctl.actionOnShutdown ), 'val', true );
+				
+				new Binding( vm, {get:'platform',set:'setPlatform'}, bindjQuery( ctl.platform.acpi ), platform, true );
+				new Binding( vm, {get:'platform',set:'setPlatform'}, bindjQuery( ctl.platform.apic ), platform, true );
+				new Binding( vm, {get:'platform',set:'setPlatform'}, bindjQuery( ctl.platform.pae ), platform, true );
+				new Binding( vm, {get:'platform',set:'setPlatform'}, bindjQuery( ctl.platform.viridian ), platform, true );
+
+			});
+		};
 	
 	tpl.onshow = function() {
-		vm = tpl.vm;
+		vm_entity = tpl.vm;
 		
-		vm.getPlatform(function( platform ) {
+		updateBinding();
+		
+		/*
+		vm_entity.getPlatform(function( platform ) {
 			var i = null;
 			
 			for( i in ctl.platform ) {
@@ -26,9 +78,10 @@
 			}
 		});
 		
-		ctl.actionOnCrash.val( vm.actionsOnCrash );
-		ctl.actionOnReboot.val( vm.actionsOnReboot );
-		ctl.actionOnShutdown.val( vm.actionsOnShutdown );
+		ctl.actionOnCrash.val( vm_entity.actionsOnCrash );
+		ctl.actionOnReboot.val( vm_entity.actionsOnReboot );
+		ctl.actionOnShutdown.val( vm_entity.actionsOnShutdown );
+		*/
 	};
 	
 	tpl.capture( 'change' );
@@ -41,7 +94,7 @@
 			platform[i] = ctl.platform[i].attr('checked') == 'checked';
 		}
 		
-		vm.setPlatform( platform );
+		vm_entity.setPlatform( platform );
 		console.log( platform );
 	});
 	
