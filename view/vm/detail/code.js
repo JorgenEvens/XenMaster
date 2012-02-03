@@ -212,6 +212,23 @@
 		changeVMState( VMState[e.source.dataset.state] );
 	});
 	
+	this.bind( 'vm_delete', function( e ) {
+		
+		app.load( 'tpl://vm/detail/delete', 'js://ui/template', function( tpl_del, Template ){
+			var view_del = new Template({resource: tpl_del});
+			view_del.capture( 'click' );
+			view_del.bind( 'vm_delete', function( e ) {
+				vm_entity.destroy(); // TODO: Shouldn't this be a forget?
+				dom.detach();
+			});
+			view_del.bind( 'vm_delete_close', function( e ) {
+				showDetail('general');
+			});
+			view_del.show( 'vm_detail_panel' );
+		}); 
+		
+	});
+	
 	/*$(document).keydown(function(e){
 		if( e.keyCode != 16 ) return;
 		actions.parent('.onshift').show();

@@ -410,6 +410,10 @@ h2.corner:before {
 	background-image: url('../images/icon/add.png');
 }
 
+#vm_detail ul.hardware li.delete {
+	background-image: url(../images/icon/delete.png);
+}
+
 #vm_detail .tab_host {
 	overflow: hidden;
 	border: 1px solid #E6E6E6;
@@ -632,6 +636,24 @@ footer {
 	margin-left: 31%;
 }
 
+.vm_list td.delete {
+	overflow: hidden;
+	text-indent: -999px;
+	padding: 0;
+	margin: 0;
+	width: 24px;
+	background: url(../images/delete.png) no-repeat center center;
+	/*
+	-webkit-transition: width 0.15s ease-in-out;
+	transition: width 0.15s ease-in-out;
+}
+
+.vm_list tr:hover td.delete {
+	width: 24px;
+	background: url(../images/delete.png) no-repeat center center;
+	*/
+}
+
 .vm_list th:first-child, .vm_list h3 {
 	color: #F7931E;
 	font-size: 18px;
@@ -650,7 +672,7 @@ footer {
 	border: 0;
 }
 
-.vm_list tbody td+td, .vm_list thead th+th {
+.vm_list tbody .small, .vm_list thead .small {
 	width: 15px;
 	padding: 5px 5px;
 	text-align: center;
