@@ -56,8 +56,12 @@ public class CachingFacility {
                 if (event.getSnapshot() == null || Task.class.isAssignableFrom(event.getSnapshot().getClass())) {
                     return;
                 }
-                
-                update(event.getSnapshot());
+
+                if (event.getOperation() == Event.Operation.DEL) {
+                    remove(event.getSnapshot());
+                } else {
+                    update(event.getSnapshot(), event.getOperation() == Event.Operation.ADD);
+                }
             }
         });
     }
@@ -122,13 +126,26 @@ public class CachingFacility {
         return instance().getEntity(reference, target);
     }
 
-    public <T extends XenApiEntity> void update(T object) {
+    public <T extends XenApiEntity> void update(T object, boolean force) {
         if (object == null) {
             throw new IllegalArgumentException("Cannot update null");
         }
 
-        if (isCached(object.getReference(false), object.getClass())) {
+        if (isCached(object.getReference(false), object.getClass()) || force) {
             cache.put(object.getReference(), object);
+        } else {
+            // We only are interested in updates for things we've cached, others will always be newest available ones when they are retreived
+            Logger.getLogger(getClass()).debug("Object " + object.getReference(false) + '(' + object.getClass().getCanonicalName() + ") was not inside cache and therefore could not be updated.");
+        }
+    }
+
+    public void remove(XenApiEntity object) {
+        if (object == null) {
+            throw new IllegalArgumentException("Cannot remove null");
+        }
+
+        if (isCached(object.getReference(false), object.getClass())) {
+            cache.remove(object.getReference());
         } else {
             // We only are interested in updates for things we've cached, others will always be newest available ones when they are retreived
             Logger.getLogger(getClass()).debug("Object " + object.getReference(false) + '(' + object.getClass().getCanonicalName() + ") was not inside cache and therefore could not be updated.");
