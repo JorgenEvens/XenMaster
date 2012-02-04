@@ -66,8 +66,8 @@ public class Bootstrapper {
                             // todo regex
                             txt = txt.replace("#{" + entry.getKey() + "}", entry.getValue());
                         }
-                        ByteArrayInputStream bais = new ByteArrayInputStream(txt.getBytes("UTF-8"));
-                        return bais;
+                        
+                        return new ByteArrayInputStream(txt.getBytes("UTF-8"));
                     }
                     return fis;
                 }

@@ -17,6 +17,7 @@ import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -35,7 +36,7 @@ public class ConnectionMultiplexer implements Runnable {
     protected Selector socketSelector;
     protected ByteBuffer readBuffer;
     protected final ConcurrentHashMap<Integer, ArrayBlockingQueue<ByteBuffer>> scheduledWrites;
-    protected ArrayList<ActivityListener> activityListeners;
+    protected List<ActivityListener> activityListeners;
     protected Thread thread;
     protected boolean run;
 

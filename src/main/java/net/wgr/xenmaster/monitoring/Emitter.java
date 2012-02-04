@@ -110,8 +110,8 @@ public class Emitter {
     }
 
     public static void emit(LogEntry le) {
-    	LogEntry filledIn = le;
-    	filledIn.doLocalization();
+        LogEntry filledIn = le;
+        filledIn.doLocalization();
         Commander.getInstance().commandeer(new Command("log", "event", le), new Scope(Scope.Target.ALL));
     }
 
@@ -143,8 +143,7 @@ public class Emitter {
                 throw new IllegalArgumentException("Event descriptor line is not valid");
             }
 
-            EventDescriptor ed = new EventDescriptor(m.group(1).trim(), m.group(2).trim(), m.group(3).trim(), ApiEventEntry.Level.valueOf(m.group(4).trim()), m.group(5).trim(), m.group(6).trim());
-            return ed;
+            return new EventDescriptor(m.group(1).trim(), m.group(2).trim(), m.group(3).trim(), ApiEventEntry.Level.valueOf(m.group(4).trim()), m.group(5).trim(), m.group(6).trim());
         }
 
         public String getClassName() {
