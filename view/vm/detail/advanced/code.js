@@ -95,7 +95,6 @@
 		}
 		
 		vm_entity.setPlatform( platform );
-		console.log( platform );
 	});
 	
 });

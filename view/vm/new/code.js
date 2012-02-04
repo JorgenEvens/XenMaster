@@ -139,7 +139,7 @@
 		delete data.type;
 		
 		data = builder[type]( data );
-		console.log( 'new vm data', data );
+
 		Util.chain(function(){
 			app.load( 'js://api/vm', this.next );
 		},function( VM ) {
@@ -151,12 +151,11 @@
 			new this.VM( vm, this.next );
 		}, function( vm ) {
 			this.vm = vm;
-			console.log( 'created vm', this.vm );
 			app.load( 'tpl://vm/list', 'js://ui/template', this.next );
 		}, function( vm_list, Template ) {
 			var list = new Template({ resource: vm_list });
-			//list.loadVM( this.vm );
-			//list.show();
+			list.loadVM( this.vm );
+			list.show();
 		}).start();
 		
 		/*app.load( 'js://api/vm', function( VM ){

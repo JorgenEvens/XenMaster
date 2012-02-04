@@ -30,7 +30,7 @@
 		VMState = {
 			RUNNING: [ 'start', [false, false], 'running' ],
 			STOPPED: [ 'stop', [true], 'stopped' ],
-			ABORTED: [ 'stop', [false], 'aborted' ],
+			ABORTED: [ 'stop', [false], 'aborxted' ],
 			PAUSED: [ 'pause', [], 'paused' ],
 			SUSPENDED: [ 'suspend', [], 'suspended' ],
 			REBOOT: [ 'reboot', [false], 'rebooting' ]

@@ -362,6 +362,7 @@ h2.corner:before {
 	background-position: 5px 7px;
 	cursor: pointer;
 	box-shadow: inset 0px 3px 6px #333;
+	word-wrap: break-word;
 }
 
 #vm_detail ul.hardware li.selected {

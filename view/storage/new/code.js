@@ -11,15 +11,16 @@
 		creation = {},
 		
 		clearFields = function() {
-			dom.find('input,select,textarea').val('');
+			dom.find('input[type!=button],select,textarea').val('');
 		},
 		
 		creationReady = function( sr ) {
+			clearFields();
 			app.load( 'tpl://storage/list', 'js://ui/template', function( list, Template ){
 				var list_ui = new Template({resource: list});
 				list_ui.show();
 			});
-			$('.placeholder .sr_create').html(''); // TODO: Fix hacky hacky.
+			dom.detach();
 		};
 		
 	creation.nfs = function( name, host, data ) {
@@ -67,7 +68,6 @@
 					
 					sr.create( host, iscsi, 'user', true, 0,
 							function( r ) {
-						clearFields();
 						creationReady();
 					});
 				};
@@ -95,7 +95,6 @@
 		app.load( 'js://api/sr', function( SR ) {
 			SR.build({name: name}, function( sr ) {
 				sr.create( host, data, 'Ext', 'user', true, 0, function( result ){
-					clearFields();
 					creationReady();
 				});
 			});
@@ -106,7 +105,6 @@
 		app.load( 'js://api/sr', function( SR ) {
 			SR.build({name: name}, function( sr ) {
 				sr.create( host, data, 'File', 'user', true, 0, function( result ){
-					clearFields();
 					creationReady();
 				});
 			});
@@ -121,7 +119,6 @@
 		app.load( 'js://api/sr', function( SR ) {
 			SR.build({name: name}, function( sr ) {
 				sr.create( host, data, 'Lvm', 'user', true, 0, function( result ){
-					clearFields();
 					creationReady();
 				});
 			});
@@ -155,6 +152,10 @@
 			});
 		});
 		
+	});
+	
+	tpl.on( 'tpl_show', function(){
+		clearFields();
 	});
 	
 })
