@@ -47,7 +47,6 @@ public class CachingFacility {
     }
 
     protected final void registerCacheUpdater() {
-        // We need to be the first to react, otherwise we'll be feeding old data
         MonitoringAgent.instance().getEventHandler().addListener(new EventListener() {
 
             @Override
@@ -131,7 +130,7 @@ public class CachingFacility {
             throw new IllegalArgumentException("Cannot update null");
         }
 
-        if (isCached(object.getReference(false), object.getClass()) || force) {
+        if (isCached(object.getReference(false), object.getClass()) || (object.getReference() != null && force)) {
             cache.put(object.getReference(), object);
         } else {
             // We only are interested in updates for things we've cached, others will always be newest available ones when they are retreived
