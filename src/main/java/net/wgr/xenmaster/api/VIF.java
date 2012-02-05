@@ -6,6 +6,7 @@
  */
 package net.wgr.xenmaster.api;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +65,11 @@ public class VIF extends XenApiEntity {
         this.vm = vm.getReference();
         if (this.deviceIndex == -1) {
             this.deviceIndex = vm.getNextAvailableVIFIndex();
+            if (this.deviceIndex == -1) {
+                ArrayList<String> info = new ArrayList<>();
+                info.add(vm.getName());
+                throw new BadAPICallException("VIF.create", null, "NO_FREE_VIF_SLOT", info);
+            }
         }
         this.network = network.getReference();
         if (this.mac == null || this.mac.isEmpty()) {

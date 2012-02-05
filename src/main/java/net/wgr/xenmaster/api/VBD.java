@@ -6,9 +6,11 @@
  */
 package net.wgr.xenmaster.api;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.wgr.xenmaster.api.helpers.NFS;
 import net.wgr.xenmaster.controller.BadAPICallException;
 import net.wgr.xenmaster.controller.Controller;
 
@@ -100,6 +102,11 @@ public class VBD extends XenApiEntity {
         }
         if (this.deviceIndex == -1) {
             this.deviceIndex = vm.getNextAvailableVBDIndex();
+            if (this.deviceIndex == -1) {
+                ArrayList<String> info = new ArrayList<>();
+                info.add(vm.getName());
+                throw new BadAPICallException("VBD.create", null, "NO_FREE_VBD_SLOT", info);
+            }
         }
 
         this.reference = (String) Controller.dispatch("VBD.create", collectConstructorArgs());
