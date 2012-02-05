@@ -3,8 +3,10 @@
 	var tpl = this,
 		dom = $(tpl.dom),
 		
-		deviceReady = function( device ) {
-			tpl.action( 'vm_device_ready', device );
+		// TODO: try to cleanup tpl_conf binding cleaner.
+		tpl_conf = null,
+		deviceReady = function( e ) {
+			tpl.action( 'vm_device_ready', e.dataset/*device*/ );
 		};
 		
 	tpl.capture(['click', 'change']);
@@ -14,14 +16,14 @@
 		if( !type || type.length == 0 ) return;
 		
 		app.load( 'tpl://vm/device/' + type, 'js://ui/template', function( tpl_dev, Template ){
-			var config = new Template({resource: tpl_dev});
-			config.vm = tpl.vm;
+			tpl_conf = new Template({resource: tpl_dev});
+			tpl_conf.unbind( 'device_ready', deviceReady );
 			
-			config.show('vm_device_config');
+			tpl_conf.vm = tpl.vm;
 			
-			config.on( 'device_ready', function( e ){
-				deviceReady( e.dataset );
-			});
+			tpl_conf.on( 'device_ready', deviceReady);
+			
+			tpl_conf.show('vm_device_config');
 		});
 	});
 	

@@ -189,17 +189,22 @@
 		});
 	});
 	
+	// TODO: Fixup dev_ready more cleanly
+	// TODO: Fixup vm_device_add to use backend event based updating instead of the template event.
+	var dev_ready = null;
 	this.bind('vm_device_add', function( e ) {
 		app.load( 'tpl://vm/device/new', 'js://ui/template', function( tpl_add, Template ) {
 			var view = new Template({ resource: tpl_add });
+			dev_ready = function( e ) {
+				view.unbind( 'vm_device_ready', dev_ready );
+				tpl.vm = vm_entity;
+				tpl.show();
+			};	
 			
 			/*
 			 * Device has been created.
 			 */
-			view.bind( 'vm_device_ready', function( e ) {
-				tpl.vm = vm_entity;
-				tpl.show(); // reload view.
-			});
+			view.bind( 'vm_device_ready', dev_ready);
 			
 			view.vm = vm_entity;
 			
