@@ -8,4 +8,4 @@ Frontend development takes place on the [XenMaster-WebUI repo](https://github.co
 **Short motivational speech**: Xen needs a proper web based GUI. We're making it happen.
 ***
 ##Notes##
-This project has just started development. The files are created with boilerplate license information, GPLv3 license headers will be applied upon shipping 1.0
+This project is licensed under the **GPLv3**
