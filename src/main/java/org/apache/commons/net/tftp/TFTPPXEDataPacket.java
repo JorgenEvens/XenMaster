@@ -18,7 +18,6 @@ package org.apache.commons.net.tftp;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import org.apache.commons.lang.ArrayUtils;
 
 /***
  * A final class derived from TFTPPacket definiing the TFTP Data

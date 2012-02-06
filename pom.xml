@@ -47,8 +47,8 @@
                             <classifier>backend</classifier>
                             <archive>
                                 <manifest>
-                                    <mainClass>net.wgr.xenmaster.App</mainClass>
-                                    <packageName>net.wgr.xenmaster</packageName>
+                                    <mainClass>org.xenmaster.App</mainClass>
+                                    <packageName>org.xenmaster</packageName>
                                 </manifest>
                             </archive>
                             <finalName>XenMaster</finalName>

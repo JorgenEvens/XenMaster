@@ -38,7 +38,7 @@ public final class TFTPOptionReadRequestPacket extends TFTPRequestPacket {
      *        class MODE constants (e.g., TFTP.NETASCII_MODE).
      ***/
     public TFTPOptionReadRequestPacket(InetAddress destination, int port, String filename, int mode) {
-        super(destination, port, TFTPRequestPacket.READ_REQUEST, filename, mode);
+        super(destination, port, TFTPPacket.READ_REQUEST, filename, mode);
         options = new HashMap<>();
     }
 
@@ -53,7 +53,7 @@ public final class TFTPOptionReadRequestPacket extends TFTPRequestPacket {
      *         request packet.
      ***/
     TFTPOptionReadRequestPacket(DatagramPacket datagram) throws TFTPPacketException {
-        super(TFTPRequestPacket.READ_REQUEST, datagram);
+        super(TFTPPacket.READ_REQUEST, datagram);
         options = new HashMap<>();
 
         byte[] data = datagram.getData();
