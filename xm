@@ -1,8 +1,14 @@
 #!/bin/bash
 
 # Setup build evironment
-export JAVA_HOME="/usr/lib/jvm/java-1.7.0-openjdk-`dpkg --print-architecture`"
-JAVA="$JAVA_HOME/jre/bin/java"
+if [[ -x dpkg ]]; then
+	export JAVA_HOME="/usr/lib/jvm/java-1.7.0-openjdk-`dpkg --print-architecture`"
+	JDK=$JAVA_HOME
+else
+	export JAVA_HOME="/usr/lib/jvm/jre-1.7.0"
+	JDK="/usr/lib/jvm/java-1.7.0-openjdk-*.`uname -i`"
+fi
+JAVA="$JDK/jre/bin/java"
 ALL="1"
 ROOT=`pwd`
 
