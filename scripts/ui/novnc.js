@@ -613,6 +613,9 @@
 		    fb_height      = 0,
 		    fb_name        = "",
 
+		    screen_width   = 0,
+		    screen_height  = 0,
+		    
 		    scan_imgQ_rate = 40, // 25 times per second or so
 		    last_req_time  = 0,
 		    rre_chunk_sz   = 100,
@@ -698,7 +701,9 @@
 
 		that.get_mouse = function() { return mouse; };
 
-
+		that.get_screen_width = function() { return screen_width; };
+		
+		that.get_screen_height = function() { return screen_height; };
 
 		//
 		// Setup routines
@@ -1190,9 +1195,13 @@
 		        
 		        /* Screen size */
 		        console.log('Width:',rQ.peek(2));
+		        screen_width = rQ.peek(2);
 		        fb_width  = rQ.shift(2);
-		        console.log('Width:',rQ.peek(2));
+		        
+		        console.log('Height:',rQ.peek(2));
+		        screen_height = rQ.peek(2);
 		        fb_height = rQ.shift(2);
+		        
 
 		        /* PIXEL_FORMAT */
 		        bpp            = rQ.shift(1);
