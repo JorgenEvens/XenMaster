@@ -20,7 +20,7 @@
 	
 	var tpl = this,
 		dom = $(tpl.dom),
-		canvas = dom.find('#vnc_console').get(0),
+		canvas = dom.find('#vnc_screen').get(0),
 		
 		rfb = null,
 		
@@ -34,6 +34,7 @@
 
 				rfb.connect( tpl.vm.reference );
 				
+				// TODO evaluate this, maybe in relation to strange pointer offsets
 				window.setTimeout(function(){
 					rfb.get_mouse().set_scale( dom.width()/rfb.get_display().get_width() );
 				}, 1000 );
@@ -57,6 +58,37 @@
 			tpl.vm.powerState = data.changes.powerState;
 			
 			connect();
+		});
+	});
+	
+	app.load('js://ui/fullscreenable', function (fs) {
+		var button = dom.find('#vnc_fullscreen');
+		var screen = dom.find('#vnc_screen');
+		
+		var fullscreen = new fs;
+		fullscreen.targetElement = dom.find('#vnc_console').get(0);
+		fullscreen.eventListener = function() {
+			if (fullscreen.isFullscreen()) {
+				screen.width(rfb.get_screen_width());
+				screen.height(rfb.get_screen_height());
+				rfb.get_display().resize(rfb.get_screen_width(), rfb.get_screen_height());
+				button.text('Exit fullscreen');
+			} else {
+				screen.width(300);
+				screen.height(200);
+				rfb.get_display().resize(300, 200);
+				button.text('Fullscreen');
+			}
+		};
+		
+		button.click(function(){
+			if (!rfb) return;
+			
+			if (fullscreen.isFullscreen()) {
+				fullscreen.exitFullscreen();
+			} else {
+				fullscreen.goFullscreen();
+			}
 		});
 	});
 		
