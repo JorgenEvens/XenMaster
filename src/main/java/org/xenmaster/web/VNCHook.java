@@ -42,6 +42,7 @@ import org.apache.log4j.Logger;
 import org.xenmaster.connectivity.ConnectionMultiplexer;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import org.xenmaster.api.Console;
 import org.xenmaster.api.VM;
 import org.xenmaster.controller.Controller;
@@ -57,11 +58,13 @@ public class VNCHook extends WebCommandHandler {
     protected static ConcurrentHashMap<String, Connection> connections;
     protected ConnectionMultiplexer.ActivityListener al;
     protected static int connectionCounter;
+    protected static Gson gson;
 
     public VNCHook() {
         super("vnc");
 
         if (cm == null) {
+            gson = new Gson();
             setupInfrastructure();
         }
     }
@@ -79,8 +82,6 @@ public class VNCHook extends WebCommandHandler {
     @Override
     public Object execute(Command cmd) {
         try {
-            Gson gson = new Gson();
-
             switch (cmd.getName()) {
                 case "openConnection":
                     if (!cmd.getData().isJsonObject() || !cmd.getData().getAsJsonObject().has("ref")) {
@@ -91,6 +92,7 @@ public class VNCHook extends WebCommandHandler {
                     for (Console c : vm.getConsoles()) {
                         if (c.getProtocol() == Console.Protocol.RFB) {
                             try {
+                                conn.console = c;
                                 URI uri = new URI(c.getLocation());
                                 conn.uri = uri;
                                 InetSocketAddress isa = new InetSocketAddress(uri.getHost(), 80);
@@ -106,7 +108,7 @@ public class VNCHook extends WebCommandHandler {
                     connections.put(conn.getReference(), conn);
                     return conn.getReference();
                 case "write":
-                    Arguments data = gson.fromJson(cmd.getData(), Arguments.class);
+                    Arguments data = Arguments.fromJson(cmd.getData());
                     if (!connections.containsKey(data.ref)) {
                         return new CommandException("Tried to write to unexisting connection", data.ref);
                     }
@@ -116,11 +118,15 @@ public class VNCHook extends WebCommandHandler {
                     cm.write(c.connection, ByteBuffer.wrap(bytes));
                     break;
                 case "closeConnection":
-                    Arguments close = gson.fromJson(cmd.getData(), Arguments.class);
-                    cm.close(connections.get(close.ref).connection);
+                    Arguments close = Arguments.fromJson(cmd.getData());
+                    Connection ci = connections.get(close.ref);
+                    
+                    if (ci != null) {
+                        cm.close(ci.connection);
+                    }
                     break;
             }
-        } catch (IOException ex) {
+        } catch (IOException | IllegalArgumentException ex) {
             Logger.getLogger(getClass()).error("Command failed : " + cmd.getName(), ex);
         }
 
@@ -136,6 +142,7 @@ public class VNCHook extends WebCommandHandler {
         public long lastWriteTime;
         public URI uri;
         public boolean dismissedHttpOK;
+        public Console console;
 
         public Connection(UUID client) {
             connectionCounter++;
@@ -154,6 +161,14 @@ public class VNCHook extends WebCommandHandler {
         public String ref;
 
         public Arguments() {
+        }
+
+        public static Arguments fromJson(JsonElement data) {
+            Arguments na = gson.fromJson(data, Arguments.class);
+            if (na == null || na.ref == null || !na.ref.startsWith("ConnectionRef:")) {
+                throw new IllegalArgumentException("Illegal reference, is not a ConnectionRef");
+            }
+            return na;
         }
 
         public Arguments(String data, String ref) {
@@ -233,7 +248,7 @@ public class VNCHook extends WebCommandHandler {
                     break;
                 }
             }
-
+            
             if (conn == null) {
                 Logger.getLogger(getClass()).warn("Unknown connection established to " + ((InetSocketAddress) socket.getRemoteSocketAddress()).getHostString());
                 return;
@@ -255,7 +270,7 @@ public class VNCHook extends WebCommandHandler {
         cm.addActivityListener(new AL());
         cm.start();
         connections = new ConcurrentHashMap<>();
-        GlobalExecutorService.get().scheduleAtFixedRate(new Reaper(), 0, 5, TimeUnit.MINUTES);
+        GlobalExecutorService.get().scheduleAtFixedRate(new Reaper(), 0, 1, TimeUnit.MINUTES);
     }
 
     protected static class Reaper implements Runnable {
@@ -263,7 +278,7 @@ public class VNCHook extends WebCommandHandler {
         @Override
         public void run() {
             for (Entry<String, Connection> entry : connections.entrySet()) {
-                if (System.currentTimeMillis() - entry.getValue().lastWriteTime > 1000 * 60) {
+                if (System.currentTimeMillis() - entry.getValue().lastWriteTime > 1000 * 5) {
                     try {
                         cm.close(entry.getValue().connection);
                     } catch (IOException ex) {

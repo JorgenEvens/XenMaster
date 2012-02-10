@@ -138,12 +138,19 @@ public class ConnectionMultiplexer implements Runnable {
         for (ActivityListener al : activityListeners) {
             al.dataReceived(bb, (int) key.attachment(), this);
         }
-
     }
 
     public void close(int connection) throws IOException {
-        connections.remove(connection);
+        if (!connections.containsKey(connection)) {
+            // Connection has been shut down already
+            return;
+        }
+
         scheduledWrites.remove(connection);
+        connections.get(connection).channel().close();
+        connections.get(connection).cancel();
+        connections.remove(connection);
+
         for (ActivityListener al : activityListeners) {
             al.connectionClosed(connection);
         }
@@ -197,7 +204,7 @@ public class ConnectionMultiplexer implements Runnable {
     }
 
     @Override
-	public void run() {
+    public void run() {
         int connectionCounter = 0;
 
         while (run) {
