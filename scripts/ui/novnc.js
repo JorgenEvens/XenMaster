@@ -272,78 +272,79 @@
 		return value;
 	};
 	
-	var Base64 = {
-			 
-		// private property
-		_keyStr : "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
-	 
-		// public method for encoding
-		encode : function (input) {
-			var output = "",
-				i = 0,
-				chr1, chr2, chr3,
-				enc1, enc2, enc3, enc4;
-	 
-			while (i < input.length) {
-	 
-				chr1 = input[i++];
-				chr2 = input[i++];
-				chr3 = input[i++];
-	 
-				enc1 = chr1 >> 2;
-				enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
-				enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
-				enc4 = chr3 & 63;
-	 
-				if (isNaN(chr2)) {
-					enc3 = enc4 = 64;
-				} else if (isNaN(chr3)) {
-					enc4 = 64;
+	var Base64 = (function(){
+		var keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=',
+			invalid = /[^A-Za-z0-9\+\/\=]/g,
+			chr1, chr2, chr3,
+			enc1, enc2, enc3, enc4,
+			i;
+		
+		return {
+			encode : function (input) {
+				var output = '',
+					count = input.length;
+				
+				i=0;
+
+				while (i < count) {
+		 
+					chr1 = input[i++];
+					chr2 = input[i++];
+					chr3 = input[i++];
+		 
+					enc1 = chr1 >> 2;
+					enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+					enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+					enc4 = chr3 & 63;
+		 
+					if (isNaN(chr2)) {
+						enc3 = enc4 = 64;
+					} else if (isNaN(chr3)) {
+						enc4 = 64;
+					}
+		 
+					output = output + keys[enc1] + keys[enc2] + keys[enc3] + keys[enc4];
+		 
 				}
-	 
-				output = output +
-				this._keyStr.charAt(enc1) + this._keyStr.charAt(enc2) +
-				this._keyStr.charAt(enc3) + this._keyStr.charAt(enc4);
-	 
+		 
+				return output;
+			},
+		 
+			// public method for decoding
+			decode : function (input) {
+				var output = [],
+					count = input.length;
+				
+				i=0;
+		 
+				input = input.replace(this._invalid, "");
+		 
+				while (i < count) {
+					enc1 = keys.indexOf(input[i++]);
+					enc2 = keys.indexOf(input[i++]);
+					enc3 = keys.indexOf(input[i++]);
+					enc4 = keys.indexOf(input[i++]);
+		 
+					chr1 = (enc1 << 2) | (enc2 >> 4);
+					chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+					chr3 = ((enc3 & 3) << 6) | enc4;
+		 
+					output.push(chr1);
+		 
+					if (enc3 != 64) {
+						output.push(chr2);
+					}
+					if (enc4 != 64) {
+						output.push(chr3);
+					}
+		 
+				}
+		 
+				return output;
+		 
 			}
-	 
-			return output;
-		},
-	 
-		// public method for decoding
-		decode : function (input) {
-			var output = [],
-				i = 0,
-				chr1, chr2, chr3,
-				enc1, enc2, enc3, enc4;
-	 
-			input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
-	 
-			while (i < input.length) {
-				enc1 = this._keyStr.indexOf(input.charAt(i++));
-				enc2 = this._keyStr.indexOf(input.charAt(i++));
-				enc3 = this._keyStr.indexOf(input.charAt(i++));
-				enc4 = this._keyStr.indexOf(input.charAt(i++));
-	 
-				chr1 = (enc1 << 2) | (enc2 >> 4);
-				chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-				chr3 = ((enc3 & 3) << 6) | enc4;
-	 
-				output.push(chr1);
-	 
-				if (enc3 != 64) {
-					output.push(chr2);
-				}
-				if (enc4 != 64) {
-					output.push(chr3);
-				}
-	 
-			}
-	 
-			return output;
-	 
-		}
-	};
+		};
+	}());
 	
 	var DES = function(passwd) {
 
@@ -1464,6 +1465,7 @@
 			
 			data.width = w;
 			data.height = h;
+			data._layers = 0;
 			
 			return data;
 		};
@@ -1478,6 +1480,8 @@
 				this[i++] = color[2];
 				this[i] = 255; 
 			}
+			
+			this._layers = 1;
 		};
 		
 		Tile.prototype.put = function( x, y, w, h, color ) {
@@ -1495,6 +1499,8 @@
 					this[start + i] = 255;
 				}
 			}
+			
+			this._layers++;
 		};
 		
 		encHandlers.HEXTILE = function display_hextile() {
@@ -1607,7 +1613,11 @@
 		                    //display.put(x+sx, y+sy, sw, sh, color);
 		                }
 		            }
-		            display.put( x, y, w, h, tile );
+		            if( tile._layers > 1 ) {
+		            	display.put( x, y, w, h, tile );
+		            } else {
+		            	display.put( x, y, w, h, tile.slice(0,4) );
+		            }
 		            //display.finishTile();
 		        }
 		        rQ.position = rQi;
@@ -4092,13 +4102,17 @@
 			count = w * h * 4,
 			i = 0;
 
-		
-		for( i=0; i<count; i++ ) {
-			data[i] = bin[i++];
-			data[i] = bin[i++];
-			data[i] = bin[i++];
-			data[i] = 255;
+		if( data.set ) {
+			for( i=3; i<count; i+=4 ) {
+				bin[i] = 255;
+			}
+			data.set( bin );
+		} else {
+			for( i=0; i<count; i++ ) {
+				data[i] = ( i%4 == 3 ) ? 255 : bin[i];
+			}
 		}
+		
 		c.putImageData( img, x, y );
 	};
 	
