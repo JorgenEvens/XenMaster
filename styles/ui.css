@@ -637,19 +637,6 @@ footer {
 	margin-left: 31%;
 }
 
-@media only screen and (min-width: 1200px ) {
-	#vm_list .column_left {
-		width: 300px;
-		float: left;
-		margin-left: -150px;
-	}
-	
-	#vm_list .column_right {
-		width: 100%;
-		margin-left: 155px;
-	}
-}
-
 .vm_list td.delete {
 	overflow: hidden;
 	text-indent: -999px;

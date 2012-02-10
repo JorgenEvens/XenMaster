@@ -274,11 +274,11 @@
 	
 	var Base64 = {
 
-		/* Convert data (an array of integers) to a Base64 string. */
+		// Convert data (an array of integers) to a Base64 string.
 		toBase64Table : 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
 		base64Pad     : '=',
 		
-		/* Convert Base64 data to a string */
+		// convert Base64 data to a string
 		toBinaryTable : [
 		    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
 		    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
@@ -335,7 +335,7 @@
 
 		    if (data_length < 0) { data_length = data.length - offset; }
 
-		    /* Every four characters is 3 resulting numbers */
+		    // Every four characters is 3 resulting numbers
 		    result_length = (data_length >> 2) * 3 + Math.floor((data_length%4)/1.5);
 		    result = new Array(result_length);
 
@@ -1484,11 +1484,54 @@
 		    return true;
 		};
 
+		var Tile = function( w, h ) {
+			var data = new ByteArray(),
+				i = null;
+			
+			for( i in this ) {
+				data[i] = this[i];
+			}
+			
+			data.width = w;
+			data.height = h;
+			
+			return data;
+		};
+		
+		Tile.prototype.fill = function( color ) {
+			var i = 0,
+				count = this.width*this.height*4;
+			
+			for( i=0; i<count; i++ ) {
+				this[i++] = color[0];
+				this[i++] = color[1];
+				this[i++] = color[2];
+				this[i] = 255; 
+			}
+		};
+		
+		Tile.prototype.put = function( x, y, w, h, color ) {
+			w = w*4;
+			
+			var start = null,
+				i = null;
+			
+			while( h-- ) {
+				start = (y * this.width + x) * 4;
+				for( i=0; i<w; i++ ) {
+					this[start + i++] = color[0];
+					this[start + i++] = color[1];
+					this[start + i++] = color[2];
+					this[start + i] = 255;
+				}
+			}
+		};
+		
 		encHandlers.HEXTILE = function display_hextile() {
 
 		    var subencoding, subrects, color, cur_tile,
 		        tile_x, x, w, tile_y, y, h, xy, s, sx, sy, wh, sw, sh,
-		        rQi = rQ.position; 
+		        rQi = rQ.position, tile;
 
 		    if (FBU.tiles === 0) {
 		        FBU.tiles_x = Math.ceil(FBU.width/16);
@@ -1538,7 +1581,7 @@
 		        }
 
 		        if (rQ.wait(FBU.bytes)) { return false; }
-
+		        
 		        /* We know the encoding and have a whole tile */
 		        FBU.subencoding = rQ[rQi];
 		        rQi += 1;
@@ -1546,6 +1589,7 @@
 		            if (FBU.lastsubencoding & 0x01) {
 		                /* Weird: ignore blanks after RAW */
 		            } else {
+		            	//tile.fill( FBU.background );
 		                display.put(x, y, w, h, FBU.background);
 		            }
 		        } else if (FBU.subencoding & 0x01) { // Raw
@@ -1563,7 +1607,9 @@
 
 		            //console.log( 'FBU.background', FBU.background );
 		            // This renders correct
-		            display.put(x, y, w, h, FBU.background);
+		            tile = new Tile( w, h );
+		            tile.fill( FBU.background );
+		            //display.put(x, y, w, h, FBU.background);
 		            if (FBU.subencoding & 0x08) { // AnySubrects
 		                subrects = rQ[rQi];
 		                rQi += 1;
@@ -1587,9 +1633,11 @@
 		                   
 		                    if( sw == 0 || sh == 0 ) continue;
 		                    
-		                    display.put(x+sx, y+sy, sw, sh, color);
+		                    tile.put( sx, sy, sw, sh, color );
+		                    //display.put(x+sx, y+sy, sw, sh, color);
 		                }
 		            }
+		            display.put( x, y, w, h, tile );
 		            //display.finishTile();
 		        }
 		        rQ.position = rQi;
@@ -1604,7 +1652,6 @@
 
 		    return true;
 		};
-		var testing_i = 0;
 
 
 		encHandlers.TIGHT_PNG = function display_tight_png() {
@@ -4014,7 +4061,7 @@
 	 */
 	Display.prototype._resetClean = function() {
 		this._clean_area = { x1: 0, y1: 0, x2: w, y2: h };
-		// TODO: Add handler
+		this.trigger( 'clean' );
 	};
 
 	/**
