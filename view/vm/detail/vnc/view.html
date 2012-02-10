@@ -1,40 +1,8 @@
 <div id="vm_vnc" style="position: relative">
-	<div id="vnc_console">
-		<canvas id="vnc_screen"></canvas>
-		<br />
-		<span id="vnc_fullscreen">
-		Fullscreen
-		</span>
+	<div class="vnc_console">
+		<canvas class="vnc_screen"></canvas>
+		<div>
+			<span class="vnc_fullscreen">Fullscreen</span>
+		</div>
 	</div>
-	<style>
-		#vnc_console {
-			border: solid 3px #333;
-			border-radius: 3px;
-			background-color: #333;
-			padding: 3px;
-		}
-		
-		#vnc_screen {
-			width: 300px;
-			height: 200px;
-			border-color: #F00;
-		}
-		
-		#vnc_fullscreen {
-			padding: 3px;
-			padding-left: 24px;
-			padding-right: 7px;
-			background-image: url(images/icon/monitor_wallpaper.png);
-			background-repeat: no-repeat;
-			background-position: 2px 4px;
-			color: #FDFDFD;
-			font-weight: bold;
-			cursor: pointer;
-			border-radius: 3px;
-		}
-		
-		#vnc_fullscreen:hover {
-			background-color: #555;
-		}
-	</style>
 </div>

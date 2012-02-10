@@ -637,6 +637,19 @@ footer {
 	margin-left: 31%;
 }
 
+@media only screen and (min-width: 1200px ) {
+	#vm_list .column_left {
+		width: 300px;
+		float: left;
+		margin-left: -150px;
+	}
+	
+	#vm_list .column_right {
+		width: 100%;
+		margin-left: 155px;
+	}
+}
+
 .vm_list td.delete {
 	overflow: hidden;
 	text-indent: -999px;
@@ -691,4 +704,50 @@ footer {
 
 .hvm_boot_option:hover span {
 	display: inline;
+}
+
+#vm_vnc .vnc_console {
+	border: solid 3px #333;
+	border-radius: 3px 3px;
+	background-color: #333;
+	padding: 3px;
+}
+
+#vm_vnc .vnc_console.is_fullscreen {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	background: black;
+	margin: 0;
+	border-radius: none;
+	border: none;
+	text-align: center;
+}
+
+#vm_vnc .vnc_console.is_fullscreen .vnc_screen {
+	margin: 0 auto;
+}
+
+#vm_vnc .vnc_screen {
+	border: 1px solid #F00;
+}
+
+#vm_vnc .vnc_fullscreen {
+	padding: 3px;
+	padding-left: 24px;
+	padding-right: 7px;
+	background-image: url(../images/icon/monitor_wallpaper.png);
+	background-repeat: no-repeat;
+	background-position: 2px 4px;
+	color: #FDFDFD;
+	font-weight: bold;
+	cursor: pointer;
+	border-radius: 3px;
+}
+
+#vm_vnc .vnc_fullscreen:hover {
+	background: #555;
 }

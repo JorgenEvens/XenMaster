@@ -8,7 +8,52 @@
 	
 	var Util = {};
 	
-	/*
+	var EventPublisher = function() {
+		this._events = {};
+	};
+	
+	EventPublisher.prototype.on = function( event, handler ) {
+		var e = this._events[event];
+		
+		if( !e ) {
+			e = this._events[event] = [];
+		}
+		
+		e.push( handler );
+	};
+	
+	EventPublisher.prototype.off = function( event, handler ) {
+		var e = this._events[event];
+		
+		if( !e ) {
+			return;
+		}
+		
+		delete e[e.indexOf( handler )];
+	};
+	
+	EventPublisher.prototype.reset = function( event ) {
+		if( !event ) {
+			this._events = {};
+		} else {
+			this._events[event] = [];
+		}
+	};
+	
+	EventPublisher.prototype.trigger = function( event, data ) {
+		var e = this._events[event],
+			i = null;
+		
+		if( !e ) {
+			return;
+		}
+		
+		for( i in e ) {
+			e[i]( data, this );
+		}
+	};
+	
+	/**
 	 * ByteArray allows binary pushing of data.
 	 */
 	var ByteArray = (function(){
@@ -29,6 +74,7 @@
 		return function() {
 			var me = [];
 			
+			// Manually attach to preserve "array-ness"
 			me.push8 = push8;
 			me.push16 = push16;
 			me.push32 = push32;
@@ -215,27 +261,34 @@
 	            return parseFloat(v, 10);
 	        })(Util.Engine.webkit);
 	}
-
-	Util.Flash = (function(){
-	    var v, version;
-	    try {
-	        v = navigator.plugins['Shockwave Flash'].description;
-	    } catch(err1) {
-	        try {
-	            v = new ActiveXObject('ShockwaveFlash.ShockwaveFlash').GetVariable('$version');
-	        } catch(err2) {
-	            v = '0 r0';
-	        }
-	    }
-	    version = v.match(/\d+/g);
-	    return {version: parseInt(version[0] || 0 + '.' + version[1], 10) || 0, build: parseInt(version[2], 10) || 0};
-	}()); 
+	
+	Util.padLeft = function( value, length, padding ) {
+		var i = null;
+		
+		padding = padding || 0;
+		for( i=length-value.length; i--; ) {
+			value = '' + padding + value;
+		}
+		return value;
+	}
 	
 	var Base64 = {
 
 		/* Convert data (an array of integers) to a Base64 string. */
 		toBase64Table : 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/',
 		base64Pad     : '=',
+		
+		/* Convert Base64 data to a string */
+		toBinaryTable : [
+		    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+		    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+		    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,62, -1,-1,-1,63,
+		    52,53,54,55, 56,57,58,59, 60,61,-1,-1, -1, 0,-1,-1,
+		    -1, 0, 1, 2,  3, 4, 5, 6,  7, 8, 9,10, 11,12,13,14,
+		    15,16,17,18, 19,20,21,22, 23,24,25,-1, -1,-1,-1,-1,
+		    -1,26,27,28, 29,30,31,32, 33,34,35,36, 37,38,39,40,
+		    41,42,43,44, 45,46,47,48, 49,50,51,-1, -1,-1,-1,-1
+		],
 
 		encode: function (data) {
 		    "use strict";
@@ -269,19 +322,7 @@
 
 		    return result;
 		},
-
-		/* Convert Base64 data to a string */
-		toBinaryTable : [
-		    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-		    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-		    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,62, -1,-1,-1,63,
-		    52,53,54,55, 56,57,58,59, 60,61,-1,-1, -1, 0,-1,-1,
-		    -1, 0, 1, 2,  3, 4, 5, 6,  7, 8, 9,10, 11,12,13,14,
-		    15,16,17,18, 19,20,21,22, 23,24,25,-1, -1,-1,-1,-1,
-		    -1,26,27,28, 29,30,31,32, 33,34,35,36, 37,38,39,40,
-		    41,42,43,44, 45,46,47,48, 49,50,51,-1, -1,-1,-1,-1
-		],
-
+		
 		decode: function (data, offset) {
 		    "use strict";
 		    offset = typeof(offset) !== 'undefined' ? offset : 0;
@@ -524,9 +565,12 @@
 		}
 
 		setKeys(passwd);             // Setup keys
-		return {'encrypt': encrypt}; // Public interface
+		
+		return {
+			encrypt: encrypt
+		}; // Public interface
 
-	} // function DES
+	}; // function DES
 	
 	var RFB = function(defaults) {
 		"use strict";
@@ -612,9 +656,6 @@
 		    fb_width       = 0,
 		    fb_height      = 0,
 		    fb_name        = "",
-
-		    screen_width   = 0,
-		    screen_height  = 0,
 		    
 		    scan_imgQ_rate = 40, // 25 times per second or so
 		    last_req_time  = 0,
@@ -680,30 +721,12 @@
 		        'obsolete, use onClipboard']
 		    ]);
 
-
-		// Override/add some specific configuration getters/setters
-		that.set_local_cursor = function(cursor) {
-		    if ((!cursor) || (cursor in {'0':1, 'no':1, 'false':1})) {
-		        conf.local_cursor = false;
-		    } else {
-		        if (display.get_cursor_uri()) {
-		            conf.local_cursor = true;
-		        } else {
-		            notify("Browser does not support local cursor");
-		        }
-		    }
-		};
-
 		// These are fake configuration getters
 		that.get_display = function() { return display; };
 
 		that.get_keyboard = function() { return keyboard; };
 
 		that.get_mouse = function() { return mouse; };
-
-		that.get_screen_width = function() { return screen_width; };
-		
-		that.get_screen_height = function() { return screen_height; };
 
 		//
 		// Setup routines
@@ -723,8 +746,9 @@
 		    
 		    // Initialize display, mouse, keyboard, and websock
 		    try {
-		        display   = new Display({'target': conf.target});
+		        display   = new Display( conf.target );
 		    } catch (exc) {
+
 		        updateState('fatal', "No working Display");
 		    }
 		    keyboard = new Keyboard({'target': conf.focusContainer,
@@ -732,8 +756,6 @@
 		    mouse    = new Mouse({'target': conf.target,
 		                            'onMouseButton': mouseButton,
 		                            'onMouseMove': mouseMove});
-
-		    rmode = display.get_render_mode();
 
 		    // TODO remove completely
 		    ws = new VNCConnection();
@@ -829,16 +851,16 @@
 		            msgTimer = null;
 		        }
 
-		        if (display && display.get_context()) {
+		        if (display) {
 		            keyboard.ungrab();
 		            mouse.ungrab();
-		            display.defaultCursor();
 		            if ( state === 'loaded' ) {
 		                // Show noVNC logo on load and when disconnected if
 		                // debug is off
 		                display.clear();
 		            }
 		        }
+		        
 
 		        //ws.close();
 		    }
@@ -1018,14 +1040,14 @@
 
 		    if (conf.view_only) { return; } // View only, skip mouse events
 
-		    mouse_arr = mouse_arr.concat(
-		            pointerEvent(display.absX(x), display.absY(y)) );
+		    mouse_arr = mouse_arr.concat( pointerEvent(x, y) );
 		    flushClient();
 		};
 
 		mouseMove = function(x, y) {
 		    var deltaX, deltaY;
 
+		    /*
 		    if (viewportDragging) {
 		        //deltaX = x - viewportDragPos.x; // drag viewport
 		        deltaX = viewportDragPos.x - x; // drag frame buffer
@@ -1038,11 +1060,12 @@
 		        // Skip sending mouse events
 		        return;
 		    }
+		    */
 
 		    if (conf.view_only) { return; } // View only, skip mouse events
 
 		    mouse_arr = mouse_arr.concat(
-		            pointerEvent(display.absX(x), display.absY(y)) );
+		            pointerEvent(x,y) );
 		};
 
 
@@ -1194,12 +1217,7 @@
 		        if (rQ.wait(24)) { return false; }
 		        
 		        /* Screen size */
-		        console.log('Width:',rQ.peek(2));
-		        screen_width = rQ.peek(2);
 		        fb_width  = rQ.shift(2);
-		        
-		        console.log('Height:',rQ.peek(2));
-		        screen_height = rQ.peek(2);
 		        fb_height = rQ.shift(2);
 		        
 
@@ -1221,8 +1239,8 @@
 		        name_length   = rQ.shift(4);
 		        fb_name = rQ.shiftString(name_length);
 
-		        display.set_true_color(conf.true_color);
-		        display.resize(fb_width, fb_height);
+		        // display.set_true_color(conf.true_color);
+		        display.resolution(fb_width, fb_height);
 		        keyboard.grab();
 		        mouse.grab();
 
@@ -1270,6 +1288,9 @@
 		        ret = framebufferUpdate(); // false means need more data
 		        break;
 		    case 1:  // SetColourMapEntries
+		    	console.log( 'ColourMapEntries required!' );
+		    	throw 'Cannot set ColourMap right now!';
+		    	
 		        rQ.shift(1);  // Padding
 		        first_colour = rQ.shift(2); // First colour
 		        num_colours = rQ.shift(2);
@@ -1405,9 +1426,11 @@
 		    cur_y = FBU.y + (FBU.height - FBU.lines);
 		    cur_height = Math.min(FBU.lines,
 		                          Math.floor(ws.receiveQueue.available()/(FBU.width * fb_Bpp)));
-		    display.blitImage(FBU.x, cur_y, FBU.width, cur_height,
-		            ws.receiveQueue, ws.receiveQueue.position);
-		    ws.receiveQueue.shiftBytes(FBU.width * cur_height * fb_Bpp);
+		    display.put( FBU.x, cur_y, FBU.width, cur_height,
+		    			ws.receiveQueue.shiftBytes( FBU.width * cur_height * fb_Bpp ) );
+		    //display.blitImage(FBU.x, cur_y, FBU.width, cur_height,
+		    //	ws.receiveQueue, ws.receiveQueue.position);
+		    //ws.receiveQueue.shiftBytes(FBU.width * cur_height * fb_Bpp);
 		    FBU.lines -= cur_height;
 
 		    if (FBU.lines > 0) {
@@ -1425,7 +1448,7 @@
 		    if (ws.receiveQueue.wait(4)) { return false; }
 		    old_x = rQ.shift(2);
 		    old_y = rQ.shift(2);
-		    display.copyImage(old_x, old_y, FBU.x, FBU.y, FBU.width, FBU.height);
+		    display.copy(old_x, old_y, FBU.x, FBU.y, FBU.width, FBU.height);
 		    FBU.rects -= 1;
 		    FBU.bytes = 0;
 		    return true;
@@ -1438,7 +1461,7 @@
 		        if (rQ.wait(4+fb_Bpp)) { return false; }
 		        FBU.subrects = rQ.shift(4);
 		        color = rQ.shiftBytes(fb_Bpp); // Background
-		        display.fillRect(FBU.x, FBU.y, FBU.width, FBU.height, color);
+		        display.put(FBU.x, FBU.y, FBU.width, FBU.height, color);
 		    }
 		    while ((FBU.subrects > 0) && (rQ.available() >= (fb_Bpp + 8))) {
 		        color = rQ.shiftBytes(fb_Bpp);
@@ -1446,7 +1469,7 @@
 		        y = rQ.shift(2);
 		        width = rQ.shift(2);
 		        height = rQ.shift(2);
-		        display.fillRect(FBU.x + x, FBU.y + y, width, height, color);
+		        display.put(FBU.x + x, FBU.y + y, width, height, color);
 		        FBU.subrects -= 1;
 		    }
 		    
@@ -1523,10 +1546,10 @@
 		            if (FBU.lastsubencoding & 0x01) {
 		                /* Weird: ignore blanks after RAW */
 		            } else {
-		                display.fillRect(x, y, w, h, FBU.background);
+		                display.put(x, y, w, h, FBU.background);
 		            }
 		        } else if (FBU.subencoding & 0x01) { // Raw
-		            display.blitImage(x, y, w, h, rQ, rQi);
+		            display.put(x, y, w, h, rQ.slice( rQi, rQi + FBU.bytes - 1 ) );
 		            rQi += FBU.bytes - 1;
 		        } else {
 		            if (FBU.subencoding & 0x02) { // Background
@@ -1538,7 +1561,9 @@
 		                rQi += fb_Bpp;
 		            }
 
-		            display.startTile(x, y, w, h, FBU.background);
+		            //console.log( 'FBU.background', FBU.background );
+		            // This renders correct
+		            display.put(x, y, w, h, FBU.background);
 		            if (FBU.subencoding & 0x08) { // AnySubrects
 		                subrects = rQ[rQi];
 		                rQi += 1;
@@ -1549,6 +1574,7 @@
 		                    } else {
 		                        color = FBU.foreground;
 		                    }
+		                    //console.log( color );
 		                    xy = rQ[rQi];
 		                    rQi += 1;
 		                    sx = (xy >> 4);
@@ -1558,11 +1584,13 @@
 		                    rQi += 1;
 		                    sw = (wh >> 4)   + 1;
 		                    sh = (wh & 0x0f) + 1;
-
-		                    display.subTile(sx, sy, sw, sh, color);
+		                   
+		                    if( sw == 0 || sh == 0 ) continue;
+		                    
+		                    display.put(x+sx, y+sy, sw, sh, color);
 		                }
 		            }
-		            display.finishTile();
+		            //display.finishTile();
 		        }
 		        rQ.position = rQi;
 		        FBU.lastsubencoding = FBU.subencoding;
@@ -1576,6 +1604,7 @@
 
 		    return true;
 		};
+		var testing_i = 0;
 
 
 		encHandlers.TIGHT_PNG = function display_tight_png() {
@@ -1667,13 +1696,14 @@
 
 		scan_tight_imgQ = function() {
 		    var data, imgQ, ctx;
-		    ctx = display.get_context();
+		    ctx = display.context;
 		    if (rfb_state === 'normal') {
 		        imgQ = FBU.imgQ;
 		        while ((imgQ.length > 0) && (imgQ[0].img.complete)) {
 		            data = imgQ.shift();
+		            console.log( 'tight scan: ', data.color );
 		            if (data['type'] === 'fill') {
-		                display.fillRect(data.x, data.y, data.width, data.height, data.color);
+		                display.put(data.x, data.y, data.width, data.height, data.color);
 		            } else {
 		                ctx.drawImage(data.img, data.x, data.y);
 		            }
@@ -1685,7 +1715,7 @@
 		encHandlers.DesktopSize = function set_desktopsize() {
 		    fb_width = FBU.width;
 		    fb_height = FBU.height;
-		    display.resize(fb_width, fb_height);
+		    display.resolution(fb_width, fb_height);
 		    timing.fbu_rt_start = (new Date()).getTime();
 		    // Send a new non-incremental request
 		    ws.send(fbUpdateRequests());
@@ -1710,10 +1740,12 @@
 		    FBU.bytes = pixelslength + masklength;
 		    if (rQ.wait(FBU.bytes)) { return false; }
 
-		    display.changeCursor(rQ.shiftBytes(pixelslength),
+		    rQ.shiftBytes(pixelslength);
+		    rQ.shiftBytes(masklength);
+		    /*display.changeCursor(rQ.shiftBytes(pixelslength),
 		                            rQ.shiftBytes(masklength),
 		                            x, y, w, h);
-
+			*/
 		    FBU.bytes = 0;
 		    FBU.rects -= 1;
 
@@ -1797,7 +1829,10 @@
 
 		// Based on clean/dirty areas, generate requests to send
 		fbUpdateRequests = function() {
-		    var cleanDirty = display.getCleanDirtyReset(),
+			return display._update();
+		    /*var cleanDirty = {
+		    	display.getCleanDirtyReset(),
+		    }
 		        arr = new ByteArray(), i, cb, db;
 
 		    cb = cleanDirty.cleanBox;
@@ -1810,7 +1845,7 @@
 		        // Force all (non-incremental for dirty box
 		        arr = arr.concat(fbUpdateRequest(0, db.x, db.y, db.w, db.h));
 		    }
-		    return arr;
+		    return arr;*/
 		};
 
 
@@ -3749,665 +3784,322 @@
 	    0x28ff : 0x10028ff
 	};
 
-	/*
-	 * noVNC: HTML5 VNC client
-	 * Copyright (C) 2011 Joel Martin
-	 * Licensed under LGPL-3 (see LICENSE.txt)
-	 *
-	 * See README.md for usage and integration instructions.
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * Display of an VNC connection.
+	 * Inspired by NoVNC
+	 * 
+	 * @returns {Display}
 	 */
-
-	/*jslint browser: true, white: false, bitwise: false */
-	/*global Util, Base64, changeCursor */
-
-	function Display(defaults) {
-	"use strict";
-
-	var that           = {},  // Public API methods
-	    conf           = {},  // Configuration attributes
-
-	    // Private Display namespace variables
-	    c_ctx          = null,
-	    c_forceCanvas  = false,
-
-	    // Predefine function variables (jslint)
-	    imageDataGet, rgbxImageData, cmapImageData,
-	    setFillColor, rescale,
-
-	    // The full frame buffer (logical canvas) size
-	    fb_width        = 0,
-	    fb_height       = 0,
-	    // The visible "physical canvas" viewport
-	    viewport       = {'x': 0, 'y': 0, 'w' : 0, 'h' : 0 },
-	    cleanRect      = {'x1': 0, 'y1': 0, 'x2': -1, 'y2': -1},
-
-	    c_prevStyle    = "",
-	    tile           = null,
-	    tile16x16      = null,
-	    tile_x         = 0,
-	    tile_y         = 0;
-
-
-	// Configuration attributes
-	Util.conf_defaults(conf, that, defaults, [
-	    ['target',      'wo', 'dom',  null, 'Canvas element for rendering'],
-	    ['context',     'ro', 'raw',  null, 'Canvas 2D context for rendering (read-only)'],
-	    ['logo',        'rw', 'raw',  null, 'Logo to display when cleared: {"width": width, "height": height, "data": data}'],
-	    ['true_color',  'rw', 'bool', true, 'Use true-color pixel data'],
-	    ['colourMap',   'rw', 'arr',  [], 'Colour map array (when not true-color)'],
-	    ['scale',       'rw', 'float', 1.0, 'Display area scale factor 0.0 - 1.0'],
-	    ['viewport',    'rw', 'bool', false, 'Use a viewport set with viewportChange()'],
-	    ['width',       'rw', 'int', null, 'Display area width'],
-	    ['height',      'rw', 'int', null, 'Display area height'],
-
-	    ['render_mode', 'ro', 'str', '', 'Canvas rendering mode (read-only)'],
-
-	    ['prefer_js',   'rw', 'str', null, 'Prefer Javascript over canvas methods'],
-	    ['cursor_uri',  'rw', 'raw', null, 'Can we render cursor using data URI']
-	    ]);
-
-	// Override some specific getters/setters
-	that.get_context = function () { return c_ctx; };
-
-	that.set_scale = function(scale) { rescale(scale); };
-
-	that.set_width = function (val) { that.resize(val, fb_height); };
-	that.get_width = function() { return fb_width; };
-
-	that.set_height = function (val) { that.resize(fb_width, val); };
-	that.get_height = function() { return fb_height; };
-
-
-
-	//
-	// Private functions
-	//
-
-	// Create the public API interface
-	function constructor() {
-	    var c, func, i, curDat, curSave,
-	        has_imageData = false, UE = Util.Engine;
-
-	    if (! conf.target) { throw("target must be set"); }
-
-	    if (typeof conf.target === 'string') {
-	        throw("target must be a DOM element");
-	    }
-
-	    c = conf.target;
-
-	    if (! c.getContext) { throw("no getContext method"); }
-
-	    if (! c_ctx) { c_ctx = c.getContext('2d'); }
-
-	    that.clear();
-
-	    // Check canvas features
-	    if ('createImageData' in c_ctx) {
-	        conf.render_mode = "canvas rendering";
-	    } else {
-	        throw("Canvas does not support createImageData");
-	    }
-	    if (conf.prefer_js === null) {
-	        conf.prefer_js = true;
-	    }
-
-	    // Initialize cached tile imageData
-	    tile16x16 = c_ctx.createImageData(16, 16);
-
-	    /*
-	     * Determine browser support for setting the cursor via data URI
-	     * scheme
-	     */
-	    curDat = [];
-	    for (i=0; i < 8 * 8 * 4; i += 1) {
-	        curDat.push(255);
-	    }
-	    try {
-	        curSave = c.style.cursor;
-	        changeCursor(conf.target, curDat, curDat, 2, 2, 8, 8);
-	        if (c.style.cursor) {
-	            if (conf.cursor_uri === null) {
-	                conf.cursor_uri = true;
-	            }
-	        } else {
-	            if (conf.cursor_uri === null) {
-	                conf.cursor_uri = false;
-	            }
-	        }
-	        c.style.cursor = curSave;
-	    } catch (exc2) { 
-	        conf.cursor_uri = false;
-	    }
-
-	    return that ;
-	}
-
-	rescale = function(factor) {
-	    var c, tp, x, y, 
-	        properties = ['transform', 'WebkitTransform', 'MozTransform', null];
-	    c = conf.target;
-	    tp = properties.shift();
-	    while (tp) {
-	        if (typeof c.style[tp] !== 'undefined') {
-	            break;
-	        }
-	        tp = properties.shift();
-	    }
-
-	    if (tp === null) {
-	        return;
-	    }
-
-
-	    if (typeof(factor) === "undefined") {
-	        factor = conf.scale;
-	    } else if (factor > 1.0) {
-	        factor = 1.0;
-	    } else if (factor < 0.1) {
-	        factor = 0.1;
-	    }
-
-	    if (conf.scale === factor) {
-	        return;
-	    }
-
-	    conf.scale = factor;
-	    x = c.width - c.width * factor;
-	    y = c.height - c.height * factor;
-	    c.style[tp] = "scale(" + conf.scale + ") translate(-" + x + "px, -" + y + "px)";
-	};
-
-	setFillColor = function(color) {
-	    var rgb, newStyle;
-	    if (conf.true_color) {
-	        rgb = color;
-	    } else {
-	        rgb = conf.colourMap[color[0]];
-	    }
-	    newStyle = "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")";
-	    if (newStyle !== c_prevStyle) {
-	        c_ctx.fillStyle = newStyle;
-	        c_prevStyle = newStyle;
-	    }
-	};
-
-
-	//
-	// Public API interface functions
-	//
-
-	// Shift and/or resize the visible viewport
-	that.viewportChange = function(deltaX, deltaY, width, height) {
-	    var c = conf.target, v = viewport, cr = cleanRect,
-	        saveImg = null, saveStyle, x1, y1, vx2, vy2, w, h;
-
-	    if (!conf.viewport) {
-	        deltaX = -v.w; // Clamped later if out of bounds
-	        deltaY = -v.h; // Clamped later if out of bounds
-	        width = fb_width;
-	        height = fb_height;
-	    }
-
-	    if (typeof(deltaX) === "undefined") { deltaX = 0; }
-	    if (typeof(deltaY) === "undefined") { deltaY = 0; }
-	    if (typeof(width) === "undefined") { width = v.w; }
-	    if (typeof(height) === "undefined") { height = v.h; }
-
-	    // Size change
-
-	    if (width > fb_width) { width = fb_width; }
-	    if (height > fb_height) { height = fb_height; }
-
-	    if ((v.w !== width) || (v.h !== height)) {
-	        // Change width
-	        if ((width < v.w) && (cr.x2 > v.x + width -1)) {
-	            cr.x2 = v.x + width - 1;
-	        }
-	        v.w = width;
-
-	        // Change height
-	        if ((height < v.h) && (cr.y2 > v.y + height -1)) {
-	            cr.y2 = v.y + height - 1;
-	        }
-	        v.h = height;
-
-
-	        if (v.w > 0 && v.h > 0 && c.width > 0 && c.height > 0) {
-	            saveImg = c_ctx.getImageData(0, 0,
-	                    (c.width < v.w) ? c.width : v.w,
-	                    (c.height < v.h) ? c.height : v.h);
-	        }
-
-	        c.width = v.w;
-	        c.height = v.h;
-
-	        if (saveImg) {
-	            c_ctx.putImageData(saveImg, 0, 0);
-	        }
-	    }
-
-	    vx2 = v.x + v.w - 1;
-	    vy2 = v.y + v.h - 1;
-
-
-	    // Position change
-
-	    if ((deltaX < 0) && ((v.x + deltaX) < 0)) {
-	        deltaX = - v.x;
-	    }
-	    if ((vx2 + deltaX) >= fb_width) {
-	        deltaX -= ((vx2 + deltaX) - fb_width + 1);
-	    }
-
-	    if ((v.y + deltaY) < 0) {
-	        deltaY = - v.y;
-	    }
-	    if ((vy2 + deltaY) >= fb_height) {
-	        deltaY -= ((vy2 + deltaY) - fb_height + 1);
-	    }
-
-	    if ((deltaX === 0) && (deltaY === 0)) {
-	        return;
-	    }
-
-	    v.x += deltaX;
-	    vx2 += deltaX;
-	    v.y += deltaY;
-	    vy2 += deltaY;
-
-	    // Update the clean rectangle
-	    if (v.x > cr.x1) {
-	        cr.x1 = v.x;
-	    }
-	    if (vx2 < cr.x2) {
-	        cr.x2 = vx2;
-	    }
-	    if (v.y > cr.y1) {
-	        cr.y1 = v.y;
-	    }
-	    if (vy2 < cr.y2) {
-	        cr.y2 = vy2;
-	    }
-
-	    if (deltaX < 0) {
-	        // Shift viewport left, redraw left section
-	        x1 = 0;
-	        w = - deltaX;
-	    } else {
-	        // Shift viewport right, redraw right section
-	        x1 = v.w - deltaX;
-	        w = deltaX;
-	    }
-	    if (deltaY < 0) {
-	        // Shift viewport up, redraw top section
-	        y1 = 0;
-	        h = - deltaY;
-	    } else {
-	        // Shift viewport down, redraw bottom section
-	        y1 = v.h - deltaY;
-	        h = deltaY;
-	    }
-
-	    // Copy the valid part of the viewport to the shifted location
-	    saveStyle = c_ctx.fillStyle;
-	    c_ctx.fillStyle = "rgb(255,255,255)";
-	    if (deltaX !== 0) {
-	        //that.copyImage(0, 0, -deltaX, 0, v.w, v.h);
-	        //that.fillRect(x1, 0, w, v.h, [255,255,255]);
-	        c_ctx.drawImage(c, 0, 0, v.w, v.h, -deltaX, 0, v.w, v.h);
-	        c_ctx.fillRect(x1, 0, w, v.h);
-	    }
-	    if (deltaY !== 0) {
-	        //that.copyImage(0, 0, 0, -deltaY, v.w, v.h);
-	        //that.fillRect(0, y1, v.w, h, [255,255,255]);
-	        c_ctx.drawImage(c, 0, 0, v.w, v.h, 0, -deltaY, v.w, v.h);
-	        c_ctx.fillRect(0, y1, v.w, h);
-	    }
-	    c_ctx.fillStyle = saveStyle;
-	};
-
-
-	// Return a map of clean and dirty areas of the viewport and reset the
-	// tracking of clean and dirty areas.
-	//
-	// Returns: {'cleanBox':   {'x': x, 'y': y, 'w': w, 'h': h},
-//	           'dirtyBoxes': [{'x': x, 'y': y, 'w': w, 'h': h}, ...]}
-	that.getCleanDirtyReset = function() {
-	    var v = viewport, c = cleanRect, cleanBox, dirtyBoxes = [],
-	        vx2 = v.x + v.w - 1, vy2 = v.y + v.h - 1;
-
-
-	    // Copy the cleanRect
-	    cleanBox = {'x': c.x1, 'y': c.y1,
-	                'w': c.x2 - c.x1 + 1, 'h': c.y2 - c.y1 + 1};
-
-	    if ((c.x1 >= c.x2) || (c.y1 >= c.y2)) {
-	        // Whole viewport is dirty
-	        dirtyBoxes.push({'x': v.x, 'y': v.y, 'w': v.w, 'h': v.h});
-	    } else {
-	        // Redraw dirty regions
-	        if (v.x < c.x1) {
-	            // left side dirty region
-	            dirtyBoxes.push({'x': v.x, 'y': v.y,
-	                             'w': c.x1 - v.x + 1, 'h': v.h});
-	        }
-	        if (vx2 > c.x2) {
-	            // right side dirty region
-	            dirtyBoxes.push({'x': c.x2 + 1, 'y': v.y,
-	                             'w': vx2 - c.x2, 'h': v.h});
-	        }
-	        if (v.y < c.y1) {
-	            // top/middle dirty region
-	            dirtyBoxes.push({'x': c.x1, 'y': v.y,
-	                             'w': c.x2 - c.x1 + 1, 'h': c.y1 - v.y});
-	        }
-	        if (vy2 > c.y2) {
-	            // bottom/middle dirty region
-	            dirtyBoxes.push({'x': c.x1, 'y': c.y2 + 1,
-	                             'w': c.x2 - c.x1 + 1, 'h': vy2 - c.y2});
-	        }
-	    }
-
-	    // Reset the cleanRect to the whole viewport
-	    cleanRect = {'x1': v.x, 'y1': v.y,
-	                 'x2': v.x + v.w - 1, 'y2': v.y + v.h - 1};
-
-	    return {'cleanBox': cleanBox, 'dirtyBoxes': dirtyBoxes};
-	};
-
-	// Translate viewport coordinates to absolute coordinates
-	that.absX = function(x) {
-	    return x + viewport.x;
-	}
-	that.absY = function(y) {
-	    return y + viewport.y;
-	}
-
-
-	that.resize = function(width, height) {
-	    c_prevStyle    = "";
-
-	    fb_width = width;
-	    fb_height = height;
-
-	    rescale(conf.scale);
-	    that.viewportChange();
-	};
-
-	that.clear = function() {
-	    if (conf.logo) {
-	        that.resize(conf.logo.width, conf.logo.height);
-	        that.blitStringImage(conf.logo.data, 0, 0);
-	    } else {
-	        that.resize(640, 20);
-	        c_ctx.clearRect(0, 0, viewport.w, viewport.h);
-	    }
-
-	    // No benefit over default ("source-over") in Chrome and firefox
-	    //c_ctx.globalCompositeOperation = "copy";
-	};
-
-	that.fillRect = function(x, y, width, height, color) {
-	    setFillColor(color);
-	    c_ctx.fillRect(x - viewport.x, y - viewport.y, width, height);
-	};
-
-	that.copyImage = function(old_x, old_y, new_x, new_y, w, h) {
-	    var x1 = old_x - viewport.x, y1 = old_y - viewport.y,
-	        x2 = new_x - viewport.x, y2 = new_y  - viewport.y;
-	    c_ctx.drawImage(conf.target, x1, y1, w, h, x2, y2, w, h);
-	};
-
-
-	// Start updating a tile
-	that.startTile = function(x, y, width, height, color) {
-	    var data, rgb, red, green, blue, i;
-	    tile_x = x;
-	    tile_y = y;
-	    if ((width === 16) && (height === 16)) {
-	        tile = tile16x16;
-	    } else {
-	        tile = c_ctx.createImageData(width, height);
-	    }
-	    data = tile.data;
-	    if (conf.prefer_js) {
-	        if (conf.true_color) {
-	            rgb = color;
-	        } else {
-	            rgb = conf.colourMap[color[0]];
-	        }
-	        red = rgb[0];
-	        green = rgb[1];
-	        blue = rgb[2];
-	        for (i = 0; i < (width * height * 4); i+=4) {
-	            data[i    ] = red;
-	            data[i + 1] = green;
-	            data[i + 2] = blue;
-	            data[i + 3] = 255;
-	        }
-	    } else {
-	        that.fillRect(x, y, width, height, color);
-	    }
-	};
-
-	// Update sub-rectangle of the current tile
-	that.subTile = function(x, y, w, h, color) {
-	    var data, p, rgb, red, green, blue, width, j, i, xend, yend;
-	    if (conf.prefer_js) {
-	        data = tile.data;
-	        width = tile.width;
-	        if (conf.true_color) {
-	            rgb = color;
-	        } else {
-	            rgb = conf.colourMap[color[0]];
-	        }
-	        red = rgb[0];
-	        green = rgb[1];
-	        blue = rgb[2];
-	        xend = x + w;
-	        yend = y + h;
-	        for (j = y; j < yend; j += 1) {
-	            for (i = x; i < xend; i += 1) {
-	                p = (i + (j * width) ) * 4;
-	                data[p    ] = red;
-	                data[p + 1] = green;
-	                data[p + 2] = blue;
-	                data[p + 3] = 255;
-	            }   
-	        } 
-	    } else {
-	        that.fillRect(tile_x + x, tile_y + y, w, h, color);
-	    }
-	};
-
-	// Draw the current tile to the screen
-	that.finishTile = function() {
-	    if (conf.prefer_js) {
-	        c_ctx.putImageData(tile, tile_x - viewport.x, tile_y - viewport.y)
-	    }
-	    // else: No-op, if not prefer_js then already done by setSubTile
-	};
-
-	rgbxImageData = function(x, y, width, height, arr, offset) {
-	    var img, i, j, data, v = viewport;
-	    /*
-	    if ((x - v.x >= v.w) || (y - v.y >= v.h) ||
-	        (x - v.x + width < 0) || (y - v.y + height < 0)) {
-	        // Skipping because outside of viewport
-	        return;
-	    }
-	    */
-	    img = c_ctx.createImageData(width, height);
-	    data = img.data;
-	    for (i=0, j=offset; i < (width * height * 4); i=i+4, j=j+4) {
-	        data[i    ] = arr[j    ];
-	        data[i + 1] = arr[j + 1];
-	        data[i + 2] = arr[j + 2];
-	        data[i + 3] = 255; // Set Alpha
-	    }
-	    c_ctx.putImageData(img, x - v.x, y - v.y);
-	};
-
-	cmapImageData = function(x, y, width, height, arr, offset) {
-	    var img, i, j, data, rgb, cmap;
-	    img = c_ctx.createImageData(width, height);
-	    data = img.data;
-	    cmap = conf.colourMap;
-	    for (i=0, j=offset; i < (width * height * 4); i+=4, j+=1) {
-	        rgb = cmap[arr[j]];
-	        data[i    ] = rgb[0];
-	        data[i + 1] = rgb[1];
-	        data[i + 2] = rgb[2];
-	        data[i + 3] = 255; // Set Alpha
-	    }
-	    c_ctx.putImageData(img, x - viewport.x, y - viewport.y);
-	};
-
-	that.blitImage = function(x, y, width, height, arr, offset) {
-	    if (conf.true_color) {
-	        rgbxImageData(x, y, width, height, arr, offset);
-	    } else {
-	        cmapImageData(x, y, width, height, arr, offset);
-	    }
-	};
-
-	that.blitStringImage = function(str, x, y) {
-	    var img = new Image();
-	    img.onload = function () {
-	        c_ctx.drawImage(img, x - viewport.x, y - viewport.y);
-	    };
-	    img.src = str;
-	};
-
-	that.changeCursor = function(pixels, mask, hotx, hoty, w, h) {
-	    if (conf.cursor_uri === false) {
-	        return;
-	    }
-
-	    if (conf.true_color) {
-	        changeCursor(conf.target, pixels, mask, hotx, hoty, w, h);
-	    } else {
-	        changeCursor(conf.target, pixels, mask, hotx, hoty, w, h, conf.colourMap);
-	    }
-	};
-
-	that.defaultCursor = function() {
-	    conf.target.style.cursor = "default";
-	};
-
-	return constructor();  // Return the public API interface
-
-	}  // End of Display()
-
-
-	/* Set CSS cursor property using data URI encoded cursor file */
-	function changeCursor(target, pixels, mask, hotx, hoty, w, h, cmap) {
-	    "use strict";
-	    var cur = [], rgb, IHDRsz, RGBsz, ANDsz, XORsz, url, idx, alpha, x, y;
-	    
-	    // Push multi-byte little-endian values
-	    cur.push16le = function (num) {
-	        this.push((num     ) & 0xFF,
-	                  (num >> 8) & 0xFF  );
-	    };
-	    cur.push32le = function (num) {
-	        this.push((num      ) & 0xFF,
-	                  (num >>  8) & 0xFF,
-	                  (num >> 16) & 0xFF,
-	                  (num >> 24) & 0xFF  );
-	    };
-
-	    IHDRsz = 40;
-	    RGBsz = w * h * 4;
-	    XORsz = Math.ceil( (w * h) / 8.0 );
-	    ANDsz = Math.ceil( (w * h) / 8.0 );
-
-	    // Main header
-	    cur.push16le(0);      // 0: Reserved
-	    cur.push16le(2);      // 2: .CUR type
-	    cur.push16le(1);      // 4: Number of images, 1 for non-animated ico
-
-	    // Cursor #1 header (ICONDIRENTRY)
-	    cur.push(w);          // 6: width
-	    cur.push(h);          // 7: height
-	    cur.push(0);          // 8: colors, 0 -> true-color
-	    cur.push(0);          // 9: reserved
-	    cur.push16le(hotx);   // 10: hotspot x coordinate
-	    cur.push16le(hoty);   // 12: hotspot y coordinate
-	    cur.push32le(IHDRsz + RGBsz + XORsz + ANDsz);
-	                          // 14: cursor data byte size
-	    cur.push32le(22);     // 18: offset of cursor data in the file
-
-
-	    // Cursor #1 InfoHeader (ICONIMAGE/BITMAPINFO)
-	    cur.push32le(IHDRsz); // 22: Infoheader size
-	    cur.push32le(w);      // 26: Cursor width
-	    cur.push32le(h*2);    // 30: XOR+AND height
-	    cur.push16le(1);      // 34: number of planes
-	    cur.push16le(32);     // 36: bits per pixel
-	    cur.push32le(0);      // 38: Type of compression
-
-	    cur.push32le(XORsz + ANDsz); // 43: Size of Image
-	                                 // Gimp leaves this as 0
-
-	    cur.push32le(0);      // 46: reserved
-	    cur.push32le(0);      // 50: reserved
-	    cur.push32le(0);      // 54: reserved
-	    cur.push32le(0);      // 58: reserved
-
-	    // 62: color data (RGBQUAD icColors[])
-	    for (y = h-1; y >= 0; y -= 1) {
-	        for (x = 0; x < w; x += 1) {
-	            idx = y * Math.ceil(w / 8) + Math.floor(x/8);
-	            alpha = (mask[idx] << (x % 8)) & 0x80 ? 255 : 0;
-
-	            if (cmap) {
-	                idx = (w * y) + x;
-	                rgb = cmap[pixels[idx]];
-	                cur.push(rgb[2]);          // blue
-	                cur.push(rgb[1]);          // green
-	                cur.push(rgb[0]);          // red
-	                cur.push(alpha);           // alpha
-	            } else {
-	                idx = ((w * y) + x) * 4;
-	                cur.push(pixels[idx + 2]); // blue
-	                cur.push(pixels[idx + 1]); // green
-	                cur.push(pixels[idx    ]); // red
-	                cur.push(alpha);           // alpha
-	            }
-	        }
-	    }
-
-	    // XOR/bitmask data (BYTE icXOR[])
-	    // (ignored, just needs to be right size)
-	    for (y = 0; y < h; y += 1) {
-	        for (x = 0; x < Math.ceil(w / 8); x += 1) {
-	            cur.push(0x00);
-	        }
-	    }
-
-	    // AND/bitmask data (BYTE icAND[])
-	    // (ignored, just needs to be right size)
-	    for (y = 0; y < h; y += 1) {
-	        for (x = 0; x < Math.ceil(w / 8); x += 1) {
-	            cur.push(0x00);
-	        }
-	    }
-
-	    url = "data:image/x-icon;base64," + Base64.encode(cur);
-	    target.style.cursor = "url(" + url + ") " + hotx + " " + hoty + ", default";
+	function Display( canvas, background ) {
+		this.canvas = canvas;
+		this.context = canvas.getContext('2d');
+		this.scale = 1;
+		this.width = canvas.width;
+		this.height = canvas.height;
+
+		this.background = background || 'black';
+
+		this.clear();
 	};
 	
-	/*
-	 * Implementation inspired by:
-	 *
-	 * Websock: high-performance binary WebSockets
-	 * Copyright (C) 2011 Joel Martin
-	 * Licensed under LGPL-3 (see LICENSE.txt)
-	 */
+	Display.prototype = new EventPublisher();
 	
-	var global = (function(){return this;}());
+	/**
+	 * Scale local display to width or height.
+	 * 
+	 * @param w New width
+	 * @param h New Height
+	 */
+	Display.prototype.resize = function( w, h ) {
+		var scaleX = w / this.width,
+			scaleY = h / this.height;
+		
+		this.scale = scaleX > scaleY ? scaleY : scaleX;
+		
+		this._scale();
+	};
+	
+	/**
+	 * Scale local display to scale
+	 * 
+	 * @param scale Scale of local display.
+	 */
+	Display.prototype.rescale = function( scale ) {
+		this.scale = scale;
+		
+		this._scale();
+	};
+	
+	/**
+	 * Rescale local display to Display.scale value.
+	 */
+	Display.prototype._scale = function() {
+		var style = this.canvas.style;
+		
+		style.width = this.width * this.scale + 'px';
+		style.height = this.height * this.scale + 'px';
+		this.trigger( 'scale' );
+	};
+
+	/**
+	 * Clear the entire display.
+	 */
+	Display.prototype.clear = function() {
+		// Mark display as dirty and force update.
+		this._clean_area = { x1: 0, y1: 0, x2: -1, y2: -1 };
+		this.context.fillStyle = this.background;
+		this.context.fillRect( 0, 0, this.width, this.height );
+		this.trigger( 'clear' );
+	};
+	
+	/**
+	 * Set remote resolution to local display.
+	 * 
+	 * @param w Resolution Width
+	 * @param h Resolution height
+	 */
+	Display.prototype.resolution = function( w, h ) {
+		this._resize( w, h );
+	};
+
+	/**
+	 * Resize underlying canvas to reflect resolution.
+	 * 
+	 * @param w Resolution width
+	 * @param h Resolution height.
+	 */
+	Display.prototype._resize = function( w, h ) {
+		this.canvas.width = this.width = w;
+		this.canvas.height = this.height = h;
+		this.trigger( 'resolutionchanged' );
+		this.trigger( 'resize' );
+	};
+
+	/**
+	 * Get area that is clean.
+	 * 
+	 * @returns {Object}
+	 */
+	Display.prototype._getClean = function() {
+		var c = this._clean_area;
+		
+		return {
+			x: c.x1,
+			y: c.y1,
+			w: c.x2 - c.x1 + 1,
+			h: c.y2 - c.y1 + 1
+		};
+	};
+
+	/**
+	 * Get area that needs to be updated.
+	 * 
+	 * @returns {Array}
+	 */
+	Display.prototype._getDirty = function() {
+		var h = this.height,
+			w = this.width,
+			c = this._clean_area,
+			
+			dirty = [];
+		
+		if( c.x1 >= c.x2 || c.y1 >= c.y2 ) {
+			dirty.push({
+				x: 0,
+				y: 0,
+				w: w,
+				h: h
+			});
+		} else {
+			// Left of clean area
+			if( c.x1 > 0 ) {
+				dirty.push({
+					x: 0,
+					y: 0,
+					w: c.x1 + 1,
+					h: h
+				});
+			}
+			// Right of clean area
+			if( w > c.x2 ) {
+				dirty.push({
+					x: c.x2,
+					y: 0,
+					w: w - c.x2,
+					h: h
+				});
+			}
+			// Above clean area
+			if( c.y1 > 0 ) {
+				dirty.push({
+					x: c.x1,
+					y: 0,
+					w: c.x2 - c.x1 + 1,
+					h: c.y2
+				});
+			}
+			// Below clean area
+			if( h > c.y2 ) {
+				dirty.push({
+					x: c.x1,
+					y: c.y2,
+					w: c.x2 - c.x1 + 1,
+					h: h - c.y2
+				});
+			}
+		}
+		
+		return dirty;
+			
+	};
+
+	/**
+	 * Generate area to update
+	 * 
+	 * @param req Stream to add data to
+	 * @param inc Incremental update
+	 * @param x X position
+	 * @param y Y position
+	 * @param w Width of area
+	 * @param h Height of area
+	 * @returns {ByteArray}
+	 */
+	Display.prototype._generateUpdateRequest = function( req, inc, x, y, w, h ) {
+		inc = inc ? 1 : 0;
+		req = req || new ByteArray();
+		x = x || 0;
+		y = y || 0;
+		w = w || this.width;
+		h = h || this.height;
+		
+		req.push( 3 ); // Messagetype
+		req.push8( inc );
+		req.push16( x );
+		req.push16( y );
+		req.push16( w );
+		req.push16( h );
+		
+		return req;
+	};
+
+	/**
+	 * Generate packet to update display
+	 * 
+	 * @returns {ByteArray}
+	 */
+	Display.prototype._update = function() {
+		var clean = this._getClean(),
+			dirty = this._getDirty(),
+			req = new ByteArray(),
+			i = null,
+			buffer = null;
+		
+		if( clean.w > 0 && clean.h > 0 ) {
+			this._generateUpdateRequest(req, true, clean.x, clean.y, clean.w, clean.h );
+		}
+		
+		for( i=dirty.length; i--; ) {
+			buffer = dirty[i];
+			this._generateUpdateRequest(req, false, buffer.x, buffer.y, buffer.w, buffer.h );
+		}
+		
+		this.trigger( 'update' );
+		return req;
+	};
+
+	/**
+	 * Reset clean area
+	 */
+	Display.prototype._resetClean = function() {
+		this._clean_area = { x1: 0, y1: 0, x2: w, y2: h };
+		// TODO: Add handler
+	};
+
+	/**
+	 * Put data/color on screen.
+	 * 
+	 * @param x X position
+	 * @param y Y position
+	 * @param w Width of square
+	 * @param h Height of square
+	 * @param data Color or data to be drawn
+	 */
+	Display.prototype.put = function( x, y, w, h, data ) {
+		var pl = Util.padLeft;
+		
+		// Convert 4 byte values to RGBa
+		if( data.length == 4 ) {
+			data = '#' + pl( data[0].toString(16), 2 ) + pl( data[1].toString(16), 2 ) + pl( data[2].toString(16), 2 );
+		}
+		
+		if( typeof data == 'string' ) {
+			this._put_color( x, y, w, h, data );
+		} else {
+			this._put_binary( x, y, w, h, data );
+		}
+		
+		this.trigger( 'change' );
+	};
+
+	/**
+	 * Put color rectangle on display.
+	 * 
+	 * @param x X position
+	 * @param y Y position
+	 * @param w Width of square
+	 * @param h Height of square
+	 * @param color Color to draw with
+	 */
+	Display.prototype._put_color = function( x, y, w, h, color ) {
+		var c = this.context;
+		
+		c.fillStyle = color;
+		c.fillRect( x, y, w, h );
+	};
+
+	/**
+	 * Put data from stream on display.
+	 * 
+	 * @param x X position
+	 * @param y Y position
+	 * @param w Width of square
+	 * @param h Height of square
+	 * @param bin Data to be drawn
+	 */
+	Display.prototype._put_binary = function( x, y, w, h, bin ) {
+		var c = this.context,
+			img = c.createImageData( w, h ),
+			data = img.data,
+			count = w * h * 4,
+			i = 0;
+
+		
+		for( i=0; i<count; i++ ) {
+			data[i] = bin[i++];
+			data[i] = bin[i++];
+			data[i] = bin[i++];
+			data[i] = 255;
+		}
+		c.putImageData( img, x, y );
+	};
+	
+	/**
+	 * Copy a portion of a screen to another location.
+	 * 
+	 * @param src_x	The X coordinates where to start copying from.
+	 * @param src_y The Y coordinates where to start copying from.
+	 * @param x The X coordinates where to copy to.
+	 * @param y The Y coordinates where to copy to.
+	 * @param w Width of the to copy area.
+	 * @param h Height of the to copy area.
+	 */
+	Display.prototype.copy = function( src_x, src_y, x, y, w, h ) {
+		this.context.drawImage( this.canvas, src_x, src_y, w, h, x, y, w, h );
+	};
+	
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	/*
 	 * A binary data queue
@@ -4467,8 +4159,20 @@
 	};
 	
 	Queue.prototype.append = function( value ) {
-		Array.prototype.push.apply( this, value );
-		if( this.length > 10000 ) {
+		var push = Array.prototype.push,
+			data_length = value.length,
+			step_size = 100000,
+			i = 0;
+		
+		for( i=0; data_length > step_size; i+=step_size ) {
+			data_length-= step_size;
+			push.apply( this, value.slice( i, i+step_size ) );
+		}
+		push.apply( this, value.slice( i ) );
+		
+		value = null;
+		
+		if( this.position > 1000 && this.position !== 0 ) {
             this.splice(0,this.position);
             this.position = 0;
         }
@@ -4563,7 +4267,7 @@
 				connectionClosed = function(data){
 					if( data.ref != me.reference ) return;
 					xm.removeHook( 'vnc', 'updateScreen', dataReceived );
-					xm.addHook( 'vnc', 'connectionClosed', connectionClosed );
+					xm.removeHook( 'vnc', 'connectionClosed', connectionClosed );
 				},
 				
 				dataReceived = function( data ) {
@@ -4571,6 +4275,10 @@
 					me.receiveQueue.append( Base64.decode( data.data ) );
 					me.trigger('message');
 				};
+				
+			window.onunload = function() {
+				me.disconnect();
+			};
 			
 			xm.addHook( 'vnc', 'connectionEstablished', connectionEstablished);
 			xm.addHook( 'vnc', 'connectionClosed', connectionClosed );
@@ -4589,6 +4297,16 @@
 			xm = xm.getInstance();
 			
 			xm.send( 'vnc://write', {ref: me.reference, data: Base64.encode(data) } );
+		});
+	};
+	
+	VNCConnection.prototype.disconnect = function() {
+		var me = this;
+		console.log( 'disconnecting VNC connection' );
+		app.load( 'js://net/xmconnection', function( xm ){
+			xm = xm.getInstance();
+			
+			xm.send('vnc://closeConnection', { ref: me.reference });
 		});
 	};
 	
