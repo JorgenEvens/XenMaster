@@ -18,102 +18,102 @@
 
 (function( $, app ){
 	
-    var tpl = this,
-    dom = $(tpl.dom),
-    ctl = {
-        canvas: dom.find('.vnc_screen'),
-        container: dom.find('.vnc_container'),
-        console: dom.find('.vnc_console'),
-        fullscreen: dom.find('.vnc_fullscreen')
-    },
-		
-    rfb = null,
-		
-    onrescale = function( data, display ) {
-        if( !rfb ) {
-            return;
-        }
-        
-        rfb.get_mouse().set_scale( display.scale );
-    },
-		
-    onresolutionchanged = function( data, display ) {
-        display.resize( ctl.console.width(), ctl.console.height() );
-    },
-		
-    connect = function() {
-        disconnect();
+	var tpl = this,
+		dom = $(tpl.dom),
+		ctl = {
+			canvas: dom.find('.vnc_screen'),
+			container: dom.find('.vnc_container'),
+			console: dom.find('.vnc_console'),
+			fullscreen: dom.find('.vnc_fullscreen')
+		},
 			
-        if( tpl.vm.powerState != 'RUNNING' ) return;
+		rfb = null,
 			
-        app.load( 'js://ui/novnc', function( VNC_RFB ){
-            rfb = VNC_RFB({
-                target: ctl.canvas.get(0)
-            });
-
-            rfb.get_display().on( 'resolutionchanged', onresolutionchanged );
-            rfb.get_display().on( 'scale', onrescale);
-
-            rfb.connect( tpl.vm.reference );
-        });
-    },
-		
-    disconnect = function() {
-        if( !rfb ) return;
+		onrescale = function( data, display ) {
+			if( !rfb ) {
+				return;
+			}
 			
-        rfb.get_display().off( 'scale', onrescale );
-        rfb.get_display().off( 'resolutionchanged', onresolutionchanged );
-        rfb.disconnect();
-    },
-		
-    fullscreenChanged = function(){
-        var display = rfb.get_display();
+			rfb.get_mouse().set_scale( display.scale );
+		},
 			
-        if( fullscreen.isFullscreen() ) {
-            ctl.fullscreen.text( 'Exit fullscreen' );
+		onresolutionchanged = function( data, display ) {
+			display.resize( ctl.console.width(), ctl.console.height() );
+		},
+			
+		connect = function() {
+			disconnect();
 				
-            if( display.width > screen.width-2 || display.height > screen.height-2 ) {
-                setTimeout(function(){
-                    display.resize( screen.width-2, screen.height-2 );
-                },100 );
-            } else {
-                display.rescale( 1 );
-            }
+			if( tpl.vm.powerState != 'RUNNING' ) return;
 				
-        } else {
-            ctl.fullscreen.text( 'Fullscreen' );
-            onresolutionchanged( null, display );
-        }
-    },
-		
-    fullscreen = null;
+			app.load( 'js://ui/novnc', function( VNC_RFB ){
+				rfb = VNC_RFB({
+					target: ctl.canvas.get(0)
+				});
+
+				rfb.get_display().on( 'resolutionchanged', onresolutionchanged );
+				rfb.get_display().on( 'scale', onrescale);
+
+				rfb.connect( tpl.vm.reference );
+			});
+		},
+			
+		disconnect = function() {
+			if( !rfb ) return;
+				
+			rfb.get_display().off( 'scale', onrescale );
+			rfb.get_display().off( 'resolutionchanged', onresolutionchanged );
+			rfb.disconnect();
+		},
+			
+		fullscreenChanged = function(){
+			var display = rfb.get_display();
+				
+			if( fullscreen.isFullscreen() ) {
+				ctl.fullscreen.text( 'Exit fullscreen' );
+					
+				if( display.width > screen.width-2 || display.height > screen.height-2 ) {
+					setTimeout(function(){
+						display.resize( screen.width-2, screen.height-2 );
+					},100 );
+				} else {
+					display.rescale( 1 );
+				}
+					
+			} else {
+				ctl.fullscreen.text( 'Fullscreen' );
+				onresolutionchanged( null, display );
+			}
+		},
+			
+		fullscreen = null;
 	
-    app.load( 'js://net/xmconnection', 'js://ui/fullscreen', function( xm, Fullscreen ) {
-        xm = xm.getInstance();
+	app.load( 'js://net/xmconnection', 'js://ui/fullscreen', function( xm, Fullscreen ) {
+		xm = xm.getInstance();
 		
-        xm.addHook( 'log', 'event', function( data ) {
-            if( data.entityType != 'vm' ) return;
-            if( data.reference != tpl.vm.reference ) return;
-            if( !data.changes.powerState ) return;
+		xm.addHook( 'log', 'event', function( data ) {
+			if( data.entityType != 'vm' ) return;
+			if( data.reference != tpl.vm.reference ) return;
+			if( !data.changes.powerState ) return;
 			
-            tpl.vm.powerState = data.changes.powerState;
+			tpl.vm.powerState = data.changes.powerState;
 			
-            connect();
-        });
+			connect();
+		});
 		
-        fullscreen = new Fullscreen( ctl.container[0], fullscreenChanged );
+		fullscreen = new Fullscreen( ctl.container[0], fullscreenChanged );
 		
-        ctl.fullscreen.click(function(){
-            if( fullscreen.isFullscreen() ) {
-                fullscreen.exit();
-            } else {
-                fullscreen.activate();
-            }
-        });
-    });
+		ctl.fullscreen.click(function(){
+			if( fullscreen.isFullscreen() ) {
+				fullscreen.exit();
+			} else {
+				fullscreen.activate();
+			}
+		});
+	});
 		
-    this.onshow = function(){
-        connect();
-    };
+	this.onshow = function(){
+		connect();
+	};
 	
 });
