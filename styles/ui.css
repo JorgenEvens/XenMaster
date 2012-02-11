@@ -693,12 +693,19 @@ footer {
     display: inline;
 }
 
+:-moz-full-screen #vm_vnc .vnc_container {
+    width: auto;
+    height: auto;
+}
+
 #vm_vnc .vnc_console {
     border: solid 3px #333;
     border-radius: 3px 3px;
     background-color: #333;
     padding: 3px;
     box-shadow: 0 0 5px #555;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 #vm_vnc .vnc_fullscreen {

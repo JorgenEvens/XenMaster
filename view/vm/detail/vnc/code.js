@@ -22,6 +22,7 @@
     dom = $(tpl.dom),
     ctl = {
         canvas: dom.find('.vnc_screen'),
+        container: dom.find('.vnc_container'),
         console: dom.find('.vnc_console'),
         fullscreen: dom.find('.vnc_fullscreen')
     },
@@ -100,7 +101,7 @@
             connect();
         });
 		
-        fullscreen = new Fullscreen( ctl.console[0], fullscreenChanged );
+        fullscreen = new Fullscreen( ctl.container[0], fullscreenChanged );
 		
         ctl.fullscreen.click(function(){
             if( fullscreen.isFullscreen() ) {
