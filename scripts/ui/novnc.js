@@ -8,6 +8,15 @@
 	
 	var Util = {};
 	
+	Util.isArray = (function(){
+		var str = Object.prototype.toString,
+			arr = '[object Array]';
+		
+		return function( value ) {
+			return str.call(value) === arr;
+		};
+	}());
+	
 	var EventPublisher = function() {
 		this._events = {};
 	};
@@ -72,7 +81,7 @@
 			};
 		
 		return function() {
-			var me = [];
+			var me = Util.isArray( this ) ? this : [];
 			
 			// Manually attach to preserve "array-ness"
 			me.push8 = push8;
@@ -82,6 +91,68 @@
 			return me;
 		};
 	}());
+	
+	var Tile = function( w, h ) {
+		this.native = null;
+		this.buffer = null;
+		
+		this.width = w;
+		this.height = h;
+		this.layers = 0;
+		this.fillColor = [0,0,0,0];
+	};
+	
+	Tile.prototype.fill = function( color ) {
+		this.fillColor = color;
+		this.layers = 0;
+	};
+	
+	Tile.prototype._fill = (function(){
+		var ctx = document.createElement('canvas').getContext('2d');
+		
+		return function() {
+			this.native = ctx.createImageData( this.width, this.height );
+			this.buffer = this.native.data;
+			
+			var i = 0,
+				buf = this.buffer,
+				count = buf.length,
+				color = this.fillColor;
+			
+			for( i=0; i<count; i++ ) {
+				buf[i++] = color[0];
+				buf[i++] = color[1];
+				buf[i++] = color[2];
+				buf[i] = 255; 
+			}
+			
+			this.layers = 1;
+		};
+	}());
+	
+	Tile.prototype.put = function( x, y, w, h, color ) {
+		if( this.layers < 1 ) {
+			this._fill();
+		}
+		
+		w = w * 4;
+		
+		var start = null,
+			buf = this.buffer,
+			i = null;
+		
+		while( h-- ) {
+			start = (y * this.width + x) * 4;
+			for( i=0; i<w; i++ ) {
+				buf[start + i++] = color[0];
+				buf[start + i++] = color[1];
+				buf[start + i++] = color[2];
+				buf[start + i] = 255;
+			}
+		}
+		
+		this.layers++;
+	};
 
 	// Set configuration default for Crockford style function namespaces
 	Util.conf_default = function(cfg, api, defaults, v, mode, type, defval, desc) {
@@ -273,11 +344,16 @@
 	};
 	
 	var Base64 = (function(){
-		var keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=',
+		var keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='.split(''),
+			values = [],
 			invalid = /[^A-Za-z0-9\+\/\=]/g,
 			chr1, chr2, chr3,
 			enc1, enc2, enc3, enc4,
 			i;
+		
+		for( i=keys.length; i--; ) {
+			values[keys[i]] = i;
+		}
 		
 		return {
 			encode : function (input) {
@@ -317,13 +393,13 @@
 				
 				i=0;
 		 
-				input = input.replace(this._invalid, "");
+				input = input.replace(this._invalid, '');
 		 
 				while (i < count) {
-					enc1 = keys.indexOf(input[i++]);
-					enc2 = keys.indexOf(input[i++]);
-					enc3 = keys.indexOf(input[i++]);
-					enc4 = keys.indexOf(input[i++]);
+					enc1 = values[input[i++]];
+					enc2 = values[input[i++]];
+					enc3 = values[input[i++]];
+					enc4 = values[input[i++]];
 		 
 					chr1 = (enc1 << 2) | (enc2 >> 4);
 					chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
@@ -913,7 +989,8 @@
 		};
 
 		handle_message = function() {
-			var data_available = ws.receiveQueue.available();
+	
+			var data_available = rQ.available();
 		    if (data_available === 0) {
 		        return;
 		    }
@@ -1454,54 +1531,6 @@
 
 		    return true;
 		};
-
-		var Tile = function( w, h ) {
-			var data = new ByteArray(),
-				i = null;
-			
-			for( i in this ) {
-				data[i] = this[i];
-			}
-			
-			data.width = w;
-			data.height = h;
-			data._layers = 0;
-			
-			return data;
-		};
-		
-		Tile.prototype.fill = function( color ) {
-			var i = 0,
-				count = this.width*this.height*4;
-			
-			for( i=0; i<count; i++ ) {
-				this[i++] = color[0];
-				this[i++] = color[1];
-				this[i++] = color[2];
-				this[i] = 255; 
-			}
-			
-			this._layers = 1;
-		};
-		
-		Tile.prototype.put = function( x, y, w, h, color ) {
-			w = w*4;
-			
-			var start = null,
-				i = null;
-			
-			while( h-- ) {
-				start = (y * this.width + x) * 4;
-				for( i=0; i<w; i++ ) {
-					this[start + i++] = color[0];
-					this[start + i++] = color[1];
-					this[start + i++] = color[2];
-					this[start + i] = 255;
-				}
-			}
-			
-			this._layers++;
-		};
 		
 		encHandlers.HEXTILE = function display_hextile() {
 
@@ -1613,11 +1642,7 @@
 		                    //display.put(x+sx, y+sy, sw, sh, color);
 		                }
 		            }
-		            if( tile._layers > 1 ) {
-		            	display.put( x, y, w, h, tile );
-		            } else {
-		            	display.put( x, y, w, h, tile.slice(0,4) );
-		            }
+	            	display.put( x, y, w, h, tile );
 		            //display.finishTile();
 		        }
 		        rQ.position = rQi;
@@ -3977,7 +4002,7 @@
 				});
 			}
 		}
-		
+
 		return dirty;
 			
 	};
@@ -4032,6 +4057,7 @@
 			this._generateUpdateRequest(req, false, buffer.x, buffer.y, buffer.w, buffer.h );
 		}
 		
+		this._resetClean();
 		this.trigger( 'update' );
 		return req;
 	};
@@ -4040,7 +4066,7 @@
 	 * Reset clean area
 	 */
 	Display.prototype._resetClean = function() {
-		this._clean_area = { x1: 0, y1: 0, x2: w, y2: h };
+		this._clean_area = { x1: 0, y1: 0, x2: this.width, y2: this.height };
 		this.trigger( 'clean' );
 	};
 
@@ -4054,7 +4080,12 @@
 	 * @param data Color or data to be drawn
 	 */
 	Display.prototype.put = function( x, y, w, h, data ) {
-		var pl = Util.padLeft;
+		var pl = Util.padLeft,
+			isTile = data instanceof Tile;
+		
+		if( isTile && data.layers < 2 ) {
+			data = data.fillColor;
+		}
 		
 		// Convert 4 byte values to RGBa
 		if( data.length == 4 ) {
@@ -4063,6 +4094,8 @@
 		
 		if( typeof data == 'string' ) {
 			this._put_color( x, y, w, h, data );
+		} else if( isTile ) {
+			this._put_imagedata( x, y, data.native );
 		} else {
 			this._put_binary( x, y, w, h, data );
 		}
@@ -4081,7 +4114,7 @@
 	 */
 	Display.prototype._put_color = function( x, y, w, h, color ) {
 		var c = this.context;
-		
+
 		c.fillStyle = color;
 		c.fillRect( x, y, w, h );
 	};
@@ -4109,11 +4142,18 @@
 			data.set( bin );
 		} else {
 			for( i=0; i<count; i++ ) {
-				data[i] = ( i%4 == 3 ) ? 255 : bin[i];
+				data[i] = bin[i++];
+				data[i] = bin[i++];
+				data[i] = bin[i++];
+				data[i] = 255;
 			}
 		}
 		
 		c.putImageData( img, x, y );
+	};
+	
+	Display.prototype._put_imagedata = function( x, y, imagedata ) {
+		this.context.putImageData( imagedata, x, y );
 	};
 	
 	/**
@@ -4136,17 +4176,20 @@
 	 * A binary data queue
 	 */
 	var Queue = function() {
-		var bytearray = null,
-			i = null;
+		var bytearray = Util.isArray( this ) ? this : [],
+			i = null,
+			p = Queue.prototype;
 		
-		bytearray = new ByteArray();
-		for( i in this ) {
-			bytearray[i] = this[i];
+		for( i in p ) {
+			bytearray[i] = p[i];
 		}
+		
+		bytearray.position = 0;
+		
 		return bytearray;
 	};
 	
-	Queue.prototype.position = 0;
+	Queue.prototype = new ByteArray();
 	
 	Queue.prototype.available = function(){
 		return this.length - this.position;
@@ -4194,19 +4237,20 @@
 			data_length = value.length,
 			step_size = 100000,
 			i = 0;
-		
+	
+		// Fix for maximum argument count on apply
 		for( i=0; data_length > step_size; i+=step_size ) {
 			data_length-= step_size;
 			push.apply( this, value.slice( i, i+step_size ) );
 		}
 		push.apply( this, value.slice( i ) );
-		
+	
 		value = null;
-		
+	
 		if( this.position > 1000 && this.position !== 0 ) {
-            this.splice(0,this.position);
-            this.position = 0;
-        }
+	        this.splice(0,this.position);
+	        this.position = 0;
+	    }
 	};
 	
 	Queue.prototype.wait = function( length, goback ){
@@ -4234,6 +4278,8 @@
 		this.handlers = [];
 	};
 	
+	Connection.prototype = new EventPublisher();
+	
 	Connection.prototype.send = function( value ){
 		if( typeof value == 'string' ) {
 			value = value.split('').map(function( chr ){ return chr.charCodeAt(0); });
@@ -4243,27 +4289,6 @@
 	
 	Connection.prototype.read = function(){
 		return this.receiveQueue.shiftString( this.receiveQueue.available() );
-	};
-	
-	Connection.prototype.on = function( event, handler ){
-		if( !this.handlers[ event ] ) {
-			this.handlers[event] = [];
-		}
-		
-		this.handlers[event].push( handler );
-	};
-	
-	Connection.prototype.trigger = function( event, args ){
-		var handlers = this.handlers[ event ],
-			i = null;
-
-		if( !handlers ) {
-			return;
-		}
-		
-		for( i in handlers ) {
-			handlers[i].apply( null, args );
-		}
 	};
 	
 	Connection.prototype.open = function() {}; // TODO: provide default implementation
