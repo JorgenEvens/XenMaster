@@ -1,0 +1,11 @@
+Following icons are found on, and are only free for  personal use.
+http://www.iconfinder.com/search/?q=iconset%3Arounded_32
+
+32px Rounded icons by Jackie Tran
+-------------------------------------
+start.png
+stop.png
+pause.png
+kill.png
+suspend.png
+reboot.png

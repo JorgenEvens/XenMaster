@@ -283,34 +283,67 @@ h2.corner:before {
 }
 
 #vm_detail h2 .vm_state {
-	position: absolute;
-	right: 0;
-	top: 5px;
 	float: right;
-	width: 100px;
-	height: 33px;
-	line-height: 33px;
-	background: #E6E6E6;
-	text-align: right;
-	padding-right: 7px;
 }
 
-#vm_detail h2 .vm_state ul {
+/*#vm_detail h2 .vm_state ul {
 	display: none;
 	position: absolute;
 	width: 100px;
 	top: 100%;
 	right: 0;
 	background: #E6E6E6;
+}*/
+
+#vm_detail h2 .vm_state ul, #vm_detail h2 .vm_state span {
+	float: right;
 }
 
-#vm_detail h2 .vm_state:hover ul {
-	display: block;
-}
-
-#vm_detail h2 li {
-	padding: 0 10px;
+#vm_detail h2 .vm_state li {
+	margin-top: -2px;
+	margin-right: 10px;
+	padding: 2px;
+	height: 16px;
+	width: 16px;
+	border-radius: 5px 5px;
 	cursor: pointer;
+	float: right;
+	overflow: hidden;
+	text-indent: -999px;
+	background-position: 2px 2px;
+	background-repeat: no-repeat;
+}
+
+#vm_detail h2 .vm_state li.start {
+	background-image: url(../images/icon/start.png);
+}
+
+#vm_detail h2 .vm_state li.resume {
+	background-image: url(../images/icon/resume.png);
+}
+
+#vm_detail h2 .vm_state li.stop {
+	background-image: url(../images/icon/stop.png);
+}
+
+#vm_detail h2 .vm_state li.reboot {
+	background-image: url(../images/icon/reboot.png);
+}
+
+#vm_detail h2 .vm_state li.pause {
+	background-image: url(../images/icon/pause.png);
+}
+
+#vm_detail h2 .vm_state li.kill {
+	background-image: url(../images/icon/kill.png);
+}
+
+#vm_detail h2 .vm_state li.suspend {
+	background-image: url(../images/icon/suspend.png);
+}
+
+#vm_detail h2 .vm_state li:hover {
+	background-color: #AAAAAA;
 }
 
 #vm_detail h2 li:hover {

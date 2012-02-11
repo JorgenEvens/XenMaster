@@ -29,8 +29,13 @@
 		/*
 		 * Get a content panel for the specific piece of hardware.
 		 */
-		showDetail = function( detail, device ) {
+		showDetail = function( detail, device, tab ) {
 			if( !detail ) return;
+			console.log( tab );
+			$(tab)
+				.addClass('selected')
+				.siblings()
+					.removeClass( 'selected' );
 			
 			app.load( 'tpl://vm/detail/' + detail, 'js://ui/template', function( tpl_detail, Template ) {
 				
@@ -47,8 +52,9 @@
 		 */
 		VMState = {
 			RUNNING: [ 'start', [false, false], 'running' ],
+			RESUME: [ 'resume', [], 'running' ],
 			STOPPED: [ 'stop', [true], 'stopped' ],
-			ABORTED: [ 'stop', [false], 'aborxted' ],
+			ABORTED: [ 'stop', [false], 'aborted' ],
 			PAUSED: [ 'pause', [], 'paused' ],
 			SUSPENDED: [ 'suspend', [], 'suspended' ],
 			REBOOT: [ 'reboot', [false], 'rebooting' ]
@@ -155,15 +161,22 @@
 		
 		stateButtonMap = {
 			'HALTED': actions.filter('.start'),
-			'PAUSED': actions.filter('.start, .stop, .reboot, .kill'),
+			'PAUSED': actions.filter('.resume, .stop, .reboot, .kill'),
 			'RUNNING': actions.filter('.stop, .reboot, .pause, .kill, .suspend'),
 			'SUSPENDED': actions.filter('.start, .stop, .reboot, .kill')
 		},
 		
 		setState = function( state ) {
+			var hvm = vm_entity.hvmBootPolicy.length > 0,
+				buttons = stateButtonMap[state];
+			
 			dom.find('.vm_state span').text( state );
 			actions.hide();
-			stateButtonMap[state].show();
+			if( hvm ) {
+				buttons.not('.stop').show();
+			} else {
+				buttons.not('.kill').show();
+			}
 		},
 		
 		updateBinding = function() {
@@ -196,14 +209,10 @@
 	this.capture( ['click','keydown'] );
 	
 	this.bind('vm_device_selected',function( e ){
-		$(e.source)
-			.addClass('selected')
-			.siblings()
-				.removeClass( 'selected' );
-		
+
 		app.load( 'js://ui/dataset', function( Dataset ) {
 			var data = Dataset.get( e.source );
-			showDetail( e.source.dataset.devicetype, data.device );
+			showDetail( e.source.dataset.devicetype, data.device, e.source );
 		});
 	});
 	
@@ -245,7 +254,7 @@
 				dom.detach();
 			});
 			view_del.bind( 'vm_delete_close', function( e ) {
-				showDetail('general');
+				showDetail('general', vm_entity, $('.hardware .general'));
 			});
 			view_del.show( 'vm_detail_panel' );
 		}); 
@@ -267,16 +276,17 @@
 		var vm = tpl.vm;
 		vm_entity = vm;
 		
-		loadVBDs();
-		loadVIFs();
 		updateBinding();
 		
-		showDetail( 'general' );
+		loadVBDs();
+		loadVIFs();
+		
+		showDetail('general', vm_entity, $('.hardware .general'));
 		
 		app.load('js://graphics/graph/linechart', function( Linechart ) {
 			var chart = new Linechart({
 				canvas: canvas.get(0),
-				dataset: [99,33,66,33,33,12,23,12,12,12,12,12,21,45,32,66,77],
+				dataset: [0,0],
 				style: {
 					yAxis: false,
 					yAxisWidth: 0,
