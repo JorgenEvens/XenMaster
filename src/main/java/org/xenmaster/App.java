@@ -72,18 +72,20 @@ public class App implements Daemon {
         Logger root = Logger.getRootLogger();
         root.setLevel(Level.toLevel(Settings.getInstance().getString("Logging.Level")));
         root.addAppender(new ConsoleAppender(new EnhancedPatternLayout(LOGPATTERN)));
-        
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
-            @Override
-            public void run() {
-                try {
-                    stop();
-                } catch (Exception ex) {
-                    Logger.getLogger(App.class).error("Failed to shut down", ex);
+        if (context == null) {
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        stop();
+                    } catch (Exception ex) {
+                        Logger.getLogger(App.class).error("Failed to shut down", ex);
+                    }
                 }
-            } 
-        }));
+            }));
+        }
     }
 
     @Override
@@ -106,8 +108,8 @@ public class App implements Daemon {
 
             ServerHook sh = new ServerHook("/*");
             sh.addWebHook(new SetupHook());
-            sh.addWebHook(new SinglePageHook(IOUtils.toString(getClass().getResourceAsStream("/content/error.html")), "Failed to connect to the Xen server." +
-                    "<br /><a href=\"http://wiki.xen-master.org/wiki/Bootstrap\">Bootstrap</a> only mode has been engaged."));
+            sh.addWebHook(new SinglePageHook(IOUtils.toString(getClass().getResourceAsStream("/content/error.html")), "Failed to connect to the Xen server."
+                    + "<br /><a href=\"http://wiki.xen-master.org/wiki/Bootstrap\">Bootstrap</a> only mode has been engaged."));
             sh.hookIntoServer(server);
             server.start();
 
