@@ -238,13 +238,23 @@
 
 	// Get DOM element position on page
 	Util.getPosition = function (obj) {
-	    var x = 0, y = 0;
-	    if (obj.offsetParent) {
-	        do {
-	            x += obj.offsetLeft;
-	            y += obj.offsetTop;
-	            obj = obj.offsetParent;
-	        } while (obj);
+	    var x = 0,
+	    	y = 0,
+	    	offsetParent = obj,
+	    	body = document.getElementsByTagName('body')[0],
+	    	fullscreen_container = document.fullscreenElement || document.webkitCurrentFullScreenElement || document.mozFullScreenElement;
+	    
+	    if ( obj != body && offsetParent != body ) {
+	    	while( offsetParent ) {
+	    		if( obj == fullscreen_container ) break;
+	    		if( obj == offsetParent ) {
+		    		x += obj.offsetLeft;
+		    		y += obj.offsetTop;
+		    		offsetParent = obj.offsetParent;
+	    		}
+
+	    		obj = obj.parentNode;
+	    	}
 	    }
 	    return {'x': x, 'y': y};
 	};
@@ -1111,7 +1121,6 @@
 		    */
 
 		    if (conf.view_only) { return; } // View only, skip mouse events
-
 		    mouse_arr = mouse_arr.concat(
 		            pointerEvent(x,y) );
 		};

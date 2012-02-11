@@ -3,7 +3,7 @@
 	var event = 'fullscreenchange',
 		
 		isFullScreen = function() { return document.fullScreen; },
-		requestFullScreen = document.exitFullscreen ? 'requestFullscreen' : null,
+		requestFullScreen = document.exitFullscreen ? 'requestFullScreenWithKeys' : null,
 		exitFullScreen = document.exitFullscreen ? 'exitFullscreen' : null;
 	
 	// Mozilla
@@ -40,7 +40,7 @@
 	}
 	
 	FullScreenView.prototype.activate = function() {
-		this.content[requestFullScreen]();
+		this.content[requestFullScreen](Element.ALLOW_KEYBOARD_INPUT);
 	};
 	
 	FullScreenView.prototype.isFullscreen = isFullScreen;
