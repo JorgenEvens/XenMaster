@@ -3,3 +3,4 @@
 xenmaster binary: embedded-javascript-library var/lib/xm/web/scripts/lib/jquery.js
 # This file is not meant to be executed locally, thus should not be executable
 xenmaster binary: script-not-executable var/lib/xm/store/setup/post-install.sh
+xenmaster binary: script-not-executable var/lib/xm/store/xapi/plugins/xm-filesystem
