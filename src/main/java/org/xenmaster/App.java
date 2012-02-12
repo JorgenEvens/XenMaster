@@ -63,7 +63,7 @@ public class App implements Daemon {
     @Override
     public void init(DaemonContext context) throws DaemonInitException, Exception {
         Logger root = Logger.getRootLogger();
-        root.setLevel(Level.toLevel(Settings.getInstance().getString("Logging.Level")));
+        root.setLevel(Level.INFO);
         root.addAppender(new ConsoleAppender(new EnhancedPatternLayout(LOGPATTERN)));
         
         if (context != null) {
@@ -72,6 +72,9 @@ public class App implements Daemon {
                 Settings.loadFromFile(context.getArguments()[0]);
             }
         }
+        
+        // Reset level
+        Level.toLevel(Settings.getInstance().getString("Logging.Level"));
 
         if (context == null) {
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
