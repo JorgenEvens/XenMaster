@@ -50,12 +50,14 @@ public class ConnectionMultiplexer implements Runnable {
     protected final ConcurrentHashMap<Integer, ArrayBlockingQueue<ByteBuffer>> scheduledWrites;
     protected List<ActivityListener> activityListeners;
     protected Thread thread;
+    private final PendingConnection pendingConnection;
     protected boolean run;
 
     public ConnectionMultiplexer() {
         connections = new ConcurrentHashMap<>();
         scheduledWrites = new ConcurrentHashMap<>();
         activityListeners = new ArrayList<>();
+        pendingConnection = new PendingConnection();
         thread = new Thread(this);
         thread.setName("Multiplexer");
         thread.setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
@@ -77,12 +79,18 @@ public class ConnectionMultiplexer implements Runnable {
         activityListeners.add(al);
     }
 
-    public void addConnection(SocketAddress addr) throws IOException {
+    public void addConnection(SocketAddress addr) throws IOException, InterruptedException {
         SocketChannel channel = SocketChannel.open();
         channel.configureBlocking(false);
 
+        if (pendingConnection.channel != null) {
+            synchronized (pendingConnection) {
+                pendingConnection.wait();
+            }
+        }
+
         socketSelector.wakeup();
-        channel.register(socketSelector, SelectionKey.OP_CONNECT);
+        pendingConnection.channel = channel;
         channel.connect(addr);
     }
 
@@ -221,6 +229,14 @@ public class ConnectionMultiplexer implements Runnable {
                     }
                 }
 
+                if (pendingConnection.channel != null) {
+                    synchronized (pendingConnection) {
+                        pendingConnection.channel.register(socketSelector, SelectionKey.OP_CONNECT);
+                        pendingConnection.channel = null;
+                        pendingConnection.notify();
+                    }
+                }
+
                 this.socketSelector.select();
 
                 for (Iterator<SelectionKey> it = this.socketSelector.selectedKeys().iterator(); it.hasNext();) {
@@ -240,7 +256,7 @@ public class ConnectionMultiplexer implements Runnable {
                         if (!success) {
                             Logger.getLogger(getClass()).warn("Failed to connect to " + ((SocketChannel) sk.channel()).socket().getInetAddress().getCanonicalHostName());
                         }
-
+                        
                         connectionCounter++;
                         connections.put(connectionCounter, sk);
                         // We like to queue up 50 writes, if there are more they need to wait
@@ -282,5 +298,9 @@ public class ConnectionMultiplexer implements Runnable {
         public void connectionEstablished(int connection, Socket s);
 
         public void connectionClosed(int connection);
+    }
+    
+    private static class PendingConnection {
+        public SocketChannel channel;
     }
 }

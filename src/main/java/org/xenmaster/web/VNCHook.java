@@ -100,6 +100,8 @@ public class VNCHook extends WebCommandHandler {
                                 cm.addConnection(isa);
                             } catch (URISyntaxException ex) {
                                 Logger.getLogger(getClass()).error("Failed to parse URI", ex);
+                            } catch (IOException | InterruptedException ex) {
+                                Logger.getLogger(getClass()).error("Failed to create connection", ex);
                             }
                         }
                     }

@@ -62,16 +62,16 @@ public class App implements Daemon {
 
     @Override
     public void init(DaemonContext context) throws DaemonInitException, Exception {
+        Logger root = Logger.getRootLogger();
+        root.setLevel(Level.toLevel(Settings.getInstance().getString("Logging.Level")));
+        root.addAppender(new ConsoleAppender(new EnhancedPatternLayout(LOGPATTERN)));
+        
         if (context != null) {
             Logger.getLogger(getClass()).info("Starting XenMaster service");
             if (context.getArguments() != null && context.getArguments()[0] != null) {
                 Settings.loadFromFile(context.getArguments()[0]);
             }
         }
-
-        Logger root = Logger.getRootLogger();
-        root.setLevel(Level.toLevel(Settings.getInstance().getString("Logging.Level")));
-        root.addAppender(new ConsoleAppender(new EnhancedPatternLayout(LOGPATTERN)));
 
         if (context == null) {
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
