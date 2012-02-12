@@ -82,6 +82,7 @@ public class ConnectionMultiplexer implements Runnable {
     public void addConnection(SocketAddress addr) throws IOException, InterruptedException {
         SocketChannel channel = SocketChannel.open();
         channel.configureBlocking(false);
+        channel.connect(addr);
 
         if (pendingConnection.channel != null) {
             synchronized (pendingConnection) {
@@ -89,9 +90,7 @@ public class ConnectionMultiplexer implements Runnable {
             }
         }
 
-        socketSelector.wakeup();
         pendingConnection.channel = channel;
-        channel.connect(addr);
     }
 
     public void write(int connection, ByteBuffer data) {
@@ -256,13 +255,13 @@ public class ConnectionMultiplexer implements Runnable {
                         if (!success) {
                             Logger.getLogger(getClass()).warn("Failed to connect to " + ((SocketChannel) sk.channel()).socket().getInetAddress().getCanonicalHostName());
                         }
-                        
+
                         connectionCounter++;
                         connections.put(connectionCounter, sk);
                         // We like to queue up 50 writes, if there are more they need to wait
                         scheduledWrites.put(connectionCounter, new ArrayBlockingQueue<ByteBuffer>(50));
-                        sk.interestOps(SelectionKey.OP_READ);
                         sk.attach(connectionCounter);
+                        sk.interestOps(SelectionKey.OP_READ);
 
                         for (ActivityListener al : activityListeners) {
                             al.connectionEstablished(connectionCounter, ((SocketChannel) sk.channel()).socket());
@@ -299,8 +298,9 @@ public class ConnectionMultiplexer implements Runnable {
 
         public void connectionClosed(int connection);
     }
-    
+
     private static class PendingConnection {
+
         public SocketChannel channel;
     }
 }

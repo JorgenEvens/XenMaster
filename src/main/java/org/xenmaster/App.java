@@ -74,7 +74,7 @@ public class App implements Daemon {
         }
         
         // Reset level
-        Level.toLevel(Settings.getInstance().getString("Logging.Level"));
+        root.setLevel(Level.toLevel(Settings.getInstance().getString("Logging.Level")));
 
         if (context == null) {
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
