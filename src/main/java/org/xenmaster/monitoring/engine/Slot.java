@@ -21,6 +21,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Objects;
 
+import net.wgr.settings.Settings;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.xenmaster.api.Host;
@@ -75,8 +76,8 @@ public class Slot implements Comparable<Slot> {
             try {
                 URL url = new URL("" + "/host_rrd");
                 URLConnection uc = url.openConnection();
-                // todo auth details
-                uc.setRequestProperty("Authorization", "Basic " + new String(Base64.encodeBase64("root:r00tme".getBytes())));
+                byte[] auth = (Settings.getInstance().getString("Xen.User") + ':' + Settings.getInstance().getString("Xen.Password")).getBytes("UTF-8");
+                uc.setRequestProperty("Authorization", "Basic " + new String(Base64.encodeBase64(auth)));
                 uc.connect();
             } catch (Exception ex) {
                 Logger.getLogger(getClass()).error("Failed to retrieve statistics", ex);

@@ -90,12 +90,13 @@ public class App implements Daemon {
 
     @Override
     public void start() throws Exception {
-        DataPool.simpleBoot(Settings.getInstance().getString("Cassandra.PoolName"), Settings.getInstance().getString("Cassandra.Host"), Settings.getInstance().getString("Cassandra.Keyspace"));
+        Settings s = Settings.getInstance();
+        DataPool.simpleBoot(s.getString("Cassandra.PoolName"), s.getString("Cassandra.Host"), s.getString("Cassandra.Keyspace"));
         Bootstrapper b = new Bootstrapper();
         b.boot();
 
-        Controller.build(new URL(Settings.getInstance().getString("Xen.URL")));
-        Controller.getSession().loginWithPassword("root", "r00tme");
+        Controller.build(new URL(s.getString("Xen.URL")));
+        Controller.getSession().loginWithPassword(s.getString("Xen.User"), s.getString("Xen.Password"));
 
         server = new Server();
         server.boot();

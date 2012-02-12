@@ -29,7 +29,7 @@ public class TestBase {
         root.addAppender(new ConsoleAppender(new TTCCLayout()));
         
         Controller.build(new URL(Settings.getInstance().getString("Xen.URL")));
-        Controller.getSession().loginWithPassword("root", "r00tme");
+        Controller.getSession().loginWithPassword(Settings.getInstance().getString("Xen.User"), Settings.getInstance().getString("Xen.Password"));
         
         // Make sure tests never execute with JGroups based cache, it will fail
         CachingFacility.instance(false);

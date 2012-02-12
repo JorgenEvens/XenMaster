@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map>
     <entry>
+        <!-- temporary measure until proper cfg backend is set up -->
         <string>Xen</string>
         <map>
             <entry>
-                <!-- temporary measure until proper cfg backend is set up -->
                 <string>URL</string>
-                <string>http://192.168.177.134</string>
+                <string>http://172.16.223.22</string>
+            </entry>
+            <entry>
+                <string>User</string>
+                <string>root</string>
+            </entry>
+            <entry>
+                <string>Password</string>
+                <string>r00tme</string>
             </entry>
         </map>
     </entry>
@@ -49,7 +57,7 @@
             </entry>
             <entry>
                 <string>Host</string>
-                <string>localhost</string>
+                <string>token.w-gr.net</string>
             </entry>
             <entry>
                 <string>PoolName</string>
