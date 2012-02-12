@@ -89,8 +89,9 @@ public class ConnectionMultiplexer implements Runnable {
                 pendingConnection.wait();
             }
         }
-
+        
         pendingConnection.channel = channel;
+        socketSelector.wakeup();
     }
 
     public void write(int connection, ByteBuffer data) {
@@ -227,9 +228,9 @@ public class ConnectionMultiplexer implements Runnable {
                         break;
                     }
                 }
-
-                if (pendingConnection.channel != null) {
-                    synchronized (pendingConnection) {
+                
+                synchronized (pendingConnection) {
+                    if (pendingConnection.channel != null) {
                         pendingConnection.channel.register(socketSelector, SelectionKey.OP_CONNECT);
                         pendingConnection.channel = null;
                         pendingConnection.notify();

@@ -97,7 +97,10 @@ public class VNCHook extends WebCommandHandler {
                                 conn.uri = uri;
                                 InetSocketAddress isa = new InetSocketAddress(uri.getHost(), 80);
                                 conn.waitForAddress = isa;
+                                conn.lastWriteTime = System.currentTimeMillis();
+                                connections.put(conn.getReference(), conn);
                                 cm.addConnection(isa);
+                                break;
                             } catch (URISyntaxException ex) {
                                 Logger.getLogger(getClass()).error("Failed to parse URI", ex);
                             } catch (IOException | InterruptedException ex) {
@@ -106,8 +109,6 @@ public class VNCHook extends WebCommandHandler {
                         }
                     }
 
-                    conn.lastWriteTime = System.currentTimeMillis();
-                    connections.put(conn.getReference(), conn);
                     return conn.getReference();
                 case "write":
                     Arguments data = Arguments.fromJson(cmd.getData());
@@ -122,7 +123,7 @@ public class VNCHook extends WebCommandHandler {
                 case "closeConnection":
                     Arguments close = Arguments.fromJson(cmd.getData());
                     Connection ci = connections.get(close.ref);
-                    
+
                     if (ci != null) {
                         cm.close(ci.connection);
                     }
@@ -250,7 +251,7 @@ public class VNCHook extends WebCommandHandler {
                     break;
                 }
             }
-            
+
             if (conn == null) {
                 Logger.getLogger(getClass()).warn("Unknown connection established to " + ((InetSocketAddress) socket.getRemoteSocketAddress()).getHostString());
                 return;
