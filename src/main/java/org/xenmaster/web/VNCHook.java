@@ -245,9 +245,12 @@ public class VNCHook extends WebCommandHandler {
         @Override
         public void connectionEstablished(int connection, Socket socket) {
             Connection conn = null;
+            InetSocketAddress isa = null;
             for (Entry<String, Connection> entry : connections.entrySet()) {
-                if (entry.getValue().waitForAddress.equals(socket.getRemoteSocketAddress())) {
+                isa = entry.getValue().waitForAddress;
+                if (isa != null && isa.equals(socket.getRemoteSocketAddress())) {
                     conn = entry.getValue();
+                    conn.waitForAddress = null;
                     break;
                 }
             }
