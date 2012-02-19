@@ -17,6 +17,8 @@
  */
 package org.xenmaster.api;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,9 +37,13 @@ public class Host extends XenApiEntity {
     protected boolean enabled;
     protected String apiMajorVersion, apiMinorVersion;
     protected String apiVendor;
-    protected String nameLabel, schedulingPolicy, nameDescription;
+    protected String nameLabel, nameDescription;
+    protected String scheduler;
     @Fill
-    protected Map<String, String> softwareVersion;
+    protected Map<String, String> softwareVersion, biosStrings, chipsetInfo, cpuInfo;
+    @Fill
+    protected Map<String, String> otherConfig;
+    protected String address;
     @Fill
     protected Object[] hostCPUs;
 
@@ -86,6 +92,26 @@ public class Host extends XenApiEntity {
         return new PIF(ref);
     }
 
+    public Map<String, String> getBiosStrings() {
+        return biosStrings;
+    }
+
+    public Map<String, String> getChipsetInfo() {
+        return chipsetInfo;
+    }
+    
+    public boolean hasIOMMU() {
+        return (getChipsetInfo().containsKey("iommu") && Boolean.parseBoolean(getChipsetInfo().get("iommu")));
+    }
+
+    public Map<String, String> getCpuInfo() {
+        return cpuInfo;
+    }
+    
+    public InetAddress getAddress() throws UnknownHostException {
+        return InetAddress.getByName(address);
+    }
+
     public String getMajorApiVersion() {
         return apiMajorVersion;
     }
@@ -110,8 +136,8 @@ public class Host extends XenApiEntity {
         return nameLabel;
     }
 
-    public String getSchedulingPolicy() {
-        return schedulingPolicy;
+    public String getScheduler() {
+        return scheduler;
     }
 
     public List<PCPU> getCPUs() throws BadAPICallException {
@@ -124,11 +150,6 @@ public class Host extends XenApiEntity {
             Logger.getLogger(getClass()).error("Tried to retrieve CPU which doesn't exist on the physical system");
         }
         return new PCPU((String) hostCPUs[number]);
-    }
-    
-    public List<String> getDataSources() throws BadAPICallException {
-        Object dso = dispatch("get_data_sources");
-        return null;
     }
 
     public String callPlugin(String pluginName, String methodName, Map<String, String> args) throws BadAPICallException {
@@ -155,6 +176,7 @@ public class Host extends XenApiEntity {
         i.put("apiVendor", "api_version_vendor");
         i.put("schedulingPolicy", "sched_policy");
         i.put("hostCPUs", "host_CPUs");
+        i.put("scheduler", "sched_policy");
         return i;
     }
 }
