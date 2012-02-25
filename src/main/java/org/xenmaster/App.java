@@ -32,6 +32,7 @@ import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.DailyRollingFileAppender;
 import org.apache.log4j.EnhancedPatternLayout;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -46,10 +47,11 @@ import org.xenmaster.web.TemplateHook;
 import org.xenmaster.web.VNCHook;
 
 public class App implements Daemon {
-
+    
     protected Server server;
-    public static final String LOGPATTERN = "%d{HH:mm:ss,SSS} | %-5p | %t | %c{1.} %m%n";
-
+    public static final String CONSOLE_LOGPATTERN = "%d{HH:mm:ss,SSS} | %-5p | %t | %c{1.} %m%n";
+    public static final String FILE_LOGPATTERN = "%d{HH:mm:ss,SSS} | %-5p | %t | %c | %m%n";
+    
     public static void main(String[] args) {
         try {
             final App app = new App();
@@ -59,12 +61,12 @@ public class App implements Daemon {
             Logger.getLogger(App.class).error("An unhandled exception ocurred", ex);
         }
     }
-
+    
     @Override
     public void init(DaemonContext context) throws DaemonInitException, Exception {
         Logger root = Logger.getRootLogger();
         root.setLevel(Level.INFO);
-        root.addAppender(new ConsoleAppender(new EnhancedPatternLayout(LOGPATTERN)));
+        root.addAppender(new ConsoleAppender(new EnhancedPatternLayout(CONSOLE_LOGPATTERN)));
         
         if (context != null) {
             Logger.getLogger(getClass()).info("Starting XenMaster service");
@@ -72,13 +74,16 @@ public class App implements Daemon {
                 Settings.loadFromFile(context.getArguments()[0]);
             }
         }
-        
-        // Reset level
-        root.setLevel(Level.toLevel(Settings.getInstance().getString("Logging.Level")));
 
+        // Reconfigure logging with correct settings
+        root.setLevel(Level.toLevel(Settings.getInstance().getString("Logging.Level")));
+        if (Settings.getInstance().keyExists("Logging.File")) {
+            root.addAppender(new DailyRollingFileAppender(new EnhancedPatternLayout(FILE_LOGPATTERN), Settings.getInstance().getString("Logging.File"), "'.'yyyy-MM-dd"));
+        }
+        
         if (context == null) {
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
+                
                 @Override
                 public void run() {
                     try {
@@ -90,58 +95,58 @@ public class App implements Daemon {
             }));
         }
     }
-
+    
     @Override
     public void start() throws Exception {
         Settings s = Settings.getInstance();
         DataPool.simpleBoot(s.getString("Cassandra.PoolName"), s.getString("Cassandra.Host"), s.getString("Cassandra.Keyspace"));
         Bootstrapper b = new Bootstrapper();
         b.boot();
-
+        
         Controller.build(new URL(s.getString("Xen.URL")));
         Controller.getSession().loginWithPassword(s.getString("Xen.User"), s.getString("Xen.Password"));
-
+        
         server = new Server();
         server.boot();
-
+        
         CachingFacility.instance(false);
         Authorize.disable();
-
+        
         if (Controller.getSession().getReference() == null) {
             Logger.getLogger(getClass()).error("Failed to connect to XAPI instance, running in bootstrap mode");
-
+            
             ServerHook sh = new ServerHook("/*");
             sh.addWebHook(new SetupHook());
             sh.addWebHook(new SinglePageHook(IOUtils.toString(getClass().getResourceAsStream("/content/error.html")), "Failed to connect to the Xen server."
                     + "<br /><a href=\"http://wiki.xen-master.org/wiki/Bootstrap\">Bootstrap</a> only mode has been engaged."));
             sh.hookIntoServer(server);
             server.start();
-
+            
             b.waitForServerToQuit();
             return;
         }
-
+        
         Pool.get().boot();
         MonitoringAgent.instance().boot();
         MonitoringAgent.instance().start();
-
+        
         server = new Server();
         server.boot();
-
+        
         ServerHook sh = new ServerHook("/*");
         sh.addWebHook(new Hook());
         sh.addWebHook(new TemplateHook());
         sh.addWebHook(new SetupHook());
         sh.addWebHook(new VNCHook());
-
+        
         server.addServlet(sh.getHttpHandler());
         server.addServlet(sh.getWebSocketHandler());
-
+        
         DefaultApplication da = DefaultApplication.create("/", Settings.getInstance().getString("WebContentPath"));
         server.addHook(da);
         server.start();
     }
-
+    
     @Override
     public void stop() throws Exception {
         server.stop();
@@ -150,7 +155,7 @@ public class App implements Daemon {
         CachingFacility.instance().stop();
         GlobalExecutorService.get().shutdownNow();
     }
-
+    
     @Override
     public void destroy() {
         server = null;
