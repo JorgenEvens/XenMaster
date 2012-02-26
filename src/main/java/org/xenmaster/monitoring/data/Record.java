@@ -34,29 +34,19 @@ import com.lmax.disruptor.EventFactory;
  */
 public class Record {
 
-    protected double cpuUsage;
-    protected int memoryUsage;
-    protected int memoryTotal;
     protected String reference;
     protected String xml;
     protected boolean vm;
-    protected RRD rawData;
+    protected RRD initialData;
+    protected RRDUpdates lastData;
     protected Slot slot;
 
-    public Record(float CPUusage, int memoryUsage, int memoryTotal, String ref, boolean isVM) {
-        this.cpuUsage = CPUusage;
-        this.memoryTotal = memoryTotal;
-        this.memoryUsage = memoryUsage;
+    public Record(String ref, boolean isVM) {
         this.reference = ref;
         this.vm = isVM;
     }
 
     public Record() {
-    }
-
-    public Record(String ref, boolean isVM) {
-        this.reference = ref;
-        this.vm = isVM;
     }
     
     public final static EventFactory<Record> EVENT_FACTORY = new EventFactory<Record>() {
@@ -72,15 +62,27 @@ public class Record {
     }
 
     public RRD getRawData() {
-        return rawData;
+        return initialData;
     }
 
-    public void setRawData(RRD rawData) {
-        this.rawData = rawData;
+    public void setInitialData(RRD rawData) {
+        this.initialData = rawData;
+    }
+    
+    public RRDUpdates getLatestData() {
+        return lastData;
+    }
+    
+    public void setLatestData(RRDUpdates data) {
+        this.lastData = data;
     }
 
     public String getReference() {
         return reference;
+    }
+    
+    public Slot getSlot() {
+        return slot;
     }
 
     protected final void applyStatistics(Collection<Double> values) {
@@ -91,7 +93,7 @@ public class Record {
             ds.addValue(util);
         }
 
-        cpuUsage = ds.getMean();
+        double a = ds.getMean();
         double stdDev = ds.getStandardDeviation();
 
         // TODO: actually test this and generate warning

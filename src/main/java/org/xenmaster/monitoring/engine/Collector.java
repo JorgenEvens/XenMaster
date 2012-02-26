@@ -20,13 +20,14 @@ package org.xenmaster.monitoring.engine;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.xenmaster.controller.BadAPICallException;
 import org.xenmaster.monitoring.data.Record;
 
 import com.lmax.disruptor.EventHandler;
 import org.xenmaster.api.Host;
+import org.xenmaster.monitoring.data.RRD;
+import org.xenmaster.monitoring.data.RRDUpdates;
 
 /**
  * 
@@ -43,7 +44,7 @@ public class Collector implements EventHandler<Record> {
     }
 
     /**
-     * Do not, under any circumstance, put this into the ctor.
+     * Do not, under *any* circumstance, put this into the ctor.
      * It will recursively create CachingFacilities
      */
     private void createConnections() {
@@ -80,7 +81,7 @@ public class Collector implements EventHandler<Record> {
         }
     }
 
-    public static abstract class SlotHandler implements Runnable {
+    public static abstract class TimingProvider implements Runnable {
 
         protected final Slot getNextSlot() {
             Slot slot = slots.peek();
@@ -91,21 +92,38 @@ public class Collector implements EventHandler<Record> {
 
             // Wait until 5 seconds have passed
             long delta = System.currentTimeMillis() - slot.lastPolled;
-            if (delta < 5000) {
+            // 5 wait + 1 latency = 6 seconds
+            if (delta < 6000 || slot.isBeingProcessed()) {
                 try {
-                    Thread.sleep(5000 - delta);
+                    long sleepyTime = 5000 - delta;
+                    
+                    if (Math.signum(sleepyTime) == -1.0) {
+                        Thread.sleep(5050);
+                    } else {
+                        Thread.sleep(sleepyTime);
+                    }
                 } catch (InterruptedException ex) {
                     Logger.getLogger(getClass()).error("Failed to catch a shut-eye", ex);
                 }
             }
             
+            System.out.println("LP " + delta + " " + slot.getReference());
+            slot.startProcessing();
             return slot;
-        }  
+        }
     }
 
     @Override
     public void onEvent(Record t, long l, boolean bln) throws Exception {
         Slot slot = slots.peek();
-        t.setXML(IOUtils.toString(slot.getConnection().getInputStream()));
-    }        
+        if (!slot.isBeingProcessed()) {
+            return;
+        }
+        if (slot.isUpdate()) {
+            t.setLatestData(RRDUpdates.parse(slot.getConnection().getInputStream()));
+        } else {
+            t.setInitialData(RRD.parse(slot.getConnection().getInputStream()));
+        }
+        slot.processingDone();
+    }
 }

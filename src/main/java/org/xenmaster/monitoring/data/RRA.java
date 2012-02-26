@@ -17,8 +17,8 @@
  */
 package org.xenmaster.monitoring.data;
 
+import com.thoughtworks.xstream.XStream;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 
@@ -27,8 +27,16 @@ import java.util.Map;
  */
 public class RRA {
     protected String cf;
-    protected int pdpPerRow;
-    protected Map<String, String> params;
-    protected Object cdpPrep;
     protected List<List<Double>> database;
+    
+    public static XStream setupForRRAParsing(XStream xs) {
+        xs.addImplicitCollection(RRD.class, "rra", RRA.class);
+        xs.omitField(RRA.class, "params");
+        xs.omitField(RRA.class, "cdp_prep");
+        xs.omitField(RRA.class, "pdp_per_row");
+        xs.addImplicitArray(RRA.class, "database", List.class);
+        xs.aliasType("row", List.class);
+        xs.aliasType("v", Double.class);
+        return xs;
+    }
 }

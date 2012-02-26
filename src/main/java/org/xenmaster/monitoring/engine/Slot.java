@@ -17,6 +17,7 @@
  */
 package org.xenmaster.monitoring.engine;
 
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Objects;
@@ -34,6 +35,8 @@ import org.xenmaster.api.Host;
 public class Slot implements Comparable<Slot> {
 
     protected String reference;
+    protected boolean connectToUpdates;
+    protected boolean busy;
     public long lastPolled;
     private URLConnection connection;
 
@@ -50,8 +53,29 @@ public class Slot implements Comparable<Slot> {
         return (int) (o.lastPolled - lastPolled);
     }
 
+    public boolean isUpdate() {
+        return connectToUpdates;
+    }
+
+    public boolean isBeingProcessed() {
+        return busy;
+    }
+
+    public void startProcessing() {
+        if (busy) {
+            throw new RuntimeException("Slot is already being processed");
+        }
+        busy = true;
+    }
+
+    public void processingDone() throws IOException {
+        busy = false;
+        connection.getInputStream().close();
+        connection = null;
+    }
+
     @Override
-	public boolean equals(Object obj) {
+    public boolean equals(Object obj) {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
@@ -64,7 +88,7 @@ public class Slot implements Comparable<Slot> {
     }
 
     @Override
-	public int hashCode() {
+    public int hashCode() {
         int hash = 7;
         hash = 41 * hash + Objects.hashCode(this.reference);
         hash = 41 * hash + (int) (this.lastPolled ^ (this.lastPolled >>> 32));
@@ -72,16 +96,27 @@ public class Slot implements Comparable<Slot> {
     }
 
     public URLConnection getConnection() {
-        if (connection == null) {
-            try {
-                URL url = new URL("" + "/host_rrd");
+        try {
+            if (connection == null || connectToUpdates) {
+                Host host = new Host(reference);
+                URL url = null;
+                if (connectToUpdates) {
+                    url = new URL("http://" + host.getAddress().getCanonicalHostName() + "/rrd_updates?start=" + ((lastPolled - 5000) / 1000) + "&host=true");
+                } else {
+                    url = new URL("http://" + host.getAddress().getCanonicalHostName() + "/host_rrd");
+                    connectToUpdates = true;
+                }
+
                 URLConnection uc = url.openConnection();
                 byte[] auth = (Settings.getInstance().getString("Xen.User") + ':' + Settings.getInstance().getString("Xen.Password")).getBytes("UTF-8");
                 uc.setRequestProperty("Authorization", "Basic " + new String(Base64.encodeBase64(auth)));
                 uc.connect();
-            } catch (Exception ex) {
-                Logger.getLogger(getClass()).error("Failed to retrieve statistics", ex);
+                
+                lastPolled = System.currentTimeMillis();
+                connection = uc;
             }
+        } catch (Exception ex) {
+            Logger.getLogger(getClass()).error("Failed to retrieve statistics", ex);
         }
 
         return connection;

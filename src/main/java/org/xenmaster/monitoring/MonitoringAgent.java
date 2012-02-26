@@ -33,11 +33,14 @@ import org.xenmaster.monitoring.engine.Slot;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.lmax.disruptor.BatchEventProcessor;
+import com.lmax.disruptor.BlockingWaitStrategy;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.SequenceBarrier;
 import com.lmax.disruptor.SingleThreadedClaimStrategy;
 import com.lmax.disruptor.SleepingWaitStrategy;
-import org.xenmaster.monitoring.data.Parser;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import org.xenmaster.monitoring.engine.Collector;
 
 /**
@@ -58,8 +61,8 @@ public class MonitoringAgent {
     protected TimeInfo timeInfo;
     // Disrupting your pants
     protected RingBuffer<Record> ringBuffer;
-    protected SequenceBarrier barrier;
-    protected static final int RING_SIZE = 256;
+    protected Executor engine;
+    protected static final int RING_SIZE = 32;
     public static final String NTP_SERVER = "pool.ntp.org";
     private static MonitoringAgent instance;
 
@@ -68,8 +71,7 @@ public class MonitoringAgent {
         hostData = ArrayListMultimap.create();
         data = new ConcurrentSkipListMap<>();
         NTPUDPClient nuc = new NTPUDPClient();
-        ringBuffer = new RingBuffer<>(Record.EVENT_FACTORY, new SingleThreadedClaimStrategy(RING_SIZE), new SleepingWaitStrategy());
-        barrier = ringBuffer.newBarrier();
+        ringBuffer = new RingBuffer<>(Record.EVENT_FACTORY, new SingleThreadedClaimStrategy(RING_SIZE), new BlockingWaitStrategy());
         eventHandler = new EventHandler();
         comptroller = new Comptroller();
         emitter = new Emitter();
@@ -95,10 +97,22 @@ public class MonitoringAgent {
     }
 
     protected final void setUpEngine() {
-        BatchEventProcessor<Record> cr = new BatchEventProcessor<>(ringBuffer, barrier, collector);
-        BatchEventProcessor<Record> parser = new BatchEventProcessor<>(ringBuffer, barrier, new Parser());
+        engine = Executors.newCachedThreadPool(new ThreadFactory() {
 
-        ringBuffer.setGatingSequences(cr.getSequence(), parser.getSequence());
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r);
+                t.setName("Monitoring engine " + r.getClass().getSimpleName());
+                return t;
+            }
+        });
+        
+        SequenceBarrier collectorBarrier = ringBuffer.newBarrier();
+        BatchEventProcessor<Record> cr = new BatchEventProcessor<>(ringBuffer, collectorBarrier, collector);
+        
+        ringBuffer.setGatingSequences(cr.getSequence());
+        
+        engine.execute(cr);
     }
 
     public void boot() {
@@ -106,7 +120,7 @@ public class MonitoringAgent {
         collector.boot();
     }
 
-    protected class EventPublisher extends Collector.SlotHandler {
+    protected class EventPublisher extends Collector.TimingProvider {
 
         @Override
         public void run() {
@@ -145,9 +159,7 @@ public class MonitoringAgent {
         emitter.listenToEvents(eventHandler);
         eventHandler.start();
         comptroller.scheduleSensors();
-        
-        Thread ep = new Thread(new EventPublisher(), "Event publisher");
-        ep.start();
+        engine.execute(new EventPublisher());
     }
 
     public void stop() {
