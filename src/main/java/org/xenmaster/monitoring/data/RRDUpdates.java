@@ -30,13 +30,45 @@ public class RRDUpdates {
     
     protected Meta meta;
     protected Multimap<Long, Double> data;
-    
+
+    public Multimap<Long, Double> getData() {
+        return data;
+    }
+
+    public Meta getMeta() {
+        return meta;
+    }
+
     public static class Meta {
         protected long start;
         protected int step;
         protected long end;
         protected int rows, columns;
         protected List<String> legend;
+
+        public int getColumns() {
+            return columns;
+        }
+
+        public long getEnd() {
+            return end;
+        }
+
+        public List<String> getLegend() {
+            return legend;
+        }
+
+        public int getRows() {
+            return rows;
+        }
+
+        public long getStart() {
+            return start;
+        }
+
+        public int getStep() {
+            return step;
+        }
     }
     
     public static RRDUpdates parse(InputStream xmlStream) {

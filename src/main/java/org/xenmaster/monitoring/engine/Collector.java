@@ -84,31 +84,38 @@ public class Collector implements EventHandler<Record> {
     public static abstract class TimingProvider implements Runnable {
 
         protected final Slot getNextSlot() {
-            Slot slot = slots.peek();
-            if (slot == null) {
-                Logger.getLogger(getClass()).warn("No server slots allocated. RingBuffer will keep spinning");
-                return null;
-            }
+            boolean gotWorkToDo = false;
+            Slot slot = null;
 
-            // Wait until 5 seconds have passed
-            long delta = System.currentTimeMillis() - slot.lastPolled;
-            // 5 wait + 1 latency = 6 seconds
-            if (delta < 6000 || slot.isBeingProcessed()) {
-                try {
-                    long sleepyTime = 5000 - delta;
-                    
-                    if (Math.signum(sleepyTime) == -1.0) {
-                        Thread.sleep(5050);
-                    } else {
-                        Thread.sleep(sleepyTime);
+            while (!gotWorkToDo) {
+                slot = slots.peek();
+                if (slot == null) {
+                    Logger.getLogger(getClass()).warn("No server slots allocated. RingBuffer will keep spinning");
+                    return null;
+                }
+
+                // Wait until 5 seconds have passed
+                long delta = System.currentTimeMillis() - slot.lastPolled;
+                // 5 wait + 1 latency = 6 seconds
+                if (delta < 6000 || slot.isBeingProcessed()) {
+                    try {
+                        long sleepyTime = 5000 - delta;
+
+                        if (Math.signum(sleepyTime) == -1.0) {
+                            Thread.sleep(5000);
+                        } else {
+                            Thread.sleep(sleepyTime);
+                        }
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(getClass()).error("Failed to catch a shut-eye", ex);
                     }
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(getClass()).error("Failed to catch a shut-eye", ex);
+                }
+
+                if (!slot.isBeingProcessed()) {
+                    slot.startProcessing();
+                    gotWorkToDo = true;
                 }
             }
-            
-            System.out.println("LP " + delta + " " + slot.getReference());
-            slot.startProcessing();
             return slot;
         }
     }
@@ -120,7 +127,7 @@ public class Collector implements EventHandler<Record> {
             return;
         }
         if (slot.isUpdate()) {
-            t.setLatestData(RRDUpdates.parse(slot.getConnection().getInputStream()));
+            t.addLatestData(RRDUpdates.parse(slot.getConnection().getInputStream()));
         } else {
             t.setInitialData(RRD.parse(slot.getConnection().getInputStream()));
         }

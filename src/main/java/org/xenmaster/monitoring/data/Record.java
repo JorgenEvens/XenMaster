@@ -73,7 +73,7 @@ public class Record {
         return lastData;
     }
     
-    public void setLatestData(RRDUpdates data) {
+    public void addLatestData(RRDUpdates data) {
         this.lastData = data;
     }
 
