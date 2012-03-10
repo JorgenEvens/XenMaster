@@ -2,7 +2,7 @@
 
 echo 'Making xen boot by default';
 
-mv /etc/grub.d/20_linux_xen /etc/grub.d/09_linux_xen;
+sed -i 's/GRUB_DEFAULT=.\+/GRUB_DEFAULT="Xen 4.1-amd64"/' /etc/default/grub;
 update-grub;
 
 echo 'Setting up network interfaces';
@@ -39,12 +39,12 @@ EOF
 
 echo 'Setting xl as the toolstack';
 cat > /etc/default/xen << EOF
-TOOLSTACK=xl
+TOOLSTACK=xapi
 EOF
 
 echo 'Make sure xend does *not* start';
-sed -i -e 's/xend_start\n/#xend_start\n/' /etc/init.d/xend;
-sed -i -e 's/xend_stop\n/#xend_stop\n/' /etc/init.d/xend;
+sed -i -e 's/xend_start$/#xend_start/' -e 's/xend_stop$/#xend_stop/' /etc/init.d/xend;
+update-rc.d xendomains disable;
 
 echo 'Make SSL comms start on boot';
 

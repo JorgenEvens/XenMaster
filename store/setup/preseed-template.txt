@@ -199,7 +199,7 @@ tasksel tasksel/first multiselect standard
 #tasksel tasksel/desktop multiselect kde, xfce
 
 # Individual additional packages to install
-d-i pkgsel/include string openssh-server xen-linux-system-amd64 linux-headers xen-utils xcp-xapi blktap-dkms bridge-utils open-iscsi python-simplejson
+d-i pkgsel/include string openssh-server xen-linux-system-amd64 linux-headers xen-utils xcp-xapi blktap-dkms openvswitch-datapath-dkms bridge-utils python-simplejson
 # Whether to upgrade packages after debootstrap.
 # Allowed values: none, safe-upgrade, full-upgrade
 d-i pkgsel/upgrade select full-upgrade
