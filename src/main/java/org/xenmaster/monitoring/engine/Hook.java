@@ -35,14 +35,6 @@ public class Hook extends WebCommandHandler {
 
     public Hook() {
         super("monitoring");
-        DataRequest dr = new DataRequest("d2335fe9-21d4-87cc-614d-d1cc41d0620c", false, DataRequest.DefaultKeySets.XAPI);
-        requestData(dr, new Connection() {
-
-            @Override
-            public void sendMessage(String data) throws IOException {
-                System.out.println(data);
-            }
-        });
     }
 
     @Override
