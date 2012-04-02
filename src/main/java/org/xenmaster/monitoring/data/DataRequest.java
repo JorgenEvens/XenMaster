@@ -16,6 +16,7 @@
  */
 package org.xenmaster.monitoring.data;
 
+import java.util.List;
 import org.joda.time.Period;
 
 /**
@@ -24,19 +25,25 @@ import org.joda.time.Period;
  * @author double-u
  */
 public class DataRequest {
-    protected String name;
+
+    protected List<String> keys;
+    protected DefaultKeySets keySet;
     protected String reference;
-    protected String requestId;
     protected boolean vm;
     protected boolean updates;
     protected Period period;
-    
-    public DataRequest(String id) {
-        this.requestId = id;
+
+    public DataRequest() {
     }
 
-    public String getName() {
-        return name;
+    public DataRequest(String reference, boolean isVM, DefaultKeySets keySet) {
+        this.reference = reference;
+        this.vm = isVM;
+        this.keySet = keySet;
+    }
+
+    public List<String> getKeys() {
+        return keys;
     }
 
     public Period getPeriod() {
@@ -55,7 +62,34 @@ public class DataRequest {
         return vm;
     }
 
-    public String getRequestId() {
-        return requestId;
+    /**
+     * Checks if the key matches this request
+     * @param datakey
+     * @return 
+     */
+    public boolean match(DataKey datakey) {
+        if (!datakey.getReference().equals(reference)) {
+            return false;
+        }
+
+        if (keySet != null) {
+            switch (keySet) {
+                case ALL:
+                    return true;
+                case CPU:
+                    return datakey.getName().contains("cpu");
+                case PIF:
+                    return datakey.getName().contains("pif");
+                case XAPI:
+                    return datakey.getName().contains("xapi");
+            }
+        }
+
+        return keys != null && keys.contains(datakey.getName());
+    }
+
+    public static enum DefaultKeySets {
+
+        ALL, XAPI, PIF, CPU
     }
 }

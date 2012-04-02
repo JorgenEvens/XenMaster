@@ -42,6 +42,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import org.xenmaster.monitoring.engine.Collector;
+import org.xenmaster.monitoring.engine.Correlator;
 
 /**
  * 
@@ -55,6 +56,7 @@ public class MonitoringAgent {
     protected Comptroller comptroller;
     protected Emitter emitter;
     protected Collector collector;
+    protected Correlator correl;
     protected EventPublisher publisher;
     protected ArrayListMultimap<String, Record> vmData, hostData;
     protected ConcurrentSkipListMap<String, String> data;
@@ -76,6 +78,7 @@ public class MonitoringAgent {
         comptroller = new Comptroller();
         emitter = new Emitter();
         collector = new Collector();
+        correl = new Correlator();
         
         setUpEngine();
 
@@ -110,14 +113,22 @@ public class MonitoringAgent {
         SequenceBarrier collectorBarrier = ringBuffer.newBarrier();
         BatchEventProcessor<Record> cr = new BatchEventProcessor<>(ringBuffer, collectorBarrier, collector);
         
-        ringBuffer.setGatingSequences(cr.getSequence());
+        SequenceBarrier correlatorBarrier = ringBuffer.newBarrier(cr.getSequence());
+        BatchEventProcessor<Record> cb = new BatchEventProcessor<>(ringBuffer, correlatorBarrier, correl);
+        
+        ringBuffer.setGatingSequences(cb.getSequence());
         
         engine.execute(cr);
+        engine.execute(cb);
     }
 
     public void boot() {
         schedule();
         collector.boot();
+    }
+    
+    public Correlator getCorrelator() {
+        return correl;
     }
 
     protected class EventPublisher extends Collector.TimingProvider {

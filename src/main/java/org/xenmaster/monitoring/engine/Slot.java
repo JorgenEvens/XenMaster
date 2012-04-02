@@ -62,9 +62,6 @@ public class Slot implements Comparable<Slot> {
     }
 
     public void startProcessing() {
-        if (busy) {
-            throw new RuntimeException("Slot is already being processed");
-        }
         busy = true;
     }
 
@@ -111,7 +108,7 @@ public class Slot implements Comparable<Slot> {
                 byte[] auth = (Settings.getInstance().getString("Xen.User") + ':' + Settings.getInstance().getString("Xen.Password")).getBytes("UTF-8");
                 uc.setRequestProperty("Authorization", "Basic " + new String(Base64.encodeBase64(auth)));
                 uc.connect();
-                
+
                 lastPolled = System.currentTimeMillis();
                 connection = uc;
             }

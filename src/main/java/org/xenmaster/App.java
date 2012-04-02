@@ -138,6 +138,7 @@ public class App implements Daemon {
         sh.addWebHook(new TemplateHook());
         sh.addWebHook(new SetupHook());
         sh.addWebHook(new VNCHook());
+        sh.addWebHook(new org.xenmaster.monitoring.engine.Hook());
         
         server.addServlet(sh.getHttpHandler());
         server.addServlet(sh.getWebSocketHandler());

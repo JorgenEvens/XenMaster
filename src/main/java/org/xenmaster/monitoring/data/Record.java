@@ -128,4 +128,11 @@ public class Record {
     public void setXML(String xml) {
         this.xml = xml;
     }
+
+    public void finishedHandling() {
+        this.xml = null;
+        this.slot = null;
+        this.initialData = null;
+        this.lastData = null;
+    }
 }
