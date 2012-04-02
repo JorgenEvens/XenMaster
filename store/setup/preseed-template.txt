@@ -269,6 +269,7 @@ d-i cdrom-detect/eject boolean false
 #   debconf-get-selections --installer > file
 #   debconf-get-selections >> file
 
+d-i xcp-xapi/networking_type select openvswitch
 
 #### Advanced options
 ### Running custom commands during the installation

@@ -1,29 +1,24 @@
 #!/bin/sh
 
-echo 'Making xen boot by default';
+echo -c 'Running XenMaster post-install script...';
+echo -c 'Making xen boot by default';
 
 sed -i 's/GRUB_DEFAULT=.\+/GRUB_DEFAULT="Xen 4.1-amd64"/' /etc/default/grub;
 update-grub;
 
-echo 'Setting up network interfaces';
+echo -c 'Installing empty interfaces config';
 
 cat > /etc/network/interfaces <<EOF 
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
 # The loopback network interface
-auto lo xenbr0
+auto lo
 iface lo inet loopback
-
-# The primary network interface
-iface eth0 inet manual
-
-iface xenbr0 inet dhcp
-        bridge_ports eth0
 
 EOF
 
-echo 'Setting up the xensource-inventory file';
+echo -c 'Setting up the xensource-inventory file';
 
 control_domain=`uuidgen`;
 installation=`uuidgen`;
@@ -37,38 +32,58 @@ MANAGEMENT_INTERFACE='xenbr0'
 PRIMARY_DISK='/dev/sda1'
 EOF
 
-echo 'Setting xl as the toolstack';
+echo -c 'Setting xl as the toolstack';
 cat > /etc/default/xen << EOF
 TOOLSTACK=xapi
 EOF
 
-echo 'Make sure xend does *not* start';
+echo -c 'Make sure xend does *not* start';
 sed -i -e 's/xend_start$/#xend_start/' -e 's/xend_stop$/#xend_stop/' /etc/init.d/xend;
 update-rc.d xendomains disable;
 
-echo 'Make SSL comms start on boot';
+echo -c 'Make SSL comms start on boot';
 
 update-rc.d xapissl defaults;
 
-echo 'Installing XAPI plugins';
+echo -c 'Installing XAPI plugins';
 
 wget http://#{bootstrap-server-address}/setup/plugins.tar.gz -O /root/xapi-plugins.tar.gz;
 tar -C /usr/lib/xcp/plugins -xvzf /root/xapi-plugins.tar.gz;
 
-echo 'Saying hi to bootstrap server';
+echo -c 'Saying hi to bootstrap server';
 
 mv /etc/motd.tail /etc/motd.tail.default;
 wget http://#{bootstrap-server-address}/setup/motd -O /etc/motd.tail
 
-echo 'Linking keymap files';
+echo -c 'Linking keymap files';
 mkdir -p /usr/share/qemu/
 ln -s /usr/share/qemu-linaro/keymaps /usr/share/qemu/keymaps
 
 cat > /root/setup-done.sh << EOF
 #!/bin/sh
-echo 'Removing message...';
+echo -c 'Removing message...';
 mv /etc/motd.tail.default /etc/motd.tail;
-echo 'Done! Enjoy your coffee';
+echo -c 'Done! Enjoy your coffee';
 EOF
 
-echo 'Post Install finished';
+echo -c 'Set all interfaces to DHCP configuration in XAPI';
+python << EOF
+import XenAPI
+session = XenAPI.xapi_local()
+session.login_with_password("root", "")
+pifs = session.xenapi.PIF.get_all()
+for pif in pifs:
+session.xenapi.PIF.reconfigure_ip(pif,"dhcp","","","","")
+EOF
+
+cat > /etc/xen/scripts/qemu-ifup << EOF
+#!/bin/sh
+
+echo -c 'config qemu network with xen bridge for '
+echo $*
+
+ifconfig $1 0.0.0.0 up
+ovs-vsctl add-port $2 $1
+EOF
+
+echo -c 'Post Install finished';
