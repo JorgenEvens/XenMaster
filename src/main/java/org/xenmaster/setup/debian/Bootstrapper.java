@@ -74,7 +74,7 @@ public class Bootstrapper {
         @Override
         public InputStream pathRequest(TFTPOptionReadRequestPacket packet) {
             try {
-                downloadNetbootFiles();
+                if (downloadNetbootFiles()) return null;
 
                 File path = new File(Settings.getInstance().getString("StorePath") + "/netboot/" + packet.getFilename());
                 if (!path.exists()) {
@@ -103,9 +103,9 @@ public class Bootstrapper {
         }
     }
 
-    protected void downloadNetbootFiles() {
+    protected boolean downloadNetbootFiles() {
         if (System.currentTimeMillis() - lastChecked < 50 * 60 * 1000) {
-            return;
+            return false;
         }
 
         File localVersionFile = new File(Settings.getInstance().getString("StorePath") + "/netboot/version");
@@ -174,5 +174,7 @@ public class Bootstrapper {
                 Logger.getLogger(getClass()).error("Failed to download netboot files", ex);
             }
         }
+        
+        return true;
     }
 }
