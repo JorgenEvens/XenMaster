@@ -30,9 +30,10 @@ CONTROL_DOMAIN_UUID='${control_domain}'
 INSTALLATION_UUID='${installation}'
 MANAGEMENT_INTERFACE='xenbr0'
 PRIMARY_DISK='/dev/sda1'
+PRODUCT_VERSION=6.0.0
 EOF
 
-echo -c 'Setting xl as the toolstack';
+echo -c 'Setting xapi as the toolstack';
 cat > /etc/default/xen << EOF
 TOOLSTACK=xapi
 EOF
@@ -63,27 +64,35 @@ cat > /root/setup-done.sh << EOF
 #!/bin/sh
 echo -c 'Removing message...';
 mv /etc/motd.tail.default /etc/motd.tail;
+echo -c 'Disabling rc.local...';
+chmod -x /etc/rc.local
 echo -c 'Done! Enjoy your coffee';
 EOF
 
+cat > /etc/rc.local << EOF
 echo -c 'Set all interfaces to DHCP configuration in XAPI';
-python << EOF
+python << EOG
 import XenAPI
 session = XenAPI.xapi_local()
 session.login_with_password("root", "")
 pifs = session.xenapi.PIF.get_all()
 for pif in pifs:
 session.xenapi.PIF.reconfigure_ip(pif,"dhcp","","","","")
+EOG
+
+exit 0
 EOF
+
+chmod +x /etc/rc.local
 
 cat > /etc/xen/scripts/qemu-ifup << EOF
 #!/bin/sh
 
 echo -c 'config qemu network with xen bridge for '
-echo $*
+echo \$*
 
-ifconfig $1 0.0.0.0 up
-ovs-vsctl add-port $2 $1
+ifconfig \$1 0.0.0.0 up
+ovs-vsctl add-port \$2 \$1
 EOF
 
 echo -c 'Post Install finished';
