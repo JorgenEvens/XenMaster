@@ -45,8 +45,9 @@ import org.xenmaster.monitoring.engine.Collector;
 import org.xenmaster.monitoring.engine.Correlator;
 
 /**
- * 
+ *
  * @created Oct 6, 2011
+ *
  * @author double-u
  */
 public class MonitoringAgent {
@@ -79,7 +80,7 @@ public class MonitoringAgent {
         emitter = new Emitter();
         collector = new Collector();
         correl = new Correlator();
-        
+
         setUpEngine();
 
         try {
@@ -87,7 +88,8 @@ public class MonitoringAgent {
             timeInfo.computeDetails();
             Logger.getLogger(getClass()).info("It is now " + new DateTime(System.currentTimeMillis() + timeInfo.getOffset()).toString("dd/MM/yyyy HH:mm:ss.S")
                     + ". Your host's clock is drifting by " + timeInfo.getOffset() + " milliseconds");
-        } catch (IOException ex) {
+        }
+        catch (IOException ex) {
             Logger.getLogger(getClass()).warn("NTP time retrieval failed", ex);
         }
     }
@@ -109,15 +111,15 @@ public class MonitoringAgent {
                 return t;
             }
         });
-        
+
         SequenceBarrier collectorBarrier = ringBuffer.newBarrier();
         BatchEventProcessor<Record> cr = new BatchEventProcessor<>(ringBuffer, collectorBarrier, collector);
-        
+
         SequenceBarrier correlatorBarrier = ringBuffer.newBarrier(cr.getSequence());
         BatchEventProcessor<Record> cb = new BatchEventProcessor<>(ringBuffer, correlatorBarrier, correl);
-        
+
         ringBuffer.setGatingSequences(cb.getSequence());
-        
+
         engine.execute(cr);
         engine.execute(cb);
     }
@@ -126,7 +128,7 @@ public class MonitoringAgent {
         schedule();
         collector.boot();
     }
-    
+
     public Correlator getCorrelator() {
         return correl;
     }
@@ -138,6 +140,11 @@ public class MonitoringAgent {
             while (run) {
                 long sequence = ringBuffer.next();
                 Slot nextSlot = getNextSlot();
+                if (nextSlot == null) {
+                    run = false;
+                    break;
+                }
+                
                 Record r = ringBuffer.get(sequence);
                 r.attachSlot(nextSlot);
                 ringBuffer.publish(sequence);
@@ -146,7 +153,7 @@ public class MonitoringAgent {
     }
 
     protected void schedule() {
-        int interval = (int) ((double) Settings.getInstance().get("Monitoring.Interval") * 1000);
+        int interval = (int) ( (double) Settings.getInstance().get("Monitoring.Interval") * 1000 );
     }
 
     public List<Record> requestVMData(String ref, int start, int delta, int end) {
