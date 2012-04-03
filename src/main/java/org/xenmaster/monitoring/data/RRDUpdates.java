@@ -20,14 +20,16 @@ import com.google.common.collect.Multimap;
 import com.thoughtworks.xstream.XStream;
 import java.io.InputStream;
 import java.util.List;
+import org.apache.log4j.Logger;
 
 /**
- * 
+ *
  * @created Feb 19, 2012
+ *
  * @author double-u
  */
 public class RRDUpdates {
-    
+
     protected Meta meta;
     protected Multimap<Long, Double> data;
 
@@ -40,6 +42,7 @@ public class RRDUpdates {
     }
 
     public static class Meta {
+
         protected long start;
         protected int step;
         protected long end;
@@ -70,16 +73,22 @@ public class RRDUpdates {
             return step;
         }
     }
-    
+
     public static RRDUpdates parse(InputStream xmlStream) {
-        XStream xs = new XStream(); 
+        XStream xs = new XStream();
         xs.alias("xport", RRDUpdates.class);
         xs.alias("meta", Meta.class);
         xs.aliasType("entry", String.class);
         xs.aliasType("data", Multimap.class);
         xs.registerLocalConverter(RRDUpdates.class, "data", new RRDUpdateConverter());
 
-        RRDUpdates fromXML = (RRDUpdates) xs.fromXML(xmlStream);
-        return fromXML;
+        try {
+            RRDUpdates fromXML = (RRDUpdates) xs.fromXML(xmlStream);
+            return fromXML;
+        }
+        catch (RuntimeException ex) {
+            Logger.getLogger(RRDUpdates.class).error("Failed to parse RRD updates", ex);
+            return null;
+        }
     }
 }
