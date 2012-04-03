@@ -31,11 +31,8 @@
 		 */
 		showDetail = function( detail, device, tab ) {
 			if( !detail ) return;
-			console.log( tab );
-			$(tab)
-				.addClass('selected')
-				.siblings()
-					.removeClass( 'selected' );
+			
+			highlightTab(tab);
 			
 			app.load( 'tpl://vm/detail/' + detail, 'js://ui/template', function( tpl_detail, Template ) {
 				
@@ -45,6 +42,11 @@
 				view.show( 'vm_detail_panel' );
 				
 			});
+		},
+		
+		highlightTab = function (tab) {
+			$(tab).addClass('selected');
+			$(tab).siblings().removeClass( 'selected' );
 		},
 		
 		/*
@@ -221,6 +223,9 @@
 	var dev_ready = null;
 	this.bind('vm_device_add', function( e ) {
 		app.load( 'tpl://vm/device/new', 'js://ui/template', function( tpl_add, Template ) {
+			
+			highlightTab($('.hardware .add'));
+			
 			var view = new Template({ resource: tpl_add });
 			dev_ready = function( e ) {
 				view.unbind( 'vm_device_ready', dev_ready );
