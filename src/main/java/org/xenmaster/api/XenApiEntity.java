@@ -22,15 +22,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
+import java.util.*;
 import net.wgr.core.ReflectionUtils;
-
 import org.apache.log4j.Logger;
 import org.xenmaster.api.util.CachingFacility;
 import org.xenmaster.controller.BadAPICallException;
@@ -47,6 +40,7 @@ public class XenApiEntity implements Serializable {
 
     protected String reference;
     protected String uuid;
+    protected boolean valid = true;
     protected final static transient String NULL_REF = "OpaqueRef:NULL";
     protected final static transient Map<String, String> globalInterpretation = new HashMap<>();
     protected final static transient String packageName = XenApiEntity.class.getPackage().getName();
@@ -105,12 +99,12 @@ public class XenApiEntity implements Serializable {
     
     public String getReference(boolean deriveFromUUID) {
          // Try to obtain a reference by its UUID
-        if (reference == null && uuid != null && deriveFromUUID == true) {
+        if (reference == null && uuid != null && deriveFromUUID == true && valid == true) {
             // Get reference is a safe op that does not throw errors
             try {
                 reference = dispatch("get_by_uuid", uuid).toString();
             } catch (BadAPICallException ex) {
-                error(ex);
+                valid = false;
             }
         }
         return reference;
@@ -199,7 +193,7 @@ public class XenApiEntity implements Serializable {
         try {
             return Controller.dispatch(getAPIName() + "." + methodName, arr.toArray());
         } catch (BadAPICallException ex) {
-            Logger.getLogger(getClass()).error("Error in method call", ex);
+            Logger.getLogger(getClass()).debug("Error in method call", ex);
             throw ex;
         }
     }
@@ -229,6 +223,10 @@ public class XenApiEntity implements Serializable {
                 break;
             }
         }
+    }
+    
+    public boolean isValid() {
+        return valid;
     }
 
     protected void log(String className, String functionName, Exception ex, LogEntry.Level level) {
