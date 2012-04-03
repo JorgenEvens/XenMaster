@@ -90,7 +90,7 @@ public class Collector implements EventHandler<Record> {
             while (!gotWorkToDo) {
                 slot = slots.peek();
                 if (slot == null) {
-                    Logger.getLogger(getClass()).warn("No server slots allocated. RingBuffer will keep spinning");
+                    Logger.getLogger(getClass()).warn("No server slots allocated. Exiting ...");
                     return null;
                 }
 
@@ -126,8 +126,15 @@ public class Collector implements EventHandler<Record> {
         if (!slot.isBeingProcessed()) {
             return;
         }
+
         if (slot.isUpdate()) {
-            t.addLatestData(RRDUpdates.parse(slot.getConnection().getInputStream()));
+            RRDUpdates updates = RRDUpdates.parse(slot.getConnection().getInputStream());
+            if (updates != null) {
+                t.addLatestData(updates);
+            } else {
+                // If a monitoring source starts giving errors, remove it from the queue
+                slots.poll();
+            }
         } else {
             t.setInitialData(RRD.parse(slot.getConnection().getInputStream()));
         }
