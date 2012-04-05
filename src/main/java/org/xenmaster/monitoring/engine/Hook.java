@@ -17,7 +17,6 @@
 package org.xenmaster.monitoring.engine;
 
 import com.google.gson.Gson;
-import java.io.IOException;
 import net.wgr.server.web.handling.WebCommandHandler;
 import net.wgr.wcp.command.Command;
 import net.wgr.wcp.connectivity.Connection;

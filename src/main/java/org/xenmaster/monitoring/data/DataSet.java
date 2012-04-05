@@ -18,7 +18,7 @@
 package org.xenmaster.monitoring.data;
 
 /**
- * 
+ *
  * @created Oct 31, 2011
  * @author double-u
  */
@@ -33,6 +33,7 @@ public class DataSet {
     protected int unknownSeconds;
 
     public static enum Type {
+
         GAUGE, DERIVE
     }
 }

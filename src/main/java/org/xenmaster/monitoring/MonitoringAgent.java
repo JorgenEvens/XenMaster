@@ -17,32 +17,23 @@
  */
 package org.xenmaster.monitoring;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.lmax.disruptor.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListMap;
-
-import net.wgr.settings.Settings;
-
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeInfo;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.xenmaster.monitoring.data.Record;
-import org.xenmaster.monitoring.engine.Slot;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.lmax.disruptor.BatchEventProcessor;
-import com.lmax.disruptor.BlockingWaitStrategy;
-import com.lmax.disruptor.RingBuffer;
-import com.lmax.disruptor.SequenceBarrier;
-import com.lmax.disruptor.SingleThreadedClaimStrategy;
-import com.lmax.disruptor.SleepingWaitStrategy;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import org.xenmaster.monitoring.engine.Collector;
 import org.xenmaster.monitoring.engine.Correlator;
+import org.xenmaster.monitoring.engine.Slot;
 
 /**
  *
@@ -86,8 +77,8 @@ public class MonitoringAgent {
         try {
             timeInfo = nuc.getTime(InetAddress.getByName(NTP_SERVER));
             timeInfo.computeDetails();
-            Logger.getLogger(getClass()).info("It is now " + new DateTime(System.currentTimeMillis() + timeInfo.getOffset()).toString("dd/MM/yyyy HH:mm:ss.S")
-                    + ". Your host's clock is drifting by " + timeInfo.getOffset() + " milliseconds");
+            Logger.getLogger(getClass()).info("Current time " + new DateTime(System.currentTimeMillis() + timeInfo.getOffset()).toString("dd/MM/yyyy HH:mm:ss.S")
+                    + ". Clock drift " + timeInfo.getOffset() + " milliseconds");
         }
         catch (IOException ex) {
             Logger.getLogger(getClass()).warn("NTP time retrieval failed", ex);
@@ -125,7 +116,6 @@ public class MonitoringAgent {
     }
 
     public void boot() {
-        schedule();
         collector.boot();
     }
 
@@ -150,10 +140,6 @@ public class MonitoringAgent {
                 ringBuffer.publish(sequence);
             }
         }
-    }
-
-    protected void schedule() {
-        int interval = (int) ( (double) Settings.getInstance().get("Monitoring.Interval") * 1000 );
     }
 
     public List<Record> requestVMData(String ref, int start, int delta, int end) {
