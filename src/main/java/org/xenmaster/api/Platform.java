@@ -20,12 +20,14 @@ package org.xenmaster.api;
 import java.util.Map;
 
 /**
- * 
+ *
  * @created Jan 18, 2012
  * @author double-u
  */
 public class Platform extends XenApiMapField {
+
     protected boolean apic, acpi, viridian, pae;
+    protected boolean pvfb;
 
     public Platform(Map<String, String> values) {
         super(values);
@@ -33,7 +35,7 @@ public class Platform extends XenApiMapField {
 
     public Platform() {
     }
-    
+
     public boolean hasAcpi() {
         return acpi;
     }
@@ -65,5 +67,14 @@ public class Platform extends XenApiMapField {
     public void setViridian(boolean viridian) {
         this.viridian = viridian;
     }
+
+    public boolean isPvfb() {
+        return pvfb;
+    }
+
+    public void setPvfb(boolean pvfb) {
+        this.pvfb = pvfb;
+    }
+    
     
 }
