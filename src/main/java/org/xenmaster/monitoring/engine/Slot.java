@@ -21,15 +21,15 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Objects;
-
 import net.wgr.settings.Settings;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.xenmaster.api.Host;
 
 /**
- * 
+ *
  * @created Jan 31, 2012
+ *
  * @author double-u
  */
 public class Slot implements Comparable<Slot> {
@@ -37,7 +37,8 @@ public class Slot implements Comparable<Slot> {
     protected String reference;
     protected boolean connectToUpdates;
     protected boolean busy;
-    public long lastPolled;
+    protected int errorCount;
+    protected long lastPolled;
     private URLConnection connection;
 
     public Slot(Host host) {
@@ -50,25 +51,53 @@ public class Slot implements Comparable<Slot> {
 
     @Override
     public int compareTo(Slot o) {
-        return (int) (o.lastPolled - lastPolled);
+        return (int) ( o.lastPolled - lastPolled );
     }
 
     public boolean isUpdate() {
         return connectToUpdates;
     }
 
+    public boolean isStable() {
+        return errorCount == 0;
+    }
+
+    public void errorOccurred() {
+        switch (errorCount) {
+            case 1:
+                Logger.getLogger(getClass()).warn("Monitoring for " + reference + " is unstable.");
+                break;
+            case 5:
+                Logger.getLogger(getClass()).error("Monitoring for " + reference + " has been disabled due to multiple errors");
+                break;
+        }
+        errorCount += 1;
+    }
+
     public boolean isBeingProcessed() {
         return busy;
     }
 
-    public void startProcessing() {
-        busy = true;
+    public boolean startProcessing() {
+        if (errorCount > 5) {
+            // Too many errors, sorry
+        } else if (errorCount != 0 && System.currentTimeMillis() - lastPolled < 60 * 10E3) {
+            // Wait a minute until we try again
+        } else {
+            busy = true;
+        }
+
+        return busy;
     }
 
     public void processingDone() throws IOException {
         busy = false;
         connection.getInputStream().close();
         connection = null;
+    }
+
+    public long getLastPollingTime() {
+        return lastPolled;
     }
 
     @Override
@@ -88,31 +117,32 @@ public class Slot implements Comparable<Slot> {
     public int hashCode() {
         int hash = 7;
         hash = 41 * hash + Objects.hashCode(this.reference);
-        hash = 41 * hash + (int) (this.lastPolled ^ (this.lastPolled >>> 32));
+        hash = 41 * hash + (int) ( this.lastPolled ^ ( this.lastPolled >>> 32 ) );
         return hash;
     }
 
-    public URLConnection getConnection() {
+    public URLConnection getConnection() {      
         try {
             if (connection == null || connectToUpdates) {
                 Host host = new Host(reference);
-                URL url = null;
+                URL url;
                 if (connectToUpdates) {
-                    url = new URL("http://" + host.getAddress().getCanonicalHostName() + "/rrd_updates?start=" + ((lastPolled - 5000) / 1000) + "&host=true");
+                    url = new URL("http://" + host.getAddress().getCanonicalHostName() + "/rrd_updates?start=" + ( ( lastPolled - 5000 ) / 1000 ) + "&host=true");
                 } else {
                     url = new URL("http://" + host.getAddress().getCanonicalHostName() + "/host_rrd");
                     connectToUpdates = true;
                 }
 
                 URLConnection uc = url.openConnection();
-                byte[] auth = (Settings.getInstance().getString("Xen.User") + ':' + Settings.getInstance().getString("Xen.Password")).getBytes("UTF-8");
+                byte[] auth = ( Settings.getInstance().getString("Xen.User") + ':' + Settings.getInstance().getString("Xen.Password") ).getBytes("UTF-8");
                 uc.setRequestProperty("Authorization", "Basic " + new String(Base64.encodeBase64(auth)));
                 uc.connect();
 
                 lastPolled = System.currentTimeMillis();
                 connection = uc;
             }
-        } catch (Exception ex) {
+        }
+        catch (Exception ex) {
             Logger.getLogger(getClass()).error("Failed to retrieve statistics", ex);
         }
 
