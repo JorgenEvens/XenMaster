@@ -20,7 +20,6 @@ package org.xenmaster.api;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.xenmaster.controller.BadAPICallException;
 
 /**

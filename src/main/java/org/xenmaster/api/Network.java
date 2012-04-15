@@ -20,7 +20,6 @@ package org.xenmaster.api;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.xenmaster.controller.BadAPICallException;
 
 /**
@@ -36,6 +35,10 @@ public class Network extends NamedEntity {
     protected Object[] allowedOperations, vifs, pifs;
     @Fill
     protected Map<String, Object> currentOperations, otherConfig;
+    
+    public Network() {
+        
+    }
 
     public Network(String ref) {
         super(ref);

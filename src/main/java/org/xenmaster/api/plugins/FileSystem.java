@@ -17,16 +17,14 @@
  */
 package org.xenmaster.api.plugins;
 
+import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.xenmaster.controller.BadAPICallException;
-
-import com.google.gson.Gson;
 import org.xenmaster.api.Host;
+import org.xenmaster.controller.BadAPICallException;
 
 /**
  * 

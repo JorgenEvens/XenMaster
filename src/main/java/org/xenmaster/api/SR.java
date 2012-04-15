@@ -164,18 +164,30 @@ public class SR extends NamedEntity {
         return otherConfig;
     }
 
-    public void setOtherConfig(Map<String, String> otherConfig) {
-        this.otherConfig = otherConfig;
+    public void setOtherConfig(Map<String, String> otherConfig) throws BadAPICallException {
+        this.otherConfig = setter(otherConfig, "other_config");
+    }
+    
+    public void setOtherConfig(String key, String value) throws BadAPICallException {
+        Map<String, String> map = getOtherConfig();
+        map.put(key, value);
+        setOtherConfig(map);
     }
 
     public Map<String, String> getSmConfig() {
         return smConfig;
     }
 
-    public void setSmConfig(Map<String, String> smConfig) {
-        this.smConfig = smConfig;
+    public void setSmConfig(Map<String, String> smConfig) throws BadAPICallException {
+        this.smConfig = setter(smConfig, "sm_config");
     }
-
+    
+    public void setSmConfig(String key, String value) throws BadAPICallException {
+        Map<String, String> map = getSmConfig();
+        map.put(key, value);
+        setSmConfig(map);
+    }
+    
     public Object[] getAllowedOperations() {
         return allowedOperations;
     }
