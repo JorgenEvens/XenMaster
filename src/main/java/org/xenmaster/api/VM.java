@@ -397,13 +397,13 @@ public class VM extends NamedEntity {
         return this.otherConfig;
     }
 
-    public void addOtherConfig(Map<String, String> data) {
+    public void addOtherConfig(Map<String, String> data) throws BadAPICallException {
         otherConfig.putAll(data);
         setOtherConfig(otherConfig);
     }
 
-    public void setOtherConfig(Map<String, String> data) {
-        setOtherConfig(data);
+    public void setOtherConfig(Map<String, String> data) throws BadAPICallException {
+        this.otherConfig = setter(data, "other_config");
     }
 
     public void setMemoryLimits(double maxStaticMemMb, double minStaticMemMb, double maxDynMemMb, double minDynMemMb) throws BadAPICallException {
