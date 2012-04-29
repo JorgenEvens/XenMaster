@@ -40,7 +40,7 @@ public class XenApiEntity implements Serializable {
 
     protected String reference;
     protected String uuid;
-    protected boolean valid = true;
+    protected transient boolean valid = true;
     protected final static transient String NULL_REF = "OpaqueRef:NULL";
     protected final static transient Map<String, String> globalInterpretation = new HashMap<>();
     protected final static transient String packageName = XenApiEntity.class.getPackage().getName();
@@ -230,8 +230,8 @@ public class XenApiEntity implements Serializable {
     }
 
     protected void log(String className, String functionName, Exception ex, LogEntry.Level level) {
-        // TODO check db for friendly error msg
-        String title = null;
+        String title;
+        
         if (ex instanceof BadAPICallException) {
             title = functionName + " : " + ((BadAPICallException) ex).getErrorName();
         } else {

@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.xenmaster.controller.BadAPICallException;
 
 /**
@@ -111,6 +110,13 @@ public class VDI extends NamedEntity {
     
     public void destroy() throws BadAPICallException {
         dispatch("destroy");
+    }
+    
+    public PBD plugIntoHost(Host host) throws BadAPICallException {
+        PBD pbd = new PBD();
+        pbd.create(getSR(), host, new HashMap<String, String>());
+        pbd.plug();
+        return pbd;
     }
     
     public static List<VDI> getAll() throws BadAPICallException {

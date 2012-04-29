@@ -17,19 +17,14 @@
  */
 package org.xenmaster.api;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-
+import java.util.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.xenmaster.controller.BadAPICallException;
 import org.xenmaster.monitoring.LogEntry;
 import org.xenmaster.monitoring.LogKeeper;
 
 /**
- * 
+ *
  * @created Oct 2, 2011
  * @author double-u
  */
@@ -156,7 +151,7 @@ public class VM extends NamedEntity {
 
     /**
      * Check if this VM will be able to start up properly
-     * 
+     *
      * @return
      */
     public void easeStart() throws BadAPICallException {
@@ -208,7 +203,7 @@ public class VM extends NamedEntity {
 
     /**
      * Stop the VM
-     * 
+     *
      * @param polite it's up to you to keep your manners
      */
     public void stop(boolean polite) throws BadAPICallException {
@@ -230,7 +225,7 @@ public class VM extends NamedEntity {
 
     /**
      * Reboot the VM
-     * 
+     *
      * @param polite it's up to you to keep your manners
      */
     public void reboot(boolean polite) throws BadAPICallException {
@@ -396,6 +391,19 @@ public class VM extends NamedEntity {
             vcpuParams = new HashMap<>();
         }
         return vcpuParams;
+    }
+
+    public Map<String, String> getOtherConfig() {
+        return this.otherConfig;
+    }
+
+    public void addOtherConfig(Map<String, String> data) {
+        otherConfig.putAll(data);
+        setOtherConfig(otherConfig);
+    }
+
+    public void setOtherConfig(Map<String, String> data) {
+        setOtherConfig(data);
     }
 
     public void setMemoryLimits(double maxStaticMemMb, double minStaticMemMb, double maxDynMemMb, double minDynMemMb) throws BadAPICallException {
