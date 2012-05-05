@@ -1,5 +1,5 @@
 Package: xenmaster
-Version: 0.1
+Version: 0.1~BUILD_NUMBER
 Section: admin
 Priority: optional
 Architecture: all
@@ -13,6 +13,3 @@ Description: Xen needs a proper web based GUI. We're making it happen.
  setup and manage your Xen infrastructure.
  It runs on every platform, and doesn't require anything but 
  Apache Cassandra to run properly.
- .
- Enjoy your coffee,
- The XenMaster team
