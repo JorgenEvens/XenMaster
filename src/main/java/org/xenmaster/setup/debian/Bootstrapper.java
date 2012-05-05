@@ -173,6 +173,8 @@ public class Bootstrapper {
             } catch (IOException ex) {
                 Logger.getLogger(getClass()).error("Failed to download netboot files", ex);
             }
+        } else {
+            return false;
         }
         
         return true;
