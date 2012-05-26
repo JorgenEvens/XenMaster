@@ -83,12 +83,21 @@ public class Collector implements EventHandler<Record> {
     }
 
     public static abstract class TimingProvider implements Runnable {
+        
+        private int loopCount;
+        private static int TIMESPAN=2000;
+        private long lastTime;
 
         protected final Slot getNextSlot() {
             boolean gotWorkToDo = false;
             Slot slot = null;
 
             while (!gotWorkToDo) {
+                if (loopCount > 200 && System.currentTimeMillis() - lastTime < TIMESPAN) {
+                    // We've spun over 200 times in less then 2 seconds, indicating slot hndling has crashed
+                    throw new IllegalStateException("Slot handling is defective");
+                }
+                
                 slot = slots.peek();
                 if (slot == null) {
                     Logger.getLogger(getClass()).warn("No server slots available. Exiting ...");
@@ -116,6 +125,9 @@ public class Collector implements EventHandler<Record> {
                 if (!slot.isBeingProcessed() && slot.startProcessing()) {
                     gotWorkToDo = true;
                 }
+                
+                loopCount++;
+                lastTime = System.currentTimeMillis();
             }
             return slot;
         }
