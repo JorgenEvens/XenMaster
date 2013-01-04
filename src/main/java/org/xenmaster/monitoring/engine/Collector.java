@@ -124,7 +124,7 @@ public class Collector implements EventHandler<Record> {
     @Override
     public void onEvent(Record t, long l, boolean bln) throws Exception {
         Slot slot = slots.peek();
-        if (slot == null || !slot.isBeingProcessed()) {
+        if (slot == null || slot.isBeingProcessed()) {
             return;
         }
 
