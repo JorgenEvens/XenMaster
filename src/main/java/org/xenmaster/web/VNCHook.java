@@ -128,6 +128,14 @@ public class VNCHook extends WebCommandHandler {
                         cm.close(ci.connection);
                     }
                     break;
+                case "connectionHeartbeat":
+                    Arguments heartbeat = Arguments.fromJson( cmd.getData() );
+                    if( !connections.containsKey(heartbeat.ref)) {
+                        return new CommandException("Tried to write to unexisting connection", heartbeat.ref);
+                    }
+                    Connection ch = connections.get( heartbeat.ref );
+                    ch.lastHeartbeat = System.currentTimeMillis();
+                    break;
             }
         } catch (IOException | IllegalArgumentException ex) {
             Logger.getLogger(getClass()).error("Command failed : " + cmd.getName(), ex);
@@ -143,6 +151,7 @@ public class VNCHook extends WebCommandHandler {
         protected String reference;
         public InetSocketAddress waitForAddress;
         public long lastWriteTime;
+        public long lastHeartbeat;
         public URI uri;
         public boolean dismissedHttpOK;
         public Console console;
@@ -151,6 +160,7 @@ public class VNCHook extends WebCommandHandler {
             connectionCounter++;
             this.reference = "ConnectionRef:" + connectionCounter;
             this.clientId = client;
+            this.lastHeartbeat = System.currentTimeMillis();
         }
 
         public String getReference() {
@@ -276,15 +286,20 @@ public class VNCHook extends WebCommandHandler {
         cm.addActivityListener(new AL());
         cm.start();
         connections = new ConcurrentHashMap<>();
-        GlobalExecutorService.get().scheduleAtFixedRate(new Reaper(), 0, 1, TimeUnit.MINUTES);
+        GlobalExecutorService.get().scheduleAtFixedRate(new Reaper(), 0, 10, TimeUnit.SECONDS);
     }
 
     protected static class Reaper implements Runnable {
 
         @Override
         public void run() {
+            // Send a heartbeat
+            Command cmd = new Command("vnc", "connectionHeartbeat", new Arguments());
+            Commander.getInstance().commandeer(cmd, new Scope(Scope.Target.ALL));
+            
             for (Entry<String, Connection> entry : connections.entrySet()) {
-                if (System.currentTimeMillis() - entry.getValue().lastWriteTime > 1000 * 5) {
+                // Skipped 2 hearbeats, is probably dead.
+                if (System.currentTimeMillis() - entry.getValue().lastHeartbeat > 1000 * 20) {
                     try {
                         cm.close(entry.getValue().connection);
                     } catch (IOException ex) {
