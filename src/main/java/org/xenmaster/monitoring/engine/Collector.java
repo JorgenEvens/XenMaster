@@ -109,7 +109,7 @@ public class Collector implements EventHandler<Record> {
                 // Wait until 5 seconds have passed
                 long delta = System.currentTimeMillis() - slot.lastPolled;
                 // 5 wait + maximum response delay = 6 seconds
-                if (delta < 5000 + RESPONSE_DELAY || slot.isBeingProcessed()) {
+                if (delta < 5000 + RESPONSE_DELAY || slot.isBeingProcessed() || !slot.isStable()) {
                     try {
                         long sleepyTime = 5000 - delta;
 

@@ -37,7 +37,7 @@ public class Slot implements Comparable<Slot> {
     protected String reference;
     protected boolean connectToUpdates;
     protected boolean busy;
-    protected int errorCount;
+    protected int errorCount = 0;
     protected long lastPolled;
     private URLConnection connection;
 
@@ -85,6 +85,7 @@ public class Slot implements Comparable<Slot> {
             // Wait a minute until we try again
         } else {
             busy = true;
+            errorCount = 0;
         }
 
         return busy;

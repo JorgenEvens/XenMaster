@@ -403,7 +403,7 @@ public class VM extends NamedEntity {
     }
 
     public void setOtherConfig(Map<String, String> data) throws BadAPICallException {
-        this.otherConfig = setter(data, "other_config");
+        this.otherConfig = setter(data, "set_other_config");
     }
 
     public void setMemoryLimits(double maxStaticMemMb, double minStaticMemMb, double maxDynMemMb, double minDynMemMb) throws BadAPICallException {
