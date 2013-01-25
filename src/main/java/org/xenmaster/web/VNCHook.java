@@ -17,6 +17,8 @@
  */
 package org.xenmaster.web;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -29,22 +31,17 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-
 import net.wgr.server.web.handling.WebCommandHandler;
 import net.wgr.utility.GlobalExecutorService;
 import net.wgr.wcp.Commander;
 import net.wgr.wcp.Scope;
 import net.wgr.wcp.command.Command;
 import net.wgr.wcp.command.CommandException;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
-import org.xenmaster.connectivity.ConnectionMultiplexer;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import org.xenmaster.api.Console;
 import org.xenmaster.api.VM;
+import org.xenmaster.connectivity.ConnectionMultiplexer;
 import org.xenmaster.controller.Controller;
 
 /**
@@ -317,12 +314,8 @@ public class VNCHook extends WebCommandHandler {
             Commander.getInstance().commandeer(cmd, new Scope(Scope.Target.ALL));
             
             for (Entry<String, Connection> entry : connections.entrySet()) {
-<<<<<<< HEAD
-                if (System.currentTimeMillis() - entry.getValue().lastWriteTime > 1000 * 50) {
-=======
                 // Skipped 2 hearbeats, is probably dead.
                 if (System.currentTimeMillis() - entry.getValue().lastHeartbeat > 1000 * 20) {
->>>>>>> 69e8dfbdaef30933325f15489e8059d65327a586
                     try {
                         Logger.getLogger(getClass()).info("Reaper closing inactive connection " + entry.getValue().connection);
                         cm.close(entry.getValue().connection);
