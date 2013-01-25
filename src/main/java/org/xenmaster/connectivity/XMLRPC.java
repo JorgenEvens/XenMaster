@@ -35,7 +35,7 @@ public class XMLRPC {
     protected XmlRpcClientConfigImpl cfg;
     protected final XmlRpcClient client;
     protected final Logger logger = Logger.getLogger(getClass());
-    public static final int CONNECTION_TIMEOUT = 300;
+    public static final int CONNECTION_TIMEOUT = 3000;
 
     public XMLRPC(URL host) {
         cfg = new XmlRpcClientConfigImpl();

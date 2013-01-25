@@ -19,7 +19,6 @@ package org.xenmaster.api;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.xenmaster.controller.BadAPICallException;
 import org.xenmaster.controller.Controller;

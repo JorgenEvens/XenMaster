@@ -21,7 +21,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.net.InetAddress;
 import java.util.Map;
-
 import org.xenmaster.api.XenApiEntity;
 import org.xenmaster.api.XenApiMapField;
 
@@ -46,16 +45,13 @@ public class APIUtil {
             default:
                 if (type.isEnum()) {
                     String ucase = value.toString().toUpperCase();
-                    boolean found = false;
                     for (Object enumType : type.getEnumConstants()) {
                         if (enumType.toString().toUpperCase().equals(ucase)) {
-                            found = true;
                             return enumType;
                         }
                     }
-                    if (!found) {
-                        throw new IllegalArgumentException("Argument value does not belong to enum values of " + type.getCanonicalName());
-                    }
+                        
+                    throw new IllegalArgumentException("Argument value does not belong to enum values of " + type.getCanonicalName());
                 } else if (type.isArray()) {
                     // FIXME : This can break all too easily
                     Class t = type.getComponentType();

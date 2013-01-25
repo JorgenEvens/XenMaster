@@ -60,7 +60,7 @@ public class Pool {
     private Pool() {
         workers = new HashMap<>();
         rmi = new Thread(new RMIListener(), "Pool RMI");
-        channel = buildChannel();
+        //channel = buildChannel();
     }
 
     public static Pool get() {

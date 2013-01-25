@@ -18,8 +18,9 @@ package org.xenmaster.monitoring.data;
 
 import com.google.common.collect.Multimap;
 import com.thoughtworks.xstream.XStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.List;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -32,6 +33,7 @@ public class RRDUpdates {
 
     protected Meta meta;
     protected Multimap<Long, Double> data;
+    protected final static boolean DEBUG = true;
 
     public Multimap<Long, Double> getData() {
         return data;
@@ -75,6 +77,21 @@ public class RRDUpdates {
     }
 
     public static RRDUpdates parse(InputStream xmlStream) {
+        InputStream input = xmlStream;
+        
+        File dest = new File("rrdu_" + System.currentTimeMillis() + ".xml");
+        if (DEBUG) {
+            try (FileOutputStream fos = new FileOutputStream(dest)) {
+                IOUtils.copy(input, fos);
+                fos.flush();
+                fos.close();
+                input = new FileInputStream(dest);
+            }
+            catch (IOException ex) {
+                Logger.getLogger(RRDUpdates.class).error("Writing rrd file for debugging failed", ex);
+            }
+        }
+
         XStream xs = new XStream();
         xs.alias("xport", RRDUpdates.class);
         xs.alias("meta", Meta.class);
@@ -83,7 +100,12 @@ public class RRDUpdates {
         xs.registerLocalConverter(RRDUpdates.class, "data", new RRDUpdateConverter());
 
         try {
-            RRDUpdates fromXML = (RRDUpdates) xs.fromXML(xmlStream);
+            RRDUpdates fromXML = (RRDUpdates) xs.fromXML(input);
+            
+            if (DEBUG){
+                dest.delete();
+            }
+            
             return fromXML;
         }
         catch (RuntimeException ex) {

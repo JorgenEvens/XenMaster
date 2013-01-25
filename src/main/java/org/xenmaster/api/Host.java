@@ -22,7 +22,6 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.xenmaster.controller.BadAPICallException;
 import org.xenmaster.controller.Controller;
@@ -62,16 +61,15 @@ public class Host extends XenApiEntity {
         if (enabled) {
             disable();
         }
-        
+
         // todo : If this is a host we're connected to, do something smart and break up the connection
-        
         dispatch("shutdown");
     }
 
     public void disable() throws BadAPICallException {
         dispatch("disable");
     }
-    
+
     public void enable() throws BadAPICallException {
         dispatch("enable");
     }
@@ -99,7 +97,7 @@ public class Host extends XenApiEntity {
     public Map<String, String> getChipsetInfo() {
         return chipsetInfo;
     }
-    
+
     public boolean hasIOMMU() {
         return (getChipsetInfo().containsKey("iommu") && Boolean.parseBoolean(getChipsetInfo().get("iommu")));
     }
@@ -107,7 +105,7 @@ public class Host extends XenApiEntity {
     public Map<String, String> getCpuInfo() {
         return cpuInfo;
     }
-    
+
     public InetAddress getAddress() throws UnknownHostException {
         return InetAddress.getByName(address);
     }
@@ -169,7 +167,7 @@ public class Host extends XenApiEntity {
     }
 
     @Override
-	protected Map<String, String> interpretation() {
+    protected Map<String, String> interpretation() {
         HashMap<String, String> i = new HashMap<>();
         i.put("majorApiVersion", "api_version_major");
         i.put("minorApiVersion", "api_version_minor");

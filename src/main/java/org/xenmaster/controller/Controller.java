@@ -20,7 +20,6 @@ package org.xenmaster.controller;
 import java.net.URL;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.log4j.Logger;
 import org.xenmaster.api.Session;
 import org.xenmaster.entities.Host;

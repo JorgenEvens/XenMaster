@@ -1,6 +1,7 @@
 target/
-/web/
+#/web/
 netboot/
+xm.log.*
 
 # Compiled source #
 ###################
@@ -38,3 +39,4 @@ Icon?
 Thumbs.db
 .DS_Store
 *.versionsBackup
+/.settings/

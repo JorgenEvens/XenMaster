@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import org.xenmaster.api.helpers.iSCSI;
 import org.xenmaster.api.store.Store;
 import org.xenmaster.controller.BadAPICallException;

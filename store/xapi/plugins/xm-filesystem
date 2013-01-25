@@ -32,22 +32,28 @@ def disks( session, args ):
 			disks.append( dev );
 
 	return json.dumps(disks)
-	
-def get_boot( name ):
-	matches = []
-	boot_files = os.listdir("/boot/")
+
+def get_files_matching ( name, dir ):
+        matches = []
+	boot_files = os.listdir( dir )
 	
 	for f in boot_files:
 		if( f.startswith( name ) ):
-			matches.append( "/boot/" + f )
+			matches.append( dir + f )
 			
 	return matches
 	
+def get_boot( name ):
+	return get_files_matching( name, "/boot/" )
+
+def get_boot_guest( name ):
+	return get_files_matching( name, "/boot/guest/" )
+	
 def kernels( session, args ):
-	return json.dumps(get_boot("vmlinuz-"))
+	return json.dumps(get_boot_guest("vmlinuz"))
 	
 def ramdisks( session, args ):
-	return json.dumps(get_boot("initrd"))
+	return json.dumps(get_boot_guest("initrd"))
 
 if __name__ == "__main__":
 	XenAPIPlugin.dispatch({

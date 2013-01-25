@@ -96,6 +96,8 @@ public class Collector implements EventHandler<Record> {
                 if (loopCount > 200 && System.currentTimeMillis() - lastTime < TIMESPAN) {
                     // We've spun over 200 times in less then 2 seconds, indicating slot hndling has crashed
                     throw new IllegalStateException("Slot handling is defective");
+                } else if (System.currentTimeMillis() - lastTime > TIMESPAN) {
+                    loopCount = 0;                    
                 }
                 
                 slot = slots.peek();
@@ -136,7 +138,7 @@ public class Collector implements EventHandler<Record> {
     @Override
     public void onEvent(Record t, long l, boolean bln) throws Exception {
         Slot slot = slots.peek();
-        if (slot == null || !slot.isBeingProcessed()) {
+        if (slot == null || slot.isBeingProcessed()) {
             return;
         }
 

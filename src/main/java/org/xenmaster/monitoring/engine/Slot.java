@@ -91,9 +91,11 @@ public class Slot implements Comparable<Slot> {
     }
 
     public void processingDone() throws IOException {
-        busy = false;
-        connection.getInputStream().close();
-        connection = null;
+        if (busy) {
+            busy = false;
+            connection.getInputStream().close();
+            connection = null;
+        }
     }
 
     public long getLastPollingTime() {
@@ -121,7 +123,7 @@ public class Slot implements Comparable<Slot> {
         return hash;
     }
 
-    public URLConnection getConnection() {      
+    public URLConnection getConnection() {
         try {
             if (connection == null || connectToUpdates) {
                 Host host = new Host(reference);
@@ -143,6 +145,7 @@ public class Slot implements Comparable<Slot> {
             }
         }
         catch (Exception ex) {
+            busy = false;
             Logger.getLogger(getClass()).error("Failed to retrieve statistics", ex);
         }
 

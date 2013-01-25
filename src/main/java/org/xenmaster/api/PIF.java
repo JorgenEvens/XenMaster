@@ -19,7 +19,6 @@ package org.xenmaster.api;
 
 import java.net.InetAddress;
 import java.util.List;
-
 import org.xenmaster.controller.BadAPICallException;
 
 /**
@@ -33,6 +32,7 @@ public class PIF extends XenApiEntity {
     protected int vlan;
     protected String device;
     protected String mac;
+    protected Mode mode;
     protected boolean attached, management, physical;
     protected String ip, netmask, gateway, dnsServer;
     
@@ -110,6 +110,10 @@ public class PIF extends XenApiEntity {
 
     public boolean isPhysical() {
         return physical;
+    }
+    
+    public Mode getMode() {
+        return mode;
     }
 
     public static enum Mode {

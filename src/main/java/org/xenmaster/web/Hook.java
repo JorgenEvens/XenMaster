@@ -17,6 +17,8 @@
  */
 package org.xenmaster.web;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -26,22 +28,17 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-
 import net.wgr.core.ReflectionUtils;
 import net.wgr.server.web.handling.WebCommandHandler;
 import net.wgr.utility.GlobalExecutorService;
 import net.wgr.wcp.command.Command;
 import net.wgr.wcp.command.CommandException;
 import net.wgr.wcp.command.Result;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.xenmaster.api.util.APIUtil;
 import org.xenmaster.api.util.CachingFacility;
 import org.xenmaster.controller.BadAPICallException;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 /**
  * 
@@ -63,7 +60,7 @@ public class Hook extends WebCommandHandler {
     }
 
     @Override
-	public Object execute(Command cmd) {
+    public Object execute(Command cmd) {
         // Cleanup
         clazz = null;
         current = null;
@@ -224,7 +221,7 @@ public class Hook extends WebCommandHandler {
                 current = m.invoke(current, args);
             }
         } catch (InvocationTargetException ex) {
-            // If it has the cause, it will be parsed by the next handler
+            // If it has a cause, it will be parsed by the next handler
             if (ex.getCause() == null) {
                 Logger.getLogger(getClass()).info("Failed to invoke method", ex);
                 current = new CommandException(ex, commandName);

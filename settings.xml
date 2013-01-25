@@ -6,7 +6,7 @@
         <map>
             <entry>
                 <string>URL</string>
-                <string>http://192.168.35.57</string>
+                <string>http://192.168.1.254</string>
             </entry>
             <entry>
                 <string>User</string>
@@ -14,7 +14,7 @@
             </entry>
             <entry>
                 <string>Password</string>
-                <string>Eshykv12</string>
+                <string>WFxrPUm5WA</string>
             </entry>
         </map>
     </entry>
@@ -24,10 +24,6 @@
             <entry>
                 <string>Level</string>
                 <string>INFO</string>
-            </entry>
-            <entry>
-                <string>File</string>
-                <string>xm.log</string>
             </entry>
         </map>
     </entry>

@@ -125,6 +125,8 @@ public class VNCHook extends WebCommandHandler {
                     Connection ci = connections.get(close.ref);
 
                     if (ci != null) {
+                        // Indicate that we've initiated the connection close
+                        ci.lastWriteTime = -1;
                         cm.close(ci.connection);
                     }
                     break;
@@ -234,9 +236,26 @@ public class VNCHook extends WebCommandHandler {
             for (Iterator<Entry<String, Connection>> it = connections.entrySet().iterator(); it.hasNext();) {
                 Entry<String, Connection> entry = it.next();
                 if (entry.getValue().connection == connection) {
-                    Command cmd = new Command("vnc", "connectionClosed", new Arguments("", entry.getKey()));
-                    Commander.getInstance().commandeer(cmd, new Scope(Scope.Target.ALL));
-                    it.remove();
+                    Connection conn = entry.getValue();
+
+                    // Check if this disconnect was initiated by a user
+                    if (conn.lastWriteTime == -1) {
+                        Command cmd = new Command("vnc", "connectionClosed", new Arguments("", entry.getKey()));
+                        Commander.getInstance().commandeer(cmd, new Scope(Scope.Target.ALL));
+                        it.remove();
+                    } else {
+                        try {
+                            // Try to reconnect
+                            URI uri = new URI(conn.console.getLocation());
+                            conn.uri = uri;
+                            InetSocketAddress isa = new InetSocketAddress(uri.getHost(), 80);
+                            conn.waitForAddress = isa;
+                            conn.lastWriteTime = System.currentTimeMillis();
+                            cm.addConnection(isa);
+                        } catch (URISyntaxException | IOException | InterruptedException ex) {
+                            Logger.getLogger(getClass()).error("Failed to reinitiate connection", ex);
+                        }
+                    }
                     break;
                 }
             }
@@ -284,8 +303,9 @@ public class VNCHook extends WebCommandHandler {
         @Override
         public void run() {
             for (Entry<String, Connection> entry : connections.entrySet()) {
-                if (System.currentTimeMillis() - entry.getValue().lastWriteTime > 1000 * 5) {
+                if (System.currentTimeMillis() - entry.getValue().lastWriteTime > 1000 * 50) {
                     try {
+                        Logger.getLogger(getClass()).info("Reaper closing inactive connection " + entry.getValue().connection);
                         cm.close(entry.getValue().connection);
                     } catch (IOException ex) {
                         Logger.getLogger(getClass()).error("Failed to close connection", ex);
