@@ -1,6 +1,7 @@
 target/
 /web/
 netboot/
+settings.xml
 xm.log.*
 
 # Compiled source #
