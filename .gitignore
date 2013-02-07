@@ -1,5 +1,5 @@
 target/
-#/web/
+/web/
 netboot/
 xm.log.*
 
