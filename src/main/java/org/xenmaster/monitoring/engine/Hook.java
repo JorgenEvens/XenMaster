@@ -45,6 +45,6 @@ public class Hook extends WebCommandHandler {
     }
 
     public final void requestData(DataRequest req, Connection conn) {
-        MonitoringAgent.instance().getCorrelator().getDistributor().serveRequest(req, conn);
+        MonitoringAgent.get().getCorrelator().getDistributor().serveRequest(req, conn);
     }
 }

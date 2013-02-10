@@ -58,7 +58,7 @@ public class CachingFacility {
     }
 
     protected final void registerCacheUpdater() {
-        MonitoringAgent.instance().getEventHandler().addListener(new EventListener() {
+        MonitoringAgent.get().getEventHandler().addListener(new EventListener() {
 
             @Override
             public void eventOcurred(Event event) {

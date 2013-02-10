@@ -78,16 +78,17 @@ public class RRDUpdates {
 
     public static RRDUpdates parse(InputStream xmlStream) {
         InputStream input = xmlStream;
-        
-        File dest = new File("rrdu_" + System.currentTimeMillis() + ".xml");
+
+        File dest = null;
         if (DEBUG) {
+            dest = new File("rrdu_" + System.currentTimeMillis() + ".xml");
+            
             try (FileOutputStream fos = new FileOutputStream(dest)) {
                 IOUtils.copy(input, fos);
                 fos.flush();
                 fos.close();
                 input = new FileInputStream(dest);
-            }
-            catch (IOException ex) {
+            } catch (IOException ex) {
                 Logger.getLogger(RRDUpdates.class).error("Writing rrd file for debugging failed", ex);
             }
         }
@@ -101,15 +102,14 @@ public class RRDUpdates {
 
         try {
             RRDUpdates fromXML = (RRDUpdates) xs.fromXML(input);
-            
-            if (DEBUG){
+
+            if (DEBUG) {
                 dest.delete();
             }
-            
+
             return fromXML;
-        }
-        catch (RuntimeException ex) {
-            Logger.getLogger(RRDUpdates.class).error("Failed to parse RRD updates", ex);
+        } catch (RuntimeException ex) {
+            Logger.getLogger(RRDUpdates.class).error("Failed to parse RRD updates, check " + dest.getName(), ex);
             return null;
         }
     }

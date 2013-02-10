@@ -97,7 +97,7 @@ public class App implements Daemon {
         DataPool.simpleBoot(s.getString("Cassandra.PoolName"), s.getString("Cassandra.Host"), s.getString("Cassandra.Keyspace"));
         Bootstrapper b = new Bootstrapper();
         b.boot();
-
+        
         Controller.build(new URL(s.getString("Xen.URL")));
         Controller.getSession().loginWithPassword(s.getString("Xen.User"), s.getString("Xen.Password"));
 
@@ -122,8 +122,8 @@ public class App implements Daemon {
         }
 
         Pool.get().boot();
-        MonitoringAgent.instance().boot();
-        MonitoringAgent.instance().start();
+        MonitoringAgent.get().boot();
+        MonitoringAgent.get().start();
 
         server = new Server();
         server.boot();

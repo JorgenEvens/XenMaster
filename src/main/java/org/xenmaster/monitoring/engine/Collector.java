@@ -38,7 +38,6 @@ public class Collector implements EventHandler<Record> {
 
     protected long lastUpdate;
     protected static PriorityQueue<Slot> slots = new PriorityQueue<>();
-    protected final static int RESPONSE_DELAY = 1000;
 
     public void boot() {
         createConnections();
@@ -55,8 +54,7 @@ public class Collector implements EventHandler<Record> {
             for (Host h : Host.getAll()) {
                 newSlots.add(new Slot(h));
             }
-        }
-        catch (BadAPICallException ex) {
+        } catch (BadAPICallException ex) {
             Logger.getLogger(getClass()).error("Failed to get all hosts", ex);
         }
 
@@ -83,9 +81,9 @@ public class Collector implements EventHandler<Record> {
     }
 
     public static abstract class TimingProvider implements Runnable {
-        
+
         private int loopCount;
-        private static int TIMESPAN=2000;
+        private static int TIMESPAN = 2000;
         private long lastTime;
 
         protected final Slot getNextSlot() {
@@ -94,12 +92,13 @@ public class Collector implements EventHandler<Record> {
 
             while (!gotWorkToDo) {
                 if (loopCount > 200 && System.currentTimeMillis() - lastTime < TIMESPAN) {
-                    // We've spun over 200 times in less then 2 seconds, indicating slot hndling has crashed
+                    // We've spun over 200 times in less then 2 seconds, indicating slot handling has crashed
                     throw new IllegalStateException("Slot handling is defective");
-                } else if (System.currentTimeMillis() - lastTime > TIMESPAN) {
-                    loopCount = 0;                    
+                } else if (System.currentTimeMillis() - lastTime >= TIMESPAN) {
+                    loopCount = 0;
                 }
                 
+                lastTime = System.currentTimeMillis();
                 slot = slots.peek();
                 if (slot == null) {
                     Logger.getLogger(getClass()).warn("No server slots available. Exiting ...");
@@ -108,18 +107,20 @@ public class Collector implements EventHandler<Record> {
 
                 // Wait until 5 seconds have passed
                 long delta = System.currentTimeMillis() - slot.lastPolled;
-                // 5 wait + maximum response delay = 6 seconds
-                if (delta < 5000 + RESPONSE_DELAY || slot.isBeingProcessed() || !slot.isStable()) {
+                // Sleep when all slots have been updated in less then 5 seconds,
+                // or if they are being processed or unstable
+                if (delta < 5000 || slot.isBeingProcessed() || !slot.isStable()) {
                     try {
                         long sleepyTime = 5000 - delta;
 
-                        if (Math.signum(sleepyTime) == -1.0) {
+                        if (Math.signum(sleepyTime) != 1.0) {
                             Thread.sleep(5000);
                         } else {
                             Thread.sleep(sleepyTime);
                         }
-                    }
-                    catch (InterruptedException ex) {
+
+
+                    } catch (InterruptedException ex) {
                         Logger.getLogger(getClass()).error("Failed to catch a shut-eye", ex);
                     }
                 }
@@ -127,9 +128,8 @@ public class Collector implements EventHandler<Record> {
                 if (!slot.isBeingProcessed() && slot.startProcessing()) {
                     gotWorkToDo = true;
                 }
-                
+
                 loopCount++;
-                lastTime = System.currentTimeMillis();
             }
             return slot;
         }
@@ -138,7 +138,7 @@ public class Collector implements EventHandler<Record> {
     @Override
     public void onEvent(Record t, long l, boolean bln) throws Exception {
         Slot slot = slots.peek();
-        if (slot == null || slot.isBeingProcessed()) {
+        if (slot == null || !slot.isBeingProcessed()) {
             return;
         }
 

@@ -79,13 +79,12 @@ public class MonitoringAgent {
             timeInfo.computeDetails();
             Logger.getLogger(getClass()).info("Current time " + new DateTime(System.currentTimeMillis() + timeInfo.getOffset()).toString("dd/MM/yyyy HH:mm:ss.S")
                     + ". Clock drift " + timeInfo.getOffset() + " milliseconds");
-        }
-        catch (IOException ex) {
+        } catch (IOException ex) {
             Logger.getLogger(getClass()).warn("NTP time retrieval failed", ex);
         }
     }
 
-    public static MonitoringAgent instance() {
+    public static MonitoringAgent get() {
         if (instance == null) {
             instance = new MonitoringAgent();
         }
@@ -94,7 +93,6 @@ public class MonitoringAgent {
 
     protected final void setUpEngine() {
         engine = Executors.newCachedThreadPool(new ThreadFactory() {
-
             @Override
             public Thread newThread(Runnable r) {
                 Thread t = new Thread(r);
@@ -130,11 +128,12 @@ public class MonitoringAgent {
             while (run) {
                 long sequence = ringBuffer.next();
                 Slot nextSlot = getNextSlot();
+
                 if (nextSlot == null) {
                     run = false;
                     break;
                 }
-                
+
                 Record r = ringBuffer.get(sequence);
                 r.attachSlot(nextSlot);
                 ringBuffer.publish(sequence);
