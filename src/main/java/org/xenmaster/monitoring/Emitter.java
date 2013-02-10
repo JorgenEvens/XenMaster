@@ -125,7 +125,7 @@ public class Emitter {
     public static void emit(LogEntry le) {
         LogEntry filledIn = le;
         filledIn.doLocalization();
-        Commander.getInstance().commandeer(new Command("log", "event", le), new Scope(Scope.Target.ALL));
+        Commander.get().commandeer(new Command("log", "event", le), new Scope(Scope.Target.ALL));
     }
 
     protected static final class EventDescriptor {

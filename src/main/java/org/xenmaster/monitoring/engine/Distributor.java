@@ -75,7 +75,7 @@ public class Distributor {
             if (entry.getKey().connection != null) {
                 cmd = new Command("monitoring", "update", entry.getValue());
                 Scope scope = new Scope(entry.getKey().connection.getId());
-                Commander.getInstance().commandeer(cmd, scope);
+                Commander.get().commandeer(cmd, scope);
             } else if (entry.getKey().listener != null) {
                 entry.getKey().listener.update(entry.getValue());
             }

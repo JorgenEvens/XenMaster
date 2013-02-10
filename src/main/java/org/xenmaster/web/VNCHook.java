@@ -235,7 +235,7 @@ public class VNCHook extends WebCommandHandler {
             ArrayList<UUID> ids = new ArrayList<>();
             ids.add(conn.clientId);
             Scope scope = new Scope(ids);
-            Commander.getInstance().commandeer(cmd, scope);
+            Commander.get().commandeer(cmd, scope);
         }
 
         @Override
@@ -248,7 +248,7 @@ public class VNCHook extends WebCommandHandler {
                     // Check if this disconnect was initiated by a user
                     if (conn.lastWriteTime == -1) {
                         Command cmd = new Command("vnc", "connectionClosed", new Arguments("", entry.getKey()));
-                        Commander.getInstance().commandeer(cmd, new Scope(Scope.Target.ALL));
+                        Commander.get().commandeer(cmd, new Scope(Scope.Target.ALL));
                         it.remove();
                     } else {
                         try {
@@ -293,7 +293,7 @@ public class VNCHook extends WebCommandHandler {
             ArrayList<UUID> ids = new ArrayList<>();
             ids.add(conn.clientId);
             Scope scope = new Scope(ids);
-            Commander.getInstance().commandeer(cmd, scope);
+            Commander.get().commandeer(cmd, scope);
         }
     }
 
@@ -311,7 +311,7 @@ public class VNCHook extends WebCommandHandler {
         public void run() {
             // Send a heartbeat
             Command cmd = new Command("vnc", "connectionHeartbeat", new Arguments());
-            Commander.getInstance().commandeer(cmd, new Scope(Scope.Target.ALL));
+            Commander.get().commandeer(cmd, new Scope(Scope.Target.ALL));
             
             for (Entry<String, Connection> entry : connections.entrySet()) {
                 // Skipped 2 hearbeats, is probably dead.
