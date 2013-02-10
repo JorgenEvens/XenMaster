@@ -21,8 +21,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.net.InetAddress;
 import java.util.Map;
-import org.xenmaster.api.XenApiEntity;
-import org.xenmaster.api.XenApiMapField;
+import org.xenmaster.api.entities.XenApiEntity;
 
 /**
  * 

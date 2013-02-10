@@ -1,4 +1,4 @@
-/* Hook.java
+/* Monitor.java
  * Copyright (C) 2012 Wannes De Smet
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.xenmaster.monitoring.engine;
+package org.xenmaster.api;
 
 import com.google.gson.Gson;
 import net.wgr.server.web.handling.WebCommandHandler;
@@ -28,11 +28,11 @@ import org.xenmaster.monitoring.data.DataRequest;
  * @created Feb 17, 2012
  * @author double-u
  */
-public class Hook extends WebCommandHandler {
+public class Monitor extends WebCommandHandler {
 
     protected static Gson gson = new Gson();
 
-    public Hook() {
+    public Monitor() {
         super("monitoring");
     }
 

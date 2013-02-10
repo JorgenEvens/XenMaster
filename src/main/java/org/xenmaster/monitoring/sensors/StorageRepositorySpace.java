@@ -19,7 +19,7 @@ package org.xenmaster.monitoring.sensors;
 
 import org.apache.log4j.Logger;
 import org.joda.time.Period;
-import org.xenmaster.api.SR;
+import org.xenmaster.api.entities.SR;
 import org.xenmaster.controller.BadAPICallException;
 import org.xenmaster.monitoring.LogEntry;
 import org.xenmaster.monitoring.LogKeeper;

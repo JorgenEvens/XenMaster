@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.xenmaster.api;
+package org.xenmaster.api.entities;
 
 import java.io.Serializable;
 import java.lang.annotation.Retention;
@@ -25,6 +25,7 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import net.wgr.core.ReflectionUtils;
 import org.apache.log4j.Logger;
+import org.xenmaster.api.IllegalReferenceException;
 import org.xenmaster.api.util.CachingFacility;
 import org.xenmaster.controller.BadAPICallException;
 import org.xenmaster.controller.Controller;

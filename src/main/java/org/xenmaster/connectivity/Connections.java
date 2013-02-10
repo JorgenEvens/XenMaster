@@ -21,7 +21,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import org.xenmaster.api.Session;
+import org.xenmaster.api.entities.Session;
 
 /**
  * 

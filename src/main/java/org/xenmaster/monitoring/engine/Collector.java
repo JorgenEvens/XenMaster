@@ -22,7 +22,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
 import org.apache.log4j.Logger;
-import org.xenmaster.api.Host;
+import org.xenmaster.api.entities.Host;
 import org.xenmaster.controller.BadAPICallException;
 import org.xenmaster.monitoring.data.RRD;
 import org.xenmaster.monitoring.data.RRDUpdates;

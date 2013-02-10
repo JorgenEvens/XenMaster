@@ -39,8 +39,8 @@ import net.wgr.wcp.command.Command;
 import net.wgr.wcp.command.CommandException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
-import org.xenmaster.api.Console;
-import org.xenmaster.api.VM;
+import org.xenmaster.api.entities.Console;
+import org.xenmaster.api.entities.VM;
 import org.xenmaster.connectivity.ConnectionMultiplexer;
 import org.xenmaster.controller.Controller;
 

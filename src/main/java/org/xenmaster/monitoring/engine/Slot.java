@@ -24,7 +24,7 @@ import java.util.Objects;
 import net.wgr.settings.Settings;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
-import org.xenmaster.api.Host;
+import org.xenmaster.api.entities.Host;
 
 /**
  *

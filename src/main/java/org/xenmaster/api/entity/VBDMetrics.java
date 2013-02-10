@@ -1,5 +1,5 @@
 /*
- * HostMetrics.java
+ * VBDMetrics.java
  * Copyright (C) 2011,2012 Wannes De Smet
  * 
  * This program is free software: you can redistribute it and/or modify
@@ -15,36 +15,38 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.xenmaster.api;
+package org.xenmaster.api.entities;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
 
 /**
  * 
- * @created Oct 6, 2011
+ * @created Oct 20, 2011
  * @author double-u
  */
-public class HostMetrics extends XenApiEntity {
-    protected int totalMemory, freeMemory;
-    protected Date lastUpdate;
+public class VBDMetrics extends XenApiEntity {
+    
+    protected float readKbs, writeKbs;
+    protected Date lastUpdated;
 
-    public HostMetrics(String ref, boolean autoFill) {
+    public VBDMetrics(String ref, boolean autoFill) {
         super(ref, autoFill);
     }
 
-    public HostMetrics(String ref) {
+    public VBDMetrics(String ref) {
         super(ref);
     }
 
-    @Override
-    protected Map<String, String> interpretation() {
-        HashMap<String, String> m = new HashMap<>();
-        m.put("actualMemory", "memory_actual");
-        return m;
+    public Date getLastUpdated() {
+        return lastUpdated;
     }
 
+    // TODO rename
+    public float getReadKbs() {
+        return readKbs;
+    }
 
+    public float getWriteKbs() {
+        return writeKbs;
+    }
 }

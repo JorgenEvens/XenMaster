@@ -8,7 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.wgr.wcp.command.Command;
 import org.xenmaster.TestBase;
-import org.xenmaster.api.Host;
+import org.xenmaster.api.entities.Host;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;

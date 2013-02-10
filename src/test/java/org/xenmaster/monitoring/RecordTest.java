@@ -6,9 +6,9 @@ package org.xenmaster.monitoring;
 
 import org.xenmaster.monitoring.data.Record;
 import java.util.List;
-import org.xenmaster.api.GuestMetrics;
-import org.xenmaster.api.VM;
-import org.xenmaster.api.VMMetrics;
+import org.xenmaster.api.entities.GuestMetrics;
+import org.xenmaster.api.entities.VM;
+import org.xenmaster.api.entities.VMMetrics;
 import org.xenmaster.controller.BadAPICallException;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
