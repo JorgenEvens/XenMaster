@@ -21,7 +21,7 @@ import java.net.URL;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
-import org.xenmaster.api.entities.Session;
+import org.xenmaster.api.entity.Session;
 import org.xenmaster.entities.Host;
 
 /**

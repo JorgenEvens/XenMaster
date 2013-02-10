@@ -25,7 +25,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.xenmaster.api.entities.Host;
+import org.xenmaster.api.entity.Host;
 import org.xenmaster.controller.BadAPICallException;
 import org.xenmaster.controller.Controller;
 

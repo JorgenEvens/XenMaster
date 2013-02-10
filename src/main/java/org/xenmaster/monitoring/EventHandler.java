@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.log4j.Logger;
-import org.xenmaster.api.entities.Event;
+import org.xenmaster.api.entity.Event;
 import org.xenmaster.controller.BadAPICallException;
 
 /**

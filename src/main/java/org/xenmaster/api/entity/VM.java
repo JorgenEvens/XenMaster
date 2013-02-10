@@ -15,11 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.xenmaster.api.entities;
+package org.xenmaster.api.entity;
 
-import org.xenmaster.api.entities.Console;
-import org.xenmaster.api.entities.GuestMetrics;
-import org.xenmaster.api.entities.Host;
+import org.xenmaster.api.entity.Console;
+import org.xenmaster.api.entity.GuestMetrics;
+import org.xenmaster.api.entity.Host;
 import java.util.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.xenmaster.controller.BadAPICallException;

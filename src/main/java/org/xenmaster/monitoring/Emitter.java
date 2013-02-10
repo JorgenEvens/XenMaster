@@ -33,9 +33,9 @@ import net.wgr.wcp.Scope;
 import net.wgr.wcp.command.Command;
 
 import org.apache.log4j.Logger;
-import org.xenmaster.api.entities.Event;
-import org.xenmaster.api.entities.NamedEntity;
-import org.xenmaster.api.entities.Task;
+import org.xenmaster.api.entity.Event;
+import org.xenmaster.api.entity.NamedEntity;
+import org.xenmaster.api.entity.Task;
 import org.xenmaster.api.util.CachingFacility;
 import org.xenmaster.monitoring.LogEntry.Level;
 

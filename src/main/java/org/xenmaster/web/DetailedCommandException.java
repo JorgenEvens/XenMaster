@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 import net.wgr.lang.I18N;
 import net.wgr.wcp.command.CommandException;
 
-import org.xenmaster.api.entities.NamedEntity;
+import org.xenmaster.api.entity.NamedEntity;
 import org.xenmaster.controller.BadAPICallException;
 
 /**

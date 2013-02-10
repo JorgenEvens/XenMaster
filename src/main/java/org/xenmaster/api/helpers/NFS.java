@@ -20,9 +20,9 @@ package org.xenmaster.api.helpers;
 import java.net.InetAddress;
 import java.util.HashMap;
 
-import org.xenmaster.api.entities.Host;
-import org.xenmaster.api.entities.PBD;
-import org.xenmaster.api.entities.SR;
+import org.xenmaster.api.entity.Host;
+import org.xenmaster.api.entity.PBD;
+import org.xenmaster.api.entity.SR;
 import org.xenmaster.api.store.Store;
 import org.xenmaster.controller.BadAPICallException;
 

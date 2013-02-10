@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.xenmaster.api.entities.Host;
+import org.xenmaster.api.entity.Host;
 import org.xenmaster.controller.BadAPICallException;
 
 /**
