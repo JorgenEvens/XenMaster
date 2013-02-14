@@ -16,10 +16,8 @@
  */
 package org.xenmaster.api;
 
-import com.google.gson.Gson;
-import net.wgr.server.web.handling.WebCommandHandler;
-import net.wgr.wcp.command.Command;
 import net.wgr.wcp.connectivity.Connection;
+import org.xenmaster.api.util.APIHook;
 import org.xenmaster.monitoring.MonitoringAgent;
 import org.xenmaster.monitoring.data.DataRequest;
 
@@ -28,23 +26,13 @@ import org.xenmaster.monitoring.data.DataRequest;
  * @created Feb 17, 2012
  * @author double-u
  */
-public class Monitor extends WebCommandHandler {
+public class Monitor extends APIHook {
 
-    protected static Gson gson = new Gson();
-
-    public Monitor() {
-        super("monitoring");
+    public Monitor(Connection connection) {
+        super(connection);
     }
 
-    @Override
-    public Object execute(Command cmd) {
-        if (cmd.getName().equals("requestData")) {
-            requestData(gson.fromJson(cmd.getData(), DataRequest.class), cmd.getConnection());
-        }
-        return null;
-    }
-
-    public final void requestData(DataRequest req, Connection conn) {
-        MonitoringAgent.get().getCorrelator().getDistributor().serveRequest(req, conn);
+    public void requestData(DataRequest req) {
+        MonitoringAgent.get().getCorrelator().getDistributor().serveRequest(req, connection);
     }
 }

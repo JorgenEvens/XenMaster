@@ -17,10 +17,11 @@
 package org.xenmaster.monitoring.data;
 
 import java.util.List;
+import java.util.UUID;
 import org.joda.time.Period;
 
 /**
- * 
+ *
  * @created Feb 18, 2012
  * @author double-u
  */
@@ -28,7 +29,7 @@ public class DataRequest {
 
     protected List<String> keys;
     protected DefaultKeySets keySet;
-    protected String reference;
+    protected UUID id;
     protected boolean vm;
     protected boolean updates;
     protected Period period;
@@ -36,8 +37,8 @@ public class DataRequest {
     public DataRequest() {
     }
 
-    public DataRequest(String reference, boolean isVM, DefaultKeySets keySet) {
-        this.reference = reference;
+    public DataRequest(UUID id, boolean isVM, DefaultKeySets keySet) {
+        this.id = id;
         this.vm = isVM;
         this.keySet = keySet;
     }
@@ -50,8 +51,8 @@ public class DataRequest {
         return period;
     }
 
-    public String getReference() {
-        return reference;
+    public UUID getId() {
+        return id;
     }
 
     public boolean isUpdates() {
@@ -65,10 +66,10 @@ public class DataRequest {
     /**
      * Checks if the key matches this request
      * @param datakey
-     * @return 
+     * @return
      */
     public boolean match(DataKey datakey) {
-        if (!datakey.getReference().equals(reference)) {
+        if (!datakey.getId().equals(id)) {
             return false;
         }
 

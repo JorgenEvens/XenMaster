@@ -18,6 +18,7 @@
 package org.xenmaster.monitoring.data;
 
 import java.util.Objects;
+import java.util.UUID;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -27,13 +28,13 @@ import org.apache.commons.lang.StringUtils;
  */
 public class DataKey {
 
-    protected String reference;
+    protected UUID id;
     protected String referencedType;
     protected Type type;
     protected String name;
 
-    public DataKey(String reference, String referencedType, Type type, String name) {
-        this.reference = reference;
+    public DataKey(String id, String referencedType, Type type, String name) {
+        this.id = UUID.fromString(id);
         this.type = type;
         this.name = name;
         this.referencedType = referencedType;
@@ -53,14 +54,15 @@ public class DataKey {
         return name;
     }
 
-    public String getReference() {
-        return reference;
+    public UUID getId() {
+        return id;
     }
 
     public Type getType() {
         return type;
     }
 
+    @Override
     public boolean equals(Object obj) {
         if (obj == null) {
             return false;
@@ -69,7 +71,7 @@ public class DataKey {
             return false;
         }
         final DataKey other = (DataKey) obj;
-        if (!Objects.equals(this.reference, other.reference)) {
+        if (!Objects.equals(this.id, other.id)) {
             return false;
         }
         if (this.type != other.type) {
@@ -81,12 +83,14 @@ public class DataKey {
         return true;
     }
 
+    @Override
     public int hashCode() {
         int hash = 7;
         return hash;
     }
 
+    @Override
     public String toString() {
-        return type.name() + ':' + referencedType + ':' + reference + ':' + name;
+        return type.name() + ':' + referencedType + ':' + id.toString() + ':' + name;
     }
 }
