@@ -1,6 +1,6 @@
 [submodule "XenMaster-WebUI"]
 	path = XenMaster-WebUI
-	url = git://github.com/NoSTaBoNN/XenMaster-WebUI.git
+	url = git@github.com:NoSTaBoNN/XenMaster-WebUI.git
 [submodule "web"]
 	path = web
-	url = git://github.com/NoSTaBoNN/XenMaster-WebUI.git
+	url = git@github.com:NoSTaBoNN/XenMaster-WebUI.git
