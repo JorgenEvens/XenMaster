@@ -1,8 +1,14 @@
 target/
+# Do not commit submodule files
 web/
+# Netboot files are downloaded on first use
 netboot/
+# These aren't the settings you're looking for
 settings.xml
+# Do not commit logs
 xm.log.*
+# Evade debug RRD dumps
+rrdu*.xml
 
 # Compiled source #
 ###################

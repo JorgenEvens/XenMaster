@@ -19,6 +19,7 @@ package org.xenmaster.web;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -34,14 +35,16 @@ import net.wgr.utility.GlobalExecutorService;
 import net.wgr.wcp.command.Command;
 import net.wgr.wcp.command.CommandException;
 import net.wgr.wcp.command.Result;
+import net.wgr.wcp.connectivity.Connection;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.xenmaster.api.util.APIHook;
 import org.xenmaster.api.util.APIUtil;
 import org.xenmaster.api.util.CachingFacility;
 import org.xenmaster.controller.BadAPICallException;
 
 /**
- * 
+ *
  * @created Oct 1, 2011
  * @author double-u
  */
@@ -51,6 +54,7 @@ public class Hook extends WebCommandHandler {
     protected Class clazz = null;
     protected Object current = null;
     protected String className = "", commandName;
+    protected Connection connection;
 
     public Hook() {
         super("xen");
@@ -65,6 +69,7 @@ public class Hook extends WebCommandHandler {
         clazz = null;
         current = null;
         className = commandName = "";
+        connection = cmd.getConnection();
 
         GsonBuilder builder = new GsonBuilder();
         builder.registerTypeAdapter(APICall.class, new APICallDecoder());
@@ -116,6 +121,20 @@ public class Hook extends WebCommandHandler {
 
         if (refOpen != -1) {
             ref = s.substring(refOpen + 1, s.indexOf(']'));
+        }
+
+        initClassInstance(ref, clazz);
+    }
+
+    protected void initClassInstance(String ref, Class clazz) {
+        if (clazz != null && APIHook.class.isAssignableFrom(clazz)) {
+            try {
+                Constructor ctor = clazz.getConstructor(Connection.class);
+                current = ctor.newInstance(connection);
+                return;
+            } catch (Exception ex) {
+                Logger.getLogger(getClass()).error("Failed to init APIHook", ex);
+            }
         }
 
         // The reference may be an empty string, just not null
@@ -184,6 +203,7 @@ public class Hook extends WebCommandHandler {
 
     protected void parseAndExecuteMethod(Method m, Object[] args) throws Exception {
         Class<?>[] types = m.getParameterTypes();
+
         if ((types != null && types.length != 0) && ((types.length > 0 && args == null) || (types.length != args.length))) {
             Logger.getLogger(getClass()).info("Hook call made with incorrect number of arguments: " + commandName);
             current = new CommandException("Illegal number of arguments in " + m.getName() + " call", commandName);
@@ -246,6 +266,9 @@ public class Hook extends WebCommandHandler {
             try {
                 if (clazz == null) {
                     determineClass(ref, i, split);
+                } else if (APIHook.class.isAssignableFrom(clazz)) {
+                    // API hooks are responsable for their own handling
+                    return ((APIHook) current).handle(command, args);
                 } else {
                     Object result = findAndCallMethod(ref, s, args);
                     if (result != null) {
@@ -257,7 +280,6 @@ public class Hook extends WebCommandHandler {
                 return new CommandException(ex, commandName);
             }
         }
-
         if (current == null) {
             current = new Result(null, null, "EMPTY");
         }

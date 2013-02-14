@@ -19,12 +19,16 @@ package org.xenmaster.api.util;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.util.Map;
+import java.util.UUID;
+import net.wgr.core.ReflectionUtils;
+import org.apache.log4j.Logger;
 import org.xenmaster.api.entity.XenApiEntity;
 
 /**
- * 
+ *
  * @created Dec 14, 2011
  * @author double-u
  */
@@ -49,7 +53,7 @@ public class APIUtil {
                             return enumType;
                         }
                     }
-                        
+
                     throw new IllegalArgumentException("Argument value does not belong to enum values of " + type.getCanonicalName());
                 } else if (type.isArray()) {
                     // FIXME : This can break all too easily
@@ -68,6 +72,24 @@ public class APIUtil {
                 } else if (XenApiEntity.class.isAssignableFrom(type)) {
                     Constructor c = type.getConstructor(String.class, boolean.class);
                     return c.newInstance(value.toString(), false);
+                } else if (UUID.class.isAssignableFrom(type)) {
+                    return UUID.fromString(value.toString());
+                } else if (Map.class.isAssignableFrom(value.getClass())) {
+                    Logger.getLogger(APIUtil.class).info("New transformer used");
+                    Object instance = type.newInstance();
+                    Map<String, Object> source = (Map<String, Object>) value;
+
+                    for (Map.Entry<String, Object> entry : source.entrySet()) {
+                        for (Field f : ReflectionUtils.getAllFields(type)) {
+                            if (f.getName().equals(entry.getKey())) {
+                                f.setAccessible(true);
+                                f.set(instance, deserializeToTargetType(entry.getValue(), f.getType()));
+                                break;
+                            }
+                        }
+                    }
+                    
+                    return instance;
                 }
                 break;
         }
