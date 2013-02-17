@@ -97,9 +97,9 @@ public class XenApiEntity implements Serializable {
             return sn.toLowerCase();
         }
     }
-    
+
     public String getReference(boolean deriveFromUUID) {
-         // Try to obtain a reference by its UUID
+        // Try to obtain a reference by its UUID
         if (reference == null && uuid != null && deriveFromUUID == true && valid == true) {
             // Get reference is a safe op that does not throw errors
             try {
@@ -112,7 +112,7 @@ public class XenApiEntity implements Serializable {
     }
 
     public String getReference() {
-       return getReference(true);
+        return getReference(true);
     }
 
     public UUID getUUID() {
@@ -130,7 +130,7 @@ public class XenApiEntity implements Serializable {
 
     /**
      * Allow us to give better names to some fields
-     * @return 
+     * @return
      */
     protected Map<String, String> interpretation() {
         return new HashMap<>();
@@ -141,7 +141,9 @@ public class XenApiEntity implements Serializable {
     }
 
     protected <T> T value(T obj, String name, Object... params) {
-        if (obj != null) {
+        if (obj.toString().equals("OpaqueRef:NULL")) {
+            return null;
+        } else if (obj != null) {
             return obj;
         } else {
             if (this.reference == null || this.reference.isEmpty()) {
@@ -225,14 +227,14 @@ public class XenApiEntity implements Serializable {
             }
         }
     }
-    
+
     public boolean isValid() {
         return valid;
     }
 
     protected void log(String className, String functionName, Exception ex, LogEntry.Level level) {
         String title;
-        
+
         if (ex instanceof BadAPICallException) {
             title = functionName + " : " + ((BadAPICallException) ex).getErrorName();
         } else {
@@ -432,7 +434,7 @@ public class XenApiEntity implements Serializable {
                         } else if (f.isAnnotationPresent(Fill.class)) {
                             Object casted = f.getType().cast(value);
                             /*if (XenApiEntity.class.isAssignableFrom(f.getType()) && f.getAnnotation(Fill.class).fillAPIObject()) {
-                            }*/
+                             }*/
                             f.set(this, casted);
                         }
                         break;
