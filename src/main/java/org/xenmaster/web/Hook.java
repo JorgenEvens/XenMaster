@@ -112,7 +112,7 @@ public class Hook extends WebCommandHandler {
         if (refOpen != -1) {
             className = s.substring(0, refOpen);
             clazz = Class.forName("org.xenmaster.api." + className);
-        } else if (index == values.length - 2 || values.length == 1) {
+        } else if (index == values.length - 2) {
             className += s;
             clazz = Class.forName("org.xenmaster.api." + className);
         } else {
@@ -155,6 +155,11 @@ public class Hook extends WebCommandHandler {
     protected Object findAndCallMethod(String ref, String s, Object[] args) throws Exception {
         int open = s.indexOf('(');
         String methodName = (open != -1 ? s.substring(0, open) : s);
+
+        // Caller requested new instance of object
+        if (methodName.equals("new")) {
+            return current;
+        }
 
         if (open != -1) {
             String argstr = s.substring(s.indexOf('(') + 1, s.indexOf(')'));
