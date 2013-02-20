@@ -141,10 +141,12 @@ public class XenApiEntity implements Serializable {
     }
 
     protected <T> T value(T obj, String name, Object... params) {
-        if (obj.toString().equals("OpaqueRef:NULL")) {
-            return null;
-        } else if (obj != null) {
-            return obj;
+        if (obj != null) {
+            if (obj.toString().equals("OpaqueRef:NULL")) {
+                return null;
+            } else {
+                return obj;
+            }
         } else {
             if (this.reference == null || this.reference.isEmpty()) {
                 return null;
