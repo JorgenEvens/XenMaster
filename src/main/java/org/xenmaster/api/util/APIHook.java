@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import net.wgr.core.ReflectionUtils;
 import net.wgr.wcp.connectivity.Connection;
 import org.apache.log4j.Logger;
+import org.xenmaster.web.Hook;
 
 public class APIHook {
 
@@ -30,8 +31,13 @@ public class APIHook {
         this.connection = connection;
     }
 
-    public Object handle(String method, Object[] args) {
+    public Object handle(String method, Object[] args, Hook hook) {
         String methodName = method.substring(method.indexOf('.') + 1);
+        
+        if (method.endsWith("build")) {
+            return hook.storeLocalObject(this);
+        }
+        
         for (Method m : ReflectionUtils.getAllMethods(getClass())) {
             if (m.getName().equals(methodName) && m.getParameterTypes().length == args.length) {
                 Class<?>[] argTypes = m.getParameterTypes();
