@@ -89,6 +89,29 @@ public class DataRequest {
         return keys != null && keys.contains(datakey.getName());
     }
 
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final DataRequest other = (DataRequest) obj;
+        if (this.isVm() != other.isVm()) {
+            return false;
+        }
+        if (!this.getId().equals(other.getId())) {
+            return false;
+        }
+        return true;
+    }
+
     public static enum DefaultKeySets {
 
         ALL, XAPI, PIF, CPU

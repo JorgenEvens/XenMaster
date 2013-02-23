@@ -101,9 +101,7 @@ public class Hook extends WebCommandHandler {
             }
         }
 
-        int ref = store.size();
-        store.put(ref, new StoredValue(obj));
-        return "LocalRef:" + ref;
+        return storeLocalObject(obj);
     }
 
     protected void determineClass(String ref, int index, String[] values) throws Exception {
@@ -273,7 +271,7 @@ public class Hook extends WebCommandHandler {
                     determineClass(ref, i, split);
                 } else if (APIHook.class.isAssignableFrom(clazz)) {
                     // API hooks are responsable for their own handling
-                    return ((APIHook) current).handle(command, args);
+                    return ((APIHook) current).handle(command, args, this);
                 } else {
                     Object result = findAndCallMethod(ref, s, args);
                     if (result != null) {
@@ -289,6 +287,12 @@ public class Hook extends WebCommandHandler {
             current = new Result(null, null, "EMPTY");
         }
         return current;
+    }
+    
+    public String storeLocalObject(Object obj) {
+        int ref = store.size();
+        store.put(ref, new StoredValue(obj));
+        return "LocalRef:" + ref;
     }
 
     public static class APICall {

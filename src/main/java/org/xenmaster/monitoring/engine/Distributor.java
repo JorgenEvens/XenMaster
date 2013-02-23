@@ -16,81 +16,97 @@
  */
 package org.xenmaster.monitoring.engine;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import net.wgr.wcp.Commander;
-import net.wgr.wcp.Scope;
-import net.wgr.wcp.command.Command;
-import net.wgr.wcp.connectivity.Connection;
+import org.xenmaster.api.Monitor;
 import org.xenmaster.monitoring.data.DataKey;
 import org.xenmaster.monitoring.data.DataRequest;
 
 /**
- * 
+ *
  * @created Feb 18, 2012
  * @author double-u
  */
 public class Distributor {
 
-    private Map<DataRequest, DataClient> subscribers;
+    private List<Monitor> monitors;
+    private List<DataRequest> requests;
+    private List<DataListener> listeners;
 
     public Distributor() {
-        subscribers = new HashMap<>();
+        this.monitors = new ArrayList<>();
+        this.requests = new ArrayList<>();
+        this.listeners = new ArrayList<>();
     }
 
     public void dataUpdate(long timestamp, Map<DataKey, Double> data) {
-        HashMap<DataClient, Map<DataKey, Double>> accumulate = new HashMap<>();
+        Map<DataRequest, Map<DataKey, Double>> assembly = new HashMap<>();
+
         for (Map.Entry<DataKey, Double> entry : data.entrySet()) {
             DataKey key = entry.getKey();
-            for (Map.Entry<DataRequest, DataClient> request : subscribers.entrySet()) {
-                if (request.getKey().match(key)) {
-                    if (!accumulate.containsKey(request.getValue())) {
-                        accumulate.put(request.getValue(), new HashMap<DataKey, Double>());
+
+            // Map data lines on requests
+            for (DataRequest request : requests) {
+                if (request.match(key)) {
+                    if (!assembly.containsKey(request)) {
+                        assembly.put(request, new HashMap<DataKey, Double>());
                     }
 
-                    accumulate.get(request.getValue()).put(key, entry.getValue());
+                    assembly.get(request).put(entry.getKey(), entry.getValue());
                 }
             }
         }
 
-        distribute(accumulate);
-    }
-
-    public void serveRequest(DataRequest dr, Connection c) {
-        DataClient dc = new DataClient();
-        dc.connection = c;
-        this.subscribers.put(dr, dc);
-    }
-    
-    public void serveRequest(DataRequest dr, DataListener dl) {
-        DataClient dc = new DataClient();
-        dc.listener = dl;
-        this.subscribers.put(dr, dc);
-    }
-
-    private void distribute(Map<DataClient, Map<DataKey, Double>> data) {
-        Command cmd = null;
-        for (Map.Entry<DataClient, Map<DataKey, Double>> entry : data.entrySet()) {
-            if (entry.getKey().connection != null) {
-                cmd = new Command("monitoring", "update", entry.getValue());
-                Scope scope = new Scope(entry.getKey().connection.getId());
-                Commander.get().commandeer(cmd, scope);
-            } else if (entry.getKey().listener != null) {
-                entry.getKey().listener.update(entry.getValue());
+        for (Iterator<DataRequest> it = requests.iterator(); it.hasNext();) {
+            DataRequest request = it.next();
+            if (!handleDelivery(request, assembly.get(request))) {
+                it.remove();
             }
         }
     }
 
-    private static class DataClient {
+    protected boolean handleDelivery(DataRequest dr, Map<DataKey, Double> data) {
+        boolean updateAppreciated = false;
 
-        public Connection connection;
-        public DataListener listener;
+        for (Monitor m : monitors) {
+            if (m.deliverUpdate(dr, data)) {
+                updateAppreciated = true;
+            }
+        }
+
+        for (DataListener dl : listeners) {
+            dl.update(data);
+        }
+
+        if (!updateAppreciated && listeners.isEmpty()) {
+            // The update wasn't appreciated, so remove the request for it
+            return false;
+        }
+
+        return true;
+    }
+
+    public void postRequest(DataRequest dr) {
+        this.requests.add(dr);
+    }
+
+    public void addListener(DataListener dl) {
+        this.listeners.add(dl);
+    }
+
+    public boolean register(Monitor monitor) {
+        this.monitors.add(monitor);
+        return true;
+    }
+
+    public void deregister(Monitor monitor) {
+        this.monitors.remove(monitor);
     }
 
     public abstract static class DataListener {
-
-        protected List<DataRequest> requests;
 
         public abstract void update(Map<DataKey, Double> data);
     }
