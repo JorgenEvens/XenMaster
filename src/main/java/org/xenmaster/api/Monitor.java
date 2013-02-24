@@ -56,7 +56,8 @@ public class Monitor extends APIHook {
     public boolean deliverUpdate(DataRequest req, Map<DataKey, Double> values) {
         for (DataRequest dr : requests) {
             if (dr.equals(req)) {
-                Command cmd = new Command("monitoring", "update", values);
+                DataUpdate du = new DataUpdate(reference, values);
+                Command cmd = new Command("monitoring", "update", du);
                 Scope scope = new Scope(connection.getId());
                 Commander.get().commandeer(cmd, scope);
 
@@ -78,5 +79,15 @@ public class Monitor extends APIHook {
                 it.remove();
             }
         }
+    }
+    
+    protected static class DataUpdate {
+        public String reference;
+        public Map<DataKey, Double> data;
+
+        public DataUpdate(String reference, Map<DataKey, Double> data) {
+            this.reference = reference;
+            this.data = data;
+        } 
     }
 }
