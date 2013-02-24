@@ -26,6 +26,7 @@ import org.xenmaster.web.Hook;
 public class APIHook {
 
     protected Connection connection;
+    protected String reference;
 
     public APIHook(Connection connection) {
         this.connection = connection;
@@ -33,11 +34,12 @@ public class APIHook {
 
     public Object handle(String method, Object[] args, Hook hook) {
         String methodName = method.substring(method.indexOf('.') + 1);
-        
+
         if (method.endsWith("build")) {
-            return hook.storeLocalObject(this);
+            reference = hook.storeLocalObject(this);
+            return reference;
         }
-        
+
         for (Method m : ReflectionUtils.getAllMethods(getClass())) {
             if (m.getName().equals(methodName) && m.getParameterTypes().length == args.length) {
                 Class<?>[] argTypes = m.getParameterTypes();
@@ -53,7 +55,7 @@ public class APIHook {
                 }
             }
         }
-        
+
         return null;
     }
 }

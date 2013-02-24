@@ -125,7 +125,7 @@ public class Hook extends WebCommandHandler {
     }
 
     protected void initClassInstance(String ref, Class clazz) {
-        if (clazz != null && APIHook.class.isAssignableFrom(clazz)) {
+        if (clazz != null && ref == null && APIHook.class.isAssignableFrom(clazz)) {
             try {
                 Constructor ctor = clazz.getConstructor(Connection.class);
                 current = ctor.newInstance(connection);
@@ -207,6 +207,7 @@ public class Hook extends WebCommandHandler {
     protected void parseAndExecuteMethod(Method m, Object[] args) throws Exception {
         Class<?>[] types = m.getParameterTypes();
 
+        // Check method signature
         if ((types != null && types.length != 0) && ((types.length > 0 && args == null) || (types.length != args.length))) {
             Logger.getLogger(getClass()).info("Hook call made with incorrect number of arguments: " + commandName);
             current = new CommandException("Illegal number of arguments in " + m.getName() + " call", commandName);
@@ -269,7 +270,7 @@ public class Hook extends WebCommandHandler {
             try {
                 if (clazz == null) {
                     determineClass(ref, i, split);
-                } else if (APIHook.class.isAssignableFrom(clazz)) {
+                } else if (APIHook.class.isAssignableFrom(clazz) && ref == null) {
                     // API hooks are responsable for their own handling
                     return ((APIHook) current).handle(command, args, this);
                 } else {
@@ -293,6 +294,14 @@ public class Hook extends WebCommandHandler {
         int ref = store.size();
         store.put(ref, new StoredValue(obj));
         return "LocalRef:" + ref;
+    }
+    
+    public String getReferenceForLocalObject(Object obj) {
+        for (Map.Entry<Integer, StoredValue> entry : store.entrySet()) {
+            if (entry.getValue().value.equals(obj)) return "LocalRef:" + entry.getKey();
+        } 
+        
+        return null;
     }
 
     public static class APICall {
