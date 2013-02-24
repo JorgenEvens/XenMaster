@@ -66,6 +66,10 @@ public class Monitor extends APIHook {
 
         return false;
     }
+    
+    public void cancel() {
+        requests.clear();
+    }
 
     public void cancel(DataRequest dr) {
         for (Iterator<DataRequest> it = requests.iterator(); it.hasNext();) {
