@@ -70,7 +70,7 @@ public class Monitor extends APIHook {
                 Scope scope = new Scope(connection.getId());
                 Commander.get().commandeer(cmd, scope);
 
-                if (!describeRecords || true) {
+                if (!describeRecords) {
                     describeKeys(values.keySet());
                 }
 
@@ -113,6 +113,8 @@ public class Monitor extends APIHook {
         Command cmd = new Command("monitoring", "description", description);
         Scope scope = new Scope(connection.getId());
         Commander.get().commandeer(cmd, scope);
+        
+        describeRecords = false;
     }
 
     public void cancel() {
