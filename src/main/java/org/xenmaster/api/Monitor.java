@@ -17,13 +17,19 @@
 package org.xenmaster.api;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import net.wgr.wcp.Commander;
 import net.wgr.wcp.Scope;
 import net.wgr.wcp.command.Command;
 import net.wgr.wcp.connectivity.Connection;
+import org.apache.commons.lang.StringUtils;
+import org.xenmaster.api.entity.VIF;
+import org.xenmaster.api.entity.VM;
 import org.xenmaster.api.util.APIHook;
 import org.xenmaster.monitoring.MonitoringAgent;
 import org.xenmaster.monitoring.data.DataKey;
@@ -36,30 +42,37 @@ import org.xenmaster.monitoring.data.DataRequest;
  */
 public class Monitor extends APIHook {
 
-    protected List<DataRequest> requests;
+    protected Map<Integer, DataRequest> requests;
     protected boolean registered;
+    protected boolean describeRecords;
+    protected List<Integer> describedRecords;
 
     public Monitor(Connection connection) {
         super(connection);
 
-        this.requests = new ArrayList<>();
+        this.requests = new HashMap<>();
     }
 
-    public void requestData(DataRequest req) {
+    public int requestData(DataRequest req) {
         if (!registered) {
             registered = MonitoringAgent.get().getCorrelator().getDistributor().register(this);
         }
-        this.requests.add(req);
-        MonitoringAgent.get().getCorrelator().getDistributor().postRequest(req);
+        int idx = MonitoringAgent.get().getCorrelator().getDistributor().postRequest(req);
+        this.requests.put(idx, req);
+        return idx;
     }
 
     public boolean deliverUpdate(DataRequest req, Map<DataKey, Double> values) {
-        for (DataRequest dr : requests) {
-            if (dr.equals(req)) {
+        for (Entry<Integer, DataRequest> entry : requests.entrySet()) {
+            if (entry.getValue().equals(req)) {
                 DataUpdate du = new DataUpdate(reference, values);
                 Command cmd = new Command("monitoring", "update", du);
                 Scope scope = new Scope(connection.getId());
                 Commander.get().commandeer(cmd, scope);
+
+                if (!describeRecords || true) {
+                    describeKeys(values.keySet());
+                }
 
                 return true;
             }
@@ -67,27 +80,73 @@ public class Monitor extends APIHook {
 
         return false;
     }
-    
+
+    public void describeRecords() {
+        this.describedRecords = new ArrayList<>();
+        this.describeRecords = true;
+    }
+
+    protected void describeKeys(Collection<DataKey> keys) {
+        HashMap<DataKey, DataKeyDescription> description = new HashMap<>();
+
+        // temps keeping us from having to resolve objects
+        VM vm = null;
+        ArrayList<VIF> vifs = new ArrayList<>();
+
+        for (DataKey key : keys) {
+            String[] ks = StringUtils.split(key.getName(), '_');
+
+            if (vm == null || !vm.getIDString().equals(key.getId().toString())) {
+                vm = new VM(key.getId(), true);
+
+                vifs.clear();
+                vifs.addAll(vm.getVIFs());
+            }
+
+            if (ks[0].equals("vif")) {
+                VIF vif = vifs.get(Integer.parseInt(ks[1]));
+                description.put(key, new DataKeyDescription(vif.getReference(), 
+                        "NIC: " + vif.getNetwork().getName() + '_' + ks[2]));
+            }
+        }
+
+        Command cmd = new Command("monitoring", "description", description);
+        Scope scope = new Scope(connection.getId());
+        Commander.get().commandeer(cmd, scope);
+    }
+
     public void cancel() {
         requests.clear();
     }
 
     public void cancel(DataRequest dr) {
-        for (Iterator<DataRequest> it = requests.iterator(); it.hasNext();) {
-            DataRequest req = it.next();
-            if (req.equals(dr)) {
+        for (Iterator<Entry<Integer, DataRequest>> it = requests.entrySet().iterator(); it.hasNext();) {
+            Entry<Integer, DataRequest> req = it.next();
+            if (req.getValue().equals(dr)) {
                 it.remove();
             }
         }
     }
-    
+
     protected static class DataUpdate {
+
         public String reference;
         public Map<DataKey, Double> data;
 
         public DataUpdate(String reference, Map<DataKey, Double> data) {
             this.reference = reference;
             this.data = data;
-        } 
+        }
+    }
+
+    protected static class DataKeyDescription {
+
+        public String reference;
+        public String friendlyName;
+
+        public DataKeyDescription(String reference, String friendlyName) {
+            this.reference = reference;
+            this.friendlyName = friendlyName;
+        }
     }
 }
