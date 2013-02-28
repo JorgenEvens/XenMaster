@@ -78,6 +78,19 @@ public class XenApiEntity implements Serializable {
             fillOut(getAPIName(), null);
         }
     }
+    
+    public XenApiEntity(UUID uuid, boolean autoFill) {
+        if (uuid != null) {
+            try {
+                reference = dispatch("get_by_uuid", uuid.toString()).toString();
+                if (autoFill) fillOut(getAPIName(), null);
+            } catch (BadAPICallException ex) {
+                valid = false;
+            }
+        } else {
+            throw new IllegalArgumentException("Empty UUID given");
+        }
+    }
 
     protected final void checkReference(String ref) throws IllegalReferenceException {
         if (NULL_REF.equals(ref)) {

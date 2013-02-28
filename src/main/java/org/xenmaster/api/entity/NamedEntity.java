@@ -19,6 +19,7 @@ package org.xenmaster.api.entity;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.xenmaster.controller.BadAPICallException;
 
@@ -41,6 +42,10 @@ public class NamedEntity extends XenApiEntity {
     }
 
     public NamedEntity() {
+    }
+
+    public NamedEntity(UUID uuid, boolean autoFill) {
+        super(uuid, autoFill);
     }
 
     public String getDescription() {

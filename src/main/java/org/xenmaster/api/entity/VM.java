@@ -17,9 +17,6 @@
  */
 package org.xenmaster.api.entity;
 
-import org.xenmaster.api.entity.Console;
-import org.xenmaster.api.entity.GuestMetrics;
-import org.xenmaster.api.entity.Host;
 import java.util.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.xenmaster.controller.BadAPICallException;
@@ -97,6 +94,10 @@ public class VM extends NamedEntity {
 
     public VM(String ref) {
         super(ref);
+    }
+
+    public VM(UUID uuid, boolean autoFill) {
+        super(uuid, autoFill);
     }
 
     public String create(int maxVCPUs) throws BadAPICallException {
