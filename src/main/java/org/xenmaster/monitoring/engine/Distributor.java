@@ -89,8 +89,11 @@ public class Distributor {
         return true;
     }
 
-    public void postRequest(DataRequest dr) {
-        this.requests.add(dr);
+    public int postRequest(DataRequest dr) {
+        int idx = this.requests.size();
+        // TODO rotate when full
+        this.requests.add(idx, dr);
+        return idx;
     }
 
     public void addListener(DataListener dl) {

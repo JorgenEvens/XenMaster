@@ -123,8 +123,8 @@ public class VIF extends XenApiEntity {
         return metrics;
     }
 
-    public String getNetwork() {
-        return network;
+    public Network getNetwork() {
+        return new Network(network);
     }
 
     public Map<String, String> getRuntimeProperties() {
