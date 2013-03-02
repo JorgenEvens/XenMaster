@@ -154,11 +154,12 @@ public class CachingFacility {
             throw new IllegalArgumentException("Cannot remove null");
         }
 
-        if (isCached(object.getReference(false), object.getClass())) {
-            cache.remove(object.getReference());
-        } else {
-            // We only are interested in updates for things we've cached, others will always be newest available ones when they are retreived
-            Logger.getLogger(getClass()).debug("Object " + object.getReference(false) + '(' + object.getClass().getCanonicalName() + ") was not inside cache and therefore could not be updated.");
+        // No reference is provided with the event, so we'll have to walk trough each object in cache and see if the uuid matches
+        for(Cache.Entry<String, XenApiEntity> entry : cache.entrySet()) {
+            if (entry.getValue().getUUID().equals(object.getUUID())) {
+                cache.remove(entry.getKey());
+                return;
+            }
         }
     }
 
