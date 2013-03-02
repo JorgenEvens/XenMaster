@@ -74,7 +74,7 @@ public class APIUtil {
                     return c.newInstance(value.toString(), false);
                 } else if (UUID.class.isAssignableFrom(type)) {
                     return UUID.fromString(value.toString());
-                } else if (Map.class.isAssignableFrom(value.getClass())) {
+                } else if (value != null && Map.class.isAssignableFrom(value.getClass())) {
                     Logger.getLogger(APIUtil.class).info("New transformer used");
                     Object instance = type.newInstance();
                     Map<String, Object> source = (Map<String, Object>) value;
