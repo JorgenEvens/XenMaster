@@ -21,6 +21,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.net.InetAddress;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import net.wgr.core.ReflectionUtils;
@@ -76,6 +77,12 @@ public class APIUtil {
                     return UUID.fromString(value.toString());
                 } else if (value != null && Map.class.isAssignableFrom(value.getClass())) {
                     Logger.getLogger(APIUtil.class).info("New transformer used");
+                    
+                    if (type.equals(Map.class)) {
+                        // We can't instantiate an interface, default to HashMap implementation
+                        type = HashMap.class;
+                    }
+                    
                     Object instance = type.newInstance();
                     Map<String, Object> source = (Map<String, Object>) value;
 

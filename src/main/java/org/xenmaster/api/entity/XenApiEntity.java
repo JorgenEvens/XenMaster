@@ -179,7 +179,6 @@ public class XenApiEntity implements Serializable {
         }
         if (reference != null && !reference.isEmpty() && name != null && !name.isEmpty()) {
             dispatch(name, obj);
-            return null;
         }
 
         return obj;
