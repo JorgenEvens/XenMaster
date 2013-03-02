@@ -75,7 +75,7 @@ public class APIUtil {
                     return c.newInstance(value.toString(), false);
                 } else if (UUID.class.isAssignableFrom(type)) {
                     return UUID.fromString(value.toString());
-                } else if (value != null && Map.class.isAssignableFrom(value.getClass())) {
+                } else if (value != null && Map.class.isAssignableFrom(value.getClass()) && !Map.class.isAssignableFrom(type)) {
                     Logger.getLogger(APIUtil.class).info("New transformer used");
                     
                     if (type.equals(Map.class)) {
