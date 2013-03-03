@@ -216,7 +216,9 @@ public class Hook extends WebCommandHandler {
                 Class<?> type = types[j];
                 Object value = args[j];
 
-                if (value instanceof String) {
+                if (value == null) {
+                    throw new IllegalArgumentException("An argument for  " + clazz.getSimpleName() + '.' + m.getName() + " was null");
+                } else if (value instanceof String) {
                     String str = value.toString();
 
                     if (str.startsWith("LocalRef:")) {
@@ -289,18 +291,20 @@ public class Hook extends WebCommandHandler {
         }
         return current;
     }
-    
+
     public String storeLocalObject(Object obj) {
         int ref = store.size();
         store.put(ref, new StoredValue(obj));
         return "LocalRef:" + ref;
     }
-    
+
     public String getReferenceForLocalObject(Object obj) {
         for (Map.Entry<Integer, StoredValue> entry : store.entrySet()) {
-            if (entry.getValue().value.equals(obj)) return "LocalRef:" + entry.getKey();
-        } 
-        
+            if (entry.getValue().value.equals(obj)) {
+                return "LocalRef:" + entry.getKey();
+            }
+        }
+
         return null;
     }
 
