@@ -45,7 +45,7 @@ import org.xenmaster.connectivity.ConnectionMultiplexer;
 import org.xenmaster.controller.Controller;
 
 /**
- * 
+ *
  * @created Dec 15, 2011
  * @author double-u
  */
@@ -54,7 +54,7 @@ public class VNCHook extends WebCommandHandler {
     protected static ConnectionMultiplexer cm;
     protected static ConcurrentHashMap<String, Connection> connections;
     protected ConnectionMultiplexer.ActivityListener al;
-    protected static int connectionCounter;
+    protected static int connectionSlots, available = -1;
     protected static Gson gson;
 
     public VNCHook() {
@@ -128,11 +128,11 @@ public class VNCHook extends WebCommandHandler {
                     }
                     break;
                 case "connectionHeartbeat":
-                    Arguments heartbeat = Arguments.fromJson( cmd.getData() );
-                    if( !connections.containsKey(heartbeat.ref)) {
+                    Arguments heartbeat = Arguments.fromJson(cmd.getData());
+                    if (!connections.containsKey(heartbeat.ref)) {
                         return new CommandException("Tried to write to unexisting connection", heartbeat.ref);
                     }
-                    Connection ch = connections.get( heartbeat.ref );
+                    Connection ch = connections.get(heartbeat.ref);
                     ch.lastHeartbeat = System.currentTimeMillis();
                     break;
             }
@@ -141,6 +141,26 @@ public class VNCHook extends WebCommandHandler {
         }
 
         return null;
+    }
+
+    protected static int allocateConnection() {
+        if (available != -1) {
+            int temp = available;
+            available = -1;
+            return temp;
+        }
+        
+        if (connectionSlots != Integer.MAX_VALUE) {
+            return ++connectionSlots;
+        }
+        
+        for (int i = 0; i < Integer.MAX_VALUE; i++) {
+            if (!connections.containsKey("ConnectionRef:" + i)) {
+                return i;
+            }
+        }
+        
+        throw new Error("Maxed out at " + Integer.MAX_VALUE + " active VNC connections. Something's wrong"); 
     }
 
     protected static class Connection {
@@ -156,8 +176,7 @@ public class VNCHook extends WebCommandHandler {
         public Console console;
 
         public Connection(UUID client) {
-            connectionCounter++;
-            this.reference = "ConnectionRef:" + connectionCounter;
+            this.reference = "ConnectionRef:" + allocateConnection();
             this.clientId = client;
             this.lastHeartbeat = System.currentTimeMillis();
         }
@@ -303,6 +322,8 @@ public class VNCHook extends WebCommandHandler {
         cm.start();
         connections = new ConcurrentHashMap<>();
         GlobalExecutorService.get().scheduleAtFixedRate(new Reaper(), 0, 10, TimeUnit.SECONDS);
+
+
     }
 
     protected static class Reaper implements Runnable {
@@ -312,13 +333,15 @@ public class VNCHook extends WebCommandHandler {
             // Send a heartbeat
             Command cmd = new Command("vnc", "connectionHeartbeat", new Arguments());
             Commander.get().commandeer(cmd, new Scope(Scope.Target.ALL));
-            
-            for (Entry<String, Connection> entry : connections.entrySet()) {
+
+            for (Iterator<Entry<String, Connection>> it = connections.entrySet().iterator(); it.hasNext();) {
+                Entry<String, Connection> entry = it.next();
                 // Skipped 2 hearbeats, is probably dead.
                 if (System.currentTimeMillis() - entry.getValue().lastHeartbeat > 1000 * 20) {
                     try {
                         Logger.getLogger(getClass()).info("Reaper closing inactive connection " + entry.getValue().connection);
                         cm.close(entry.getValue().connection);
+                        it.remove();
                     } catch (IOException ex) {
                         Logger.getLogger(getClass()).error("Failed to close connection", ex);
                     }
