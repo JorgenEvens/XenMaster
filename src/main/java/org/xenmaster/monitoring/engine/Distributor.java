@@ -71,6 +71,10 @@ public class Distributor {
     protected boolean handleDelivery(DataRequest dr, Map<DataKey, Double> data) {
         boolean updateAppreciated = false;
 
+        if (data == null) {
+            return false;
+        }
+
         for (Monitor m : monitors) {
             if (m.deliverUpdate(dr, data)) {
                 updateAppreciated = true;
