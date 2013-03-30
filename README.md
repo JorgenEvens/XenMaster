@@ -1,6 +1,6 @@
 #XenMaster#
 ***
-Our web site is located at **<http://xen-master.org>** (inactive ATM). Frontend development takes place on the [XenMaster-WebUI repo](https://github.com/NoSTaBoNN/XenMaster-WebUI).
+Our web site is located at **<http://xen-master.org>** (inactive ATM). Frontend development takes place on the [XenMaster-WebUI repo](https://github.com/JorgenEvens/XenMaster-WebUI).
 
 ***
 
