@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+
+import os
+import simplejson as json
+import XenAPIPlugin
+import stat
+
+def getAll( session, args ):
+	x = session.xenapi
+	vms = x.VM.get_all()
+	groups = []
+
+	for vm_ref in vms:
+			vm = x.VM.get_record( vm_ref )
+			if( vm['other-config'].has_key('group') and not groups.contains( vm['other-config']['group'] ) ):
+				groups.append( vm['other-config']['group']  )
+
+	return json.dumps(groups)
+
+if __name__ == "__main__":
+	XenAPIPlugin.dispatch({
+		"getAll":	getAll
+	})
