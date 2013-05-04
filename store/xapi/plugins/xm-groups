@@ -6,18 +6,18 @@ import XenAPIPlugin
 import stat
 
 def getAll( session, args ):
-	x = session.xenapi
-	vms = x.VM.get_all()
-	groups = []
+    x = session.xenapi
+    vms = x.VM.get_all()
+    groups = []
 
-	for vm_ref in vms:
-			vm = x.VM.get_record( vm_ref )
-			if( vm['other-config'].has_key('group') and not groups.contains( vm['other-config']['group'] ) ):
-				groups.append( vm['other-config']['group']  )
+    for vm_ref in vms:
+        vm = x.VM.get_record( vm_ref )
+        if( vm['other_config'].has_key('group') and not vm['other_config'].get('group') in groups ):
+            groups.append( vm['other_config'].get('group')  )
 
-	return json.dumps(groups)
+    return json.dumps(groups)
 
 if __name__ == "__main__":
-	XenAPIPlugin.dispatch({
-		"getAll":	getAll
-	})
+    XenAPIPlugin.dispatch({
+        "getAll":       getAll
+    })

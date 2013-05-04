@@ -29,15 +29,13 @@ import org.xenmaster.controller.BadAPICallException;
  */
 public class Groups {
 
-    protected final static String FILESYTEM_PLUGIN = "xm-groups";
+    protected final static String GROUPS_PLUGIN = "xm-groups";
     protected static Gson gson = new Gson();
 
 
     public static String[] getAll(Host host) throws BadAPICallException {
-        String result = host.callPlugin(FILESYTEM_PLUGIN, "getAll", new HashMap<String, String>());
-        String[] groups = gson.fromJson(result, String[].class);
-
-        return groups;
+        String result = host.callPlugin(GROUPS_PLUGIN, "getAll", new HashMap<String, String>());
+        return gson.fromJson(result, String[].class);
     }
 
 }
